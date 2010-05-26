@@ -1,0 +1,16 @@
+syntax: glob
+*.DS_Store
+*.o
+dsss_objs
+dsss_docs
+dsss_imports
+dsss.last
+*.orig
+*.sh
+*.a
+*.rf
+*.dylib
+main.d
+main
+*.framework
+kandil
