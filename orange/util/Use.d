@@ -6,8 +6,6 @@
  */
 module orange.util.Use;
 
-import mambo.io;
-
 version (Tango)
 {
 	import tango.core.Tuple;
@@ -62,6 +60,7 @@ struct RestoreStruct (U, T)
 		return dg(deleg, *value);
 	}
 }
+
 RestoreStruct!(U, T) restore (U = void, T) (ref T val)
 {
 	RestoreStruct!(U, T) restoreStruct;
