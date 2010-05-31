@@ -423,25 +423,6 @@ class Serializer (ArchiveType : IArchive)
 		});
 	}
 	
-	private void objectStructSerializeHelper (T : Object) (T value)
-	{
-		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
-		
-		foreach (i, dummy ; typeof(T.tupleof))
-		{
-			const field = nameOfFieldAt!(T, i);
-			
-			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
-			{
-				alias typeof(T.tupleof[i]) Type;				
-				Type v = value.tupleof[i];
-				serialize(v, toDataType(field));
-			}				
-		}
-		
-		serializeBaseTypes(value);
-	}
-	
 	private void objectStructSerializeHelper (T) (ref T value)
 	{
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
@@ -458,25 +439,9 @@ class Serializer (ArchiveType : IArchive)
 				serialize(v, toDataType(field));
 			}				
 		}
-	}
-	
-	private void objectStructDeserializeHelper (T : Object) (T value)
-	{		
-		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
 		
-		foreach (i, dummy ; typeof(T.tupleof))
-		{
-			const field = nameOfFieldAt!(T, i);
-						
-			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
-			{
-				alias TypeOfField!(T, field) Type;
-				auto fieldValue = deserializeInternal!(Type)(toDataType(field));
-				value.tupleof[i] = fieldValue;
-			}			
-		}
-		
-		deserializeBaseTypes(value);
+		static if (isObject!(T) && !is(T == Object))
+			serializeBaseTypes(value);
 	}
 	
 	private void objectStructDeserializeHelper (T) (ref T value)
@@ -495,6 +460,9 @@ class Serializer (ArchiveType : IArchive)
 				value.tupleof[i] = fieldValue;
 			}			
 		}
+		
+		static if (isObject!(T) && !is(T == Object))
+			deserializeBaseTypes(value);
 	}
 	
 	private void serializeBaseTypes (T : Object) (T value)
@@ -504,7 +472,8 @@ class Serializer (ArchiveType : IArchive)
 		static if (!is(Base == Object))
 		{
 			archive.archiveBaseClass!(Base)(nextKey);
-			objectStructSerializeHelper!(Base)(value);
+			Base base = value;
+			objectStructSerializeHelper(base);
 		}
 	}
 	
@@ -515,7 +484,8 @@ class Serializer (ArchiveType : IArchive)
 		static if (!is(Base == Object))
 		{
 			archive.unarchiveBaseClass!(Base)(nextKey);
-			objectStructDeserializeHelper!(Base)(value);
+			Base base = value;
+			objectStructDeserializeHelper(base);
 		}
 	}
 	

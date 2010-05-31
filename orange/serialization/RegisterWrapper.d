@@ -19,25 +19,26 @@ class SerializeRegisterWrapper (T, ArchiveType : IArchive) : RegisterBase
 	private alias Serializer!(ArchiveType) SerializerType;
 	private alias SerializerType.DataType DataType;
 	private void delegate (T, SerializerType, DataType) dg;
-	private void function (T, SerializerType, DataType) func;
+	private bool isDelegate;
 
 	this (void delegate (T, SerializerType, DataType) dg)
 	{
+		isDelegate = true;
 		this.dg = dg;
 	}
 
 	this (void function (T, SerializerType, DataType) func)
 	{
-		this.func = func;
+		dg.funcptr = func;
 	}
 
 	void opCall (T value, SerializerType archive, DataType key)
 	{
-		if (dg)
+		if (dg && isDelegate)
 			dg(value, archive, key);
 		
-		else if (func)
-			func(value, archive, key);
+		else if (dg)
+			dg.funcptr(value, archive, key);
 	}
 }
 
@@ -46,24 +47,25 @@ class DeserializeRegisterWrapper (T, ArchiveType : IArchive) : RegisterBase
 	private alias Serializer!(ArchiveType) SerializerType;
 	private alias SerializerType.DataType DataType;
 	private void delegate (ref T, SerializerType, DataType) dg;
-	private void function (ref T, SerializerType, DataType) func;
+	private bool isDelegate;
 
 	this (void delegate (ref T, SerializerType, DataType) dg)
 	{
+		isDelegate = true;
 		this.dg = dg;
 	}
 
 	this (void function (ref T, SerializerType, DataType) func)
 	{
-		this.func = func;
+		dg.funcptr = func;
 	}
 
 	void opCall (ref T value, SerializerType archive, DataType key)
 	{
-		if (dg)
+		if (dg && isDelegate)
 			dg(value, archive, key);
 		
-		if (func)
-			func(value, archive, key);
+		if (dg)
+			dg.funcptr(value, archive, key);
 	}
 }
