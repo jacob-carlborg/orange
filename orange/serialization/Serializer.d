@@ -423,7 +423,7 @@ class Serializer (ArchiveType : IArchive)
 		});
 	}
 	
-	private void objectStructSerializeHelper (T) (T value)
+	private void objectStructSerializeHelper (T : Object) (T value)
 	{
 		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
 		
@@ -439,11 +439,28 @@ class Serializer (ArchiveType : IArchive)
 			}				
 		}
 		
-		static if (is(T : Object) && !is(T == Object))
-			serializeBaseTypes(value);
+		serializeBaseTypes(value);
 	}
 	
-	private void objectStructDeserializeHelper (T) (T value)
+	private void objectStructSerializeHelper (T) (ref T value)
+	{
+		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
+		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		
+		foreach (i, dummy ; typeof(T.tupleof))
+		{
+			const field = nameOfFieldAt!(T, i);
+			
+			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			{
+				alias typeof(T.tupleof[i]) Type;				
+				Type v = value.tupleof[i];
+				serialize(v, toDataType(field));
+			}				
+		}
+	}
+	
+	private void objectStructDeserializeHelper (T : Object) (T value)
 	{		
 		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
 		
@@ -454,13 +471,30 @@ class Serializer (ArchiveType : IArchive)
 			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
 			{
 				alias TypeOfField!(T, field) Type;
-				auto fieldValue = deserializeInternal!(Type)(toDataType(field));				
+				auto fieldValue = deserializeInternal!(Type)(toDataType(field));
 				value.tupleof[i] = fieldValue;
 			}			
 		}
 		
-		static if (is(T : Object) && !is(T == Object))
-			deserializeBaseTypes(value);
+		deserializeBaseTypes(value);
+	}
+	
+	private void objectStructDeserializeHelper (T) (ref T value)
+	{		
+		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
+		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		
+		foreach (i, dummy ; typeof(T.tupleof))
+		{
+			const field = nameOfFieldAt!(T, i);
+						
+			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			{
+				alias TypeOfField!(T, field) Type;
+				auto fieldValue = deserializeInternal!(Type)(toDataType(field));
+				value.tupleof[i] = fieldValue;
+			}			
+		}
 	}
 	
 	private void serializeBaseTypes (T : Object) (T value)
@@ -554,7 +588,7 @@ class Serializer (ArchiveType : IArchive)
 	
 	private void triggerEvent (string name, T) (T value)
 	{
-		static assert (is(T == class) || is(T == struct), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are classes and structs.`));
+		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -588,7 +622,7 @@ class Serializer (ArchiveType : IArchive)
 	
 	private static string[] collectAnnotations (string name, T) (T value)
 	{
-		static assert (is(T == class) || is(T == struct), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are classes and structs.`));
+		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
 		string[] annotations;
 		
