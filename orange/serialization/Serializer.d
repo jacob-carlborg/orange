@@ -115,26 +115,26 @@ class Serializer (ArchiveType : IArchive)
 		else static if (isPointer!(T))
 		{
 			static if (isFunctionPointer!(T))
-				static assert(false, format!(`The type "`, T, `" cannot be serialized.`));
+				goto error;
 				
 			else
 				serializePointer(value, key);
-		}
-			
+		}			
 		
 		else static if (isEnum!(T))
 			serializeEnum(value, key);
 		
 		else
-			static assert(false, format!(`The type "`, T, `" cannot be serialized.`));
+		{
+			error:
+			throw new SerializationException(format!(`The type "`, T, `" cannot be serialized.`), __FILE__, __LINE__);
+		}
 		
 		return archive.data;
 	}
 	
 	private void serializeObject (T) (T value, DataType key)
-	{		
-		auto nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
-		
+	{			
 		triggerEvents(serializing, value, {
 			archive.archive(value, key, {
 				auto runtimeType = value.classinfo.name;
@@ -153,7 +153,7 @@ class Serializer (ArchiveType : IArchive)
 					if (isBaseClass(value))
 						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a serializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
 				
-					objectStructSerializeHelper(value, nonSerializedFields);
+					objectStructSerializeHelper(value);
 				}
 			});
 		});
@@ -161,8 +161,6 @@ class Serializer (ArchiveType : IArchive)
 
 	private void serializeStruct (T) (T value, DataType key)
 	{		
-		auto nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
-		
 		triggerEvents(serializing, value, {
 			archive.archive(value, key, {
 				auto type = toDataType(T.stringof);
@@ -179,7 +177,7 @@ class Serializer (ArchiveType : IArchive)
 						value.toData(this, key);
 					
 					else
-						objectStructSerializeHelper(value, nonSerializedFields);
+						objectStructSerializeHelper(value);
 				}
 			});
 		});
@@ -285,20 +283,26 @@ class Serializer (ArchiveType : IArchive)
 			return deserializePrimitive!(T)(key);
 
 		else static if (isPointer!(T))
+		{			
+			static if (isFunctionPointer!(T))
+				goto error;
+			
 			return deserializePointer!(T)(key);
+		}		
 		
 		else static if (isEnum!(T))
 			return deserializeEnum!(T)(key);
 		
 		else
-			static assert(false, format!(`The type "`, T, `" cannot be deserialized.`));
+		{
+			error:
+			throw new SerializationException(format!(`The type "`, T, `" cannot be deserialized.`), __FILE__, __LINE__);
+		}			
 	}
 
 	private T deserializeObject (T) (DataType key)
 	{		
-		T value = archive.unarchive!(T)(key, (T value) {
-			auto nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
-			
+		T value = archive.unarchive!(T)(key, (T value) {			
 			triggerEvents(deserializing, value, {
 				auto runtimeType = value.classinfo.name;
 				
@@ -316,7 +320,7 @@ class Serializer (ArchiveType : IArchive)
 					if (isBaseClass(value))
 						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a deserializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
 					
-					objectStructDeserializeHelper(value, nonSerializedFields);					
+					objectStructDeserializeHelper(value);					
 				}
 			});
 			
@@ -329,8 +333,6 @@ class Serializer (ArchiveType : IArchive)
 	private T deserializeStruct (T) (DataType key)
 	{		
 		return archive.unarchive!(T)(key, (T value) {			
-			auto nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
-			
 			triggerEvents(deserializing, value, {
 				auto type = toDataType(T.stringof);
 				
@@ -346,7 +348,7 @@ class Serializer (ArchiveType : IArchive)
 						value.fromData(this, key);
 					
 					else
-						objectStructDeserializeHelper(value, nonSerializedFields);
+						objectStructDeserializeHelper(value);
 				}	
 			});
 			
@@ -421,64 +423,65 @@ class Serializer (ArchiveType : IArchive)
 		});
 	}
 	
-	private void objectStructSerializeHelper (T) (T value, string[] nonSerializedFields)
+	private void objectStructSerializeHelper (T) (T value)
 	{
+		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
 			const field = nameOfFieldAt!(T, i);
 			
-			if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
 			{
-				alias typeof(T.tupleof[i]) Type;
-				
+				alias typeof(T.tupleof[i]) Type;				
 				Type v = value.tupleof[i];
-				
-				//Type v = getValueOfField!(T, Type, field)(value);
 				serialize(v, toDataType(field));
 			}				
 		}
 		
 		static if (is(T : Object) && !is(T == Object))
-			serializeBaseTypes(value, nonSerializedFields);
+			serializeBaseTypes(value);
 	}
 	
-	private void objectStructDeserializeHelper (T) (T value, string[] nonSerializedFields)
+	private void objectStructDeserializeHelper (T) (T value)
 	{		
+		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
 			const field = nameOfFieldAt!(T, i);
 						
-			if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
-			{							
+			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			{
 				alias TypeOfField!(T, field) Type;
-				auto fieldValue = deserializeInternal!(Type)(toDataType(field));					
-				setValueOfField!(T, Type, field)(value, fieldValue);
+				auto fieldValue = deserializeInternal!(Type)(toDataType(field));				
+				value.tupleof[i] = fieldValue;
 			}			
 		}
 		
 		static if (is(T : Object) && !is(T == Object))
-			deserializeBaseTypes(value, nonSerializedFields);
+			deserializeBaseTypes(value);
 	}
 	
-	private void serializeBaseTypes (T : Object) (T value, string[] nonSerializedFields)
+	private void serializeBaseTypes (T : Object) (T value)
 	{
 		alias BaseTypeTupleOf!(T)[0] Base;
 		
 		static if (!is(Base == Object))
 		{
 			archive.archiveBaseClass!(Base)(nextKey);
-			objectStructSerializeHelper!(Base)(value, nonSerializedFields);
+			objectStructSerializeHelper!(Base)(value);
 		}
 	}
 	
-	private void deserializeBaseTypes (T : Object) (T value, string[] nonSerializedFields)
+	private void deserializeBaseTypes (T : Object) (T value)
 	{
 		alias BaseTypeTupleOf!(T)[0] Base;
 		
 		static if (!is(Base == Object))
 		{
 			archive.unarchiveBaseClass!(Base)(nextKey);
-			objectStructDeserializeHelper!(Base)(value, nonSerializedFields);
+			objectStructDeserializeHelper!(Base)(value);
 		}
 	}
 	
@@ -583,7 +586,7 @@ class Serializer (ArchiveType : IArchive)
 			triggerEvent!(onDeserializedField)(value);
 	}
 	
-	private string[] collectAnnotations (string name, T) (T value)
+	private static string[] collectAnnotations (string name, T) (T value)
 	{
 		static assert (is(T == class) || is(T == struct), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are classes and structs.`));
 		
@@ -595,8 +598,7 @@ class Serializer (ArchiveType : IArchive)
 			
 			static if (field == name)
 			{
-				alias TypeOfField!(T, field) Type;
-				auto f = getValueOfField!(T, Type, field)(value);
+				typeof(value.tupleof[i]) f;
 				annotations ~= f.field;
 			}
 		}

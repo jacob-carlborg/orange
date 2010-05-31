@@ -20,11 +20,7 @@ template format (ARGS...)
 			const format = ARGS[0] ~ format!(ARGS[1 .. $]);
 		
 		else
-		{
-			pragma(msg, typeof(ARGS[0].stringof));
 			const format = toString_!(ARGS[0]) ~ format!(ARGS[1 .. $]);
-		}
-					
 	}
 }
 
