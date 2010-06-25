@@ -556,7 +556,7 @@ class XMLArchive (U = char) : Archive!(U)
 		return cast(DataType) null;
 	}
 	
-	private struct AssociativeArrayVisitor(Key, Value)
+	private struct AssociativeArrayVisitor (Key, Value)
 	{
 		private XMLArchive archive;
 		
