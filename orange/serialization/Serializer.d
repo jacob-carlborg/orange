@@ -426,7 +426,7 @@ class Serializer (ArchiveType : IArchive)
 	private void objectStructSerializeHelper (T) (ref T value)
 	{
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
-		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -447,7 +447,7 @@ class Serializer (ArchiveType : IArchive)
 	private void objectStructDeserializeHelper (T) (ref T value)
 	{		
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
-		const nonSerializedFields = collectAnnotations!(nonSerializedField)(value);
+		const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -590,21 +590,18 @@ class Serializer (ArchiveType : IArchive)
 			triggerEvent!(onDeserializedField)(value);
 	}
 	
-	private static string[] collectAnnotations (string name, T) (T value)
+	private static string[] collectAnnotations (string name, T) ()
 	{
 		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
 		string[] annotations;
 		
-		foreach (i, dummy ; typeof(T.tupleof))
+		foreach (i, type ; typeof(T.tupleof))
 		{
 			const field = nameOfFieldAt!(T, i);
 			
 			static if (field == name)
-			{
-				typeof(value.tupleof[i]) f;
-				annotations ~= f.field;
-			}
+				annotations ~= type.field;
 		}
 		
 		return annotations;
