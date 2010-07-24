@@ -21,7 +21,6 @@ else
 	import std.stdio;
 	
 	import orange.xml.PhobosXML;
-	import orange.util._;
 	
 	version = Phobos;
 }

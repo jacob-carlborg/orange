@@ -130,7 +130,6 @@ version (Phobos):
 import std.array;
 import std.string;
 import std.encoding;
-import orange.util.io;
 
 immutable cdata = "<![CDATA[";
 

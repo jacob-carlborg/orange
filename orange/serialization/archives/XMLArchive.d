@@ -350,8 +350,6 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		if (!tmp.isValid)
 		{
-			println(T.stringof);
-			println(key);
 			lastElement = getElement(Tags.nullTag, key);
 			callDelegate = false;
 			return null;
