@@ -7,8 +7,12 @@
 module orange.serialization.Serializer;
 
 version (Tango)
-{
 	import tango.util.Convert : to, ConversionException;
+
+else
+{
+	import std.conv;
+	alias ConvError ConversionException;
 }
 
 import orange.serialization._;

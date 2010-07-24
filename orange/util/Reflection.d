@@ -410,7 +410,7 @@ string[] getClassNames (string code) ()
  *     
  * Returns: the newly created instance or null
  */
-T factory (T, ARGS...) (string name, ARGS args)
+T factory (T) (string name)
 {	
 	auto classInfo = ClassInfo.find(name);
 	
@@ -467,4 +467,14 @@ Object newInstance (ClassInfo classInfo)
 
 	else
 		return _d_newclass(classInfo);
+}
+
+Object newInstance (string name)
+{
+	auto classInfo = ClassInfo.find(name);
+	
+	if (!classInfo)
+		return null;
+	
+	return newInstance(classInfo);
 }

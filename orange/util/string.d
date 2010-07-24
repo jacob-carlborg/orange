@@ -279,7 +279,8 @@ in
 }
 body
 {
-	return str[beginIndex .. endIndex].dup;
+	version (Tango) return str[beginIndex .. endIndex].dup;
+	else return str[beginIndex .. endIndex].idup;
 }
 
 /**
@@ -315,7 +316,8 @@ in
 }
 body
 {
-	return str[beginIndex .. endIndex].dup;
+	version (Tango) return str[beginIndex .. endIndex].dup;
+	else return str[beginIndex .. endIndex].idup;
 }
 
 /**
@@ -351,7 +353,8 @@ in
 }
 body
 {
-	return str[beginIndex .. endIndex].dup;
+	version (Tango) return str[beginIndex .. endIndex].dup;
+	else return str[beginIndex .. endIndex].idup;
 }
 
 /**
@@ -492,7 +495,8 @@ body
 			end = str.length;
 	}
 	
-	return str[pos .. end].dup;
+	version (Tango) return str[pos .. end].dup;
+	else return str[pos .. end].idup;
 }
 
 /**
@@ -537,7 +541,8 @@ body
 			end = str.length;
 	}
 	
-	return str[pos .. end].dup;
+	version (Tango) return str[pos .. end].dup;
+	else return str[pos .. end].idup;
 }
 
 /**
@@ -582,7 +587,8 @@ body
 			end = str.length;
 	}
 	
-	return str[pos .. end].dup;
+	version (Tango) return str[pos .. end].dup;
+	else return str[pos .. end].idup;
 }
 
 /**
@@ -595,11 +601,11 @@ body
  *     
  * Returns: the index of the substring or size_t.max when nothing was found
  */
-size_t find (string str, string sub, size_t start = 0)
+size_t find (string str, string sub)
 {
 	version (Tango)
 	{
-		size_t index = str.locatePattern(sub, start);
+		size_t index = str.locatePattern(sub);
 		
 		if (index == str.length)
 			return size_t.max;
@@ -608,7 +614,8 @@ size_t find (string str, string sub, size_t start = 0)
 	}
 	
 	else
-		return std.string.find(str, sub, start);
+		return std.string.indexOf(str, sub);
+	
 }
 
 /**
@@ -621,11 +628,11 @@ size_t find (string str, string sub, size_t start = 0)
  *     
  * Returns: the index of the substring or size_t.max when nothing was found
  */
-size_t find (wstring str, wstring sub, size_t start = 0)
+size_t find (wstring str, wstring sub)
 {
 	version (Tango)
 	{
-		size_t index = str.locatePattern(sub, start);
+		size_t index = str.locatePattern(sub);
 		
 		if (index == str.length)
 			return size_t.max;
@@ -634,7 +641,7 @@ size_t find (wstring str, wstring sub, size_t start = 0)
 	}
 	
 	else
-		return std.string.find(str, sub, start);
+		return std.string.indexOf(str, sub);
 }
 
 /**
@@ -647,11 +654,11 @@ size_t find (wstring str, wstring sub, size_t start = 0)
  *     
  * Returns: the index of the substring or size_t.max when nothing was found
  */
-size_t find (dstring str, dstring sub, size_t start = 0)
+size_t find (dstring str, dstring sub)
 {
 	version (Tango)
 	{
-		size_t index = str.locatePattern(sub, start);
+		size_t index = str.locatePattern(sub);
 		
 		if (index == str.length)
 			return size_t.max;
@@ -660,7 +667,7 @@ size_t find (dstring str, dstring sub, size_t start = 0)
 	}
 	
 	else
-		return std.string.find(str, sub, start);
+		return std.string.indexOf(str, sub);
 }
 
 /**
@@ -813,7 +820,7 @@ version (Phobos)
 	 */
 	dchar* toString32z (dstring str)
 	{
-		return (str ~ '\0').ptr;
+		return (str ~ '\0').dup.ptr;
 	}
 	
 	/**
@@ -826,7 +833,7 @@ version (Phobos)
 	 */
 	wstring fromString16z (wchar* str)
 	{
-		return str[0 .. strlen(str)];
+		return str[0 .. strlen(str)].idup;
 	}
 	
 	/**
@@ -838,7 +845,7 @@ version (Phobos)
 	 */
 	dstring fromString32z (dchar* str)
 	{
-		return str[0 .. strlen(str)];
+		return str[0 .. strlen(str)].idup;
 	}
 	
 	/**

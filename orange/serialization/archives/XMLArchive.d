@@ -8,13 +8,17 @@ module orange.serialization.archives.XMLArchive;
 
 version (Tango)
 {
-	import tango.text.xml.DocPrinter;
-	import tango.text.xml.Document;
+	/*import tango.text.xml.DocPrinter;
+	import tango.text.xml.Document;*/
 	import tango.util.Convert : to;
 }
 
+else
+	import std.conv;
+
 import orange.serialization.archives._;
 import orange.util._;
+import orange.xml.XMLDocument;
 
 private enum ArchiveMode
 {
@@ -60,9 +64,9 @@ class XMLArchive (U = char) : Archive!(U)
 		DataType archiveType = "org.dsource.orange.xml";
 		DataType archiveVersion = "0.1";
 		
-		Document!(U) doc;
+		XMLDocument!(U) doc;
 		doc.Node lastElement;
-		DocPrinter!(U) printer;
+		//DocPrinter!(U) printer;
 		doc.Node lastElementSaved;
 		
 		bool hasBegunArchiving;
@@ -76,7 +80,7 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	this ()
 	{
-		doc = new Document!(U);
+		doc = new XMLDocument!(U);
 	}
 	
 	public void beginArchiving ()
@@ -84,10 +88,10 @@ class XMLArchive (U = char) : Archive!(U)
 		if (!hasBegunArchiving)
 		{
 			doc.header;
-			lastElement = doc.tree.element(null, Tags.archiveTag)
-				.attribute(null, Attributes.typeAttribute, archiveType)
-				.attribute(null, Attributes.versionAttribute, archiveVersion);
-			lastElement = lastElement.element(null, Tags.dataTag);
+			lastElement = doc.tree.element(Tags.archiveTag)
+				.attribute(Attributes.typeAttribute, archiveType)
+				.attribute(Attributes.versionAttribute, archiveVersion);
+			lastElement = lastElement.element(Tags.dataTag);
 			
 			hasBegunArchiving = true;
 		}		
@@ -115,10 +119,12 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	public DataType data ()
 	{
-		if (!printer)
+		/*if (!printer)
 			printer = new DocPrinter!(U);
 		
-		return printer.print(doc);
+		return printer.print(doc);*/
+		
+		return doc.toString();
 	}
 	
 	public void reset ()
@@ -186,9 +192,9 @@ class XMLArchive (U = char) : Archive!(U)
 	{		
 		if (!value)
 		{
-			lastElement.element(null, Tags.nullTag)
-			.attribute(null, Attributes.typeAttribute, toDataType(T.stringof))
-			.attribute(null, Attributes.keyAttribute, key);
+			lastElement.element(Tags.nullTag)
+			.attribute(Attributes.typeAttribute, toDataType(T.stringof))
+			.attribute(Attributes.keyAttribute, key);
 			callDelegate = false;
 		}
 		
@@ -202,11 +208,11 @@ class XMLArchive (U = char) : Archive!(U)
 		{
 			DataType id = nextId;
 			
-			lastElement = lastElement.element(null, Tags.objectTag)
-			.attribute(null, Attributes.runtimeTypeAttribute, toDataType(value.classinfo.name))
-			.attribute(null, Attributes.typeAttribute, toDataType(T.stringof))
-			.attribute(null, Attributes.keyAttribute, key)
-			.attribute(null, Attributes.idAttribute, id);
+			lastElement = lastElement.element(Tags.objectTag)
+			.attribute(Attributes.runtimeTypeAttribute, toDataType(value.classinfo.name))
+			.attribute(Attributes.typeAttribute, toDataType(T.stringof))
+			.attribute(Attributes.keyAttribute, key)
+			.attribute(Attributes.idAttribute, id);
 			
 			addArchivedReference(value, id);
 		}
@@ -214,33 +220,33 @@ class XMLArchive (U = char) : Archive!(U)
 
 	private void archiveStruct (T) (T value, DataType key)
 	{
-		lastElement = lastElement.element(null, Tags.structTag)
-		.attribute(null, Attributes.typeAttribute, toDataType(T.stringof))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement = lastElement.element(Tags.structTag)
+		.attribute(Attributes.typeAttribute, toDataType(T.stringof))
+		.attribute(Attributes.keyAttribute, key);
 	}
 	
 	private void archiveString (T) (T value, DataType key)
 	{
-		lastElement.element(null, Tags.stringTag, toDataType(value))
-		.attribute(null, Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement.element(Tags.stringTag, toDataType(value))
+		.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
+		.attribute(Attributes.keyAttribute, key);
 	}
 
 	private void archiveArray (T) (T value, DataType key)
 	{		
-		lastElement = lastElement.element(null, Tags.arrayTag)		
-		.attribute(null, Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
-		.attribute(null, Attributes.lengthAttribute, toDataType(value.length))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement = lastElement.element(Tags.arrayTag)		
+		.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
+		.attribute(Attributes.lengthAttribute, toDataType(value.length))
+		.attribute(Attributes.keyAttribute, key);
 	}
 
 	private void archiveAssociativeArray (T) (T value, DataType key)
 	{
-		lastElement = lastElement.element(null, Tags.associativeArrayTag)		
-		.attribute(null, Attributes.keyTypeAttribute, toDataType(KeyTypeOfAssociativeArray!(T).stringof))
-		.attribute(null, Attributes.valueTypeAttribute, toDataType(ValueTypeOfAssociativeArray!(T).stringof))
-		.attribute(null, Attributes.lengthAttribute, toDataType(value.length))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement = lastElement.element(Tags.associativeArrayTag)		
+		.attribute(Attributes.keyTypeAttribute, toDataType(KeyTypeOfAssociativeArray!(T).stringof))
+		.attribute(Attributes.valueTypeAttribute, toDataType(ValueTypeOfAssociativeArray!(T).stringof))
+		.attribute(Attributes.lengthAttribute, toDataType(value.length))
+		.attribute(Attributes.keyAttribute, key);
 	}
 
 	private void archivePointer (T) (T value, DataType key, ref bool callDelegate)
@@ -255,9 +261,9 @@ class XMLArchive (U = char) : Archive!(U)
 		{
 			DataType id = nextId;
 			
-			lastElement = lastElement.element(null, Tags.pointerTag)
-			.attribute(null, Attributes.keyAttribute, key)
-			.attribute(null, Attributes.idAttribute, id);
+			lastElement = lastElement.element(Tags.pointerTag)
+			.attribute(Attributes.keyAttribute, key)
+			.attribute(Attributes.idAttribute, id);
 			
 			addArchivedReference(value, id);
 		}
@@ -265,22 +271,22 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	private void archiveEnum (T) (T value, DataType key)
 	{
-		lastElement.element(null, Tags.enumTag, toDataType(value))
-		.attribute(null, Attributes.typeAttribute, toDataType(T.stringof))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement.element(Tags.enumTag, toDataType(value))
+		.attribute(Attributes.typeAttribute, toDataType(T.stringof))
+		.attribute(Attributes.keyAttribute, key);
 	}
 
 	private void archivePrimitive (T) (T value, DataType key)
 	{
-		lastElement.element(null, toDataType(T.stringof), toDataType(value))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement.element(toDataType(T.stringof), toDataType(value))
+		.attribute(Attributes.keyAttribute, key);
 	}
 	
 	private void archiveTypeDef (T) (T value, DataType key)
 	{
-		lastElement = lastElement.element(null, Tags.typedefTag)
-		.attribute(null, Attributes.typeAttribute, toDataType(BaseTypeOfTypeDef!(T).stringof));
-		.attribute(null, Attributes.key, key);
+		lastElement = lastElement.element(Tags.typedefTag)
+		.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfTypeDef!(T).stringof));
+		.attribute(Attributes.key, key);
 	}
 	
 	public T unarchive (T) (DataType key, T delegate (T) dg = null)
@@ -342,8 +348,10 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		auto tmp = getElement(Tags.objectTag, key, Attributes.keyAttribute, false);
 		
-		if (!tmp)
+		if (!tmp.isValid)
 		{
+			println(T.stringof);
+			println(key);
 			lastElement = getElement(Tags.nullTag, key);
 			callDelegate = false;
 			return null;
@@ -357,14 +365,14 @@ class XMLArchive (U = char) : Archive!(U)
 				
 		T result;
 		
-		static if (is(typeof(T._ctor)))
+		/*static if (is(typeof(T._ctor)))
 		{
 			ParameterTupleOf!(typeof(T._ctor)) params;			
 			result = factory!(T, typeof(params))(name, params);
 		}
 		
-		else
-			 result = factory!(T)(name);
+		else*/
+			 result = cast(T) newInstance(name);
 		
 		addUnarchivedReference(result, id);
 		
@@ -445,9 +453,9 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	public void archiveBaseClass (T : Object) (DataType key)
 	{
-		lastElement = lastElement.element(null, Tags.baseTag)
-		.attribute(null, Attributes.typeAttribute, toDataType(T.stringof))
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement = lastElement.element(Tags.baseTag)
+		.attribute(Attributes.typeAttribute, toDataType(T.stringof))
+		.attribute(Attributes.keyAttribute, key);
 	}
 	
 	public void unarchiveBaseClass (T : Object) (DataType key)
@@ -455,18 +463,35 @@ class XMLArchive (U = char) : Archive!(U)
 		lastElement = getElement(Tags.baseTag, key);
 	}
 	
-	template errorMessage (ArchiveMode mode = ArchiveMode.archiving)
+	version (Tango)
 	{
-		static if (mode == ArchiveMode.archiving)
-			const errorMessage = "Could not continue archiving due to unrecognized data format: ";
-			
-		else static if (mode == ArchiveMode.unarchiving)
-			const errorMessage = "Could not continue unarchiving due to unrecognized data format: ";
+		template errorMessage (ArchiveMode mode = ArchiveMode.archiving)
+		{
+			static if (mode == ArchiveMode.archiving)
+				const errorMessage = "Could not continue archiving due to unrecognized data format: ";
+				
+			else static if (mode == ArchiveMode.unarchiving)
+				const errorMessage = "Could not continue unarchiving due to unrecognized data format: ";
+		}
+	}
+	
+	else
+	{
+		mixin(
+			`template errorMessage (ArchiveMode mode = ArchiveMode.archiving)
+			{
+				static if (mode == ArchiveMode.archiving)
+					enum errorMessage = "Could not continue archiving due to unrecognized data format: ";
+					
+				else static if (mode == ArchiveMode.unarchiving)
+					enum errorMessage = "Could not continue unarchiving due to unrecognized data format: ";
+			}`
+		);
 	}
 	
 	private doc.Node getElement (DataType tag, DataType key, DataType attribute = Attributes.keyAttribute, bool throwOnError = true)
 	{
-		auto set = lastElement.query[tag].attribute((doc.Node node) {			
+		auto set = lastElement.query[tag].attribute((doc.Node node) {
 			if (node.name == attribute && node.value == key)
 				return true;
 			
@@ -480,14 +505,14 @@ class XMLArchive (U = char) : Archive!(U)
 		{
 			if (throwOnError)
 			{
-				if (set.nodes.length == 0)
+				if (set.nodes.length == 0)					
 					throw new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__);
 				
 				else
 					throw new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__);
 			}
 			
-			return null;
+			return doc.Node.invalid;
 		}		
 	}
 	
@@ -542,15 +567,15 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	private void archiveReference (DataType key, DataType id)
 	{		
-		lastElement.element(null, Tags.referenceTag, id)
-		.attribute(null, Attributes.keyAttribute, key);
+		lastElement.element(Tags.referenceTag, id)
+		.attribute(Attributes.keyAttribute, key);
 	}
 	
 	private DataType unarchiveReference (DataType key)
 	{	
 		auto element = getElement(Tags.referenceTag, key, Attributes.keyAttribute, false);
 		
-		if (element)
+		if (element.isValid)
 			return element.value;
 		
 		return cast(DataType) null;

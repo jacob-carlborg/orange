@@ -21,7 +21,7 @@ class ArchiveException : SerializationException
 		super(message, file, line);
 	}
 	
-	this (Exception exception)
+	this (ExceptionBase exception)
 	{
 		super(exception);
 	}

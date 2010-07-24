@@ -9,6 +9,12 @@ module orange.serialization.archives.Archive;
 version (Tango)
 	import tango.util.Convert;
 
+else
+{
+	import std.conv;
+	alias ConvError ConversionException;
+}
+
 import orange.serialization.archives.ArchiveException;
 
 interface IArchive
@@ -19,7 +25,8 @@ interface IArchive
 
 abstract class Archive (U) : IArchive
 {
-	alias U[] DataType;
+	version (Tango) alias U[] DataType;
+	else mixin ("alias immutable(U)[] DataType;");
 	
 	abstract void beginArchiving ();
 	abstract void beginUnarchiving (DataType data);

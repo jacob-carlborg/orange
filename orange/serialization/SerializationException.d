@@ -8,7 +8,13 @@ module orange.serialization.SerializationException;
 
 import orange.util.string;
 
-class SerializationException : Exception
+version (Tango)
+	alias Exception ExceptionBase;
+
+else
+	alias Throwable ExceptionBase;
+
+class SerializationException : ExceptionBase
 {	
 	this (string message)
 	{
@@ -24,8 +30,19 @@ class SerializationException : Exception
 			super(message);
 	}
 	
-	this (Exception exception)
+	version (Tango)
 	{
-		super(exception.msg, exception.file, exception.line, exception.next, exception.info);
+		this (ExceptionBase exception)
+		{
+			super(exception.msg, exception.file, exception.line, exception.next, exception.info);
+		}
+	}
+	
+	else
+	{
+		this (ExceptionBase exception)
+		{
+			super(exception.msg, exception.file, exception.line);
+		}
 	}
 }

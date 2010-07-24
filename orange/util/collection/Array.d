@@ -358,14 +358,14 @@ body
  * Throws: AssertException if the return value is less than -1 or
  * 		   greater than the length of the array - 1.
  */
-U lastIndexOf (T, U = size_t) (T[] arr, T element)
-in
+version (Tango)
 {
-	assert(arr.length > 0, "mambo.collection.Array.lastIndexOf: The length of the array was 0");
-}
-body
-{
-	version (Tango)
+	U lastIndexOf (T, U = size_t) (in T[] arr, T element)
+	in
+	{
+		assert(arr.length > 0, "mambo.collection.Array.lastIndexOf: The length of the array was 0");
+	}
+	body
 	{
 		U index = tango.text.Util.locatePrior(arr, element);
 
@@ -374,10 +374,18 @@ body
 
 		return index;
 	}
+}
 
-	else
+else
+{
+	U lastIndexOf (T, U = size_t) (in T[] arr, dchar element)
+	in
 	{
-		foreach_reverse (i, e ; arr)
+		assert(arr.length > 0, "mambo.collection.Array.lastIndexOf: The length of the array was 0");
+	}
+	body
+	{
+		foreach_reverse (i, dchar e ; arr)
 			if (e is element)
 				return i;
 

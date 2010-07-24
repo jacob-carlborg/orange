@@ -40,7 +40,7 @@ void print (A...)(A args)
 	
 	else
 		foreach(t ; a)
-			writef(t);
+			write(t);
 }
 
 /**
@@ -65,18 +65,8 @@ void println (A...)(A args)
 	else
 	{
 		foreach(t ; args)
-			writef(t);
+			write(t);
 		
-		writef("\n");
+		write("\n");
 	}
-}
-
-/**
- * Read from the standard input
- * 
- * Returns: what was read
- */
-string read ()
-{
-	return Cin.get;
 }
