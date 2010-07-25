@@ -12,5 +12,6 @@ dsss.last
 *.dylib
 main.d
 main
+main.d.deps
 *.framework
 kandil

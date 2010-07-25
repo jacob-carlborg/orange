@@ -127,7 +127,7 @@ else
 
 version (Phobos):
 
-import std.array;
+mixin(`import std.array;
 import std.string;
 import std.encoding;
 
@@ -139,11 +139,12 @@ final class Attribute : Element
 	private tstring name_;
 	private tstring value_;
 
-	this (tstring name, tstring value)
+	this (tstring name, tstring value, Element parent)
 	{
 		super(name);
 		name_ = name;
 		value_ = value;
+		parent_ = parent;
 	}
 
 	tstring name ()
@@ -769,7 +770,7 @@ class Element : Item
 		attrs = attrs[0 .. 0];
 
 		foreach (k, v ; tag.attr)
-			attrs ~= new Attribute(k, v);			
+			attrs ~= new Attribute(k, v, this);			
 
 		return attrs;			
 	}
@@ -3044,5 +3045,5 @@ private
 	{
 		throw new XMLException(s);
 	}
-}
+}`);
 

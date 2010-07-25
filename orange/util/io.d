@@ -39,8 +39,7 @@ void print (A...)(A args)
 		
 	
 	else
-		foreach(t ; a)
-			write(t);
+		write(args);
 }
 
 /**
@@ -63,10 +62,5 @@ void println (A...)(A args)
 	}
 
 	else
-	{
-		foreach(t ; args)
-			write(t);
-		
-		write("\n");
-	}
+		writeln(args);
 }

@@ -7,11 +7,7 @@
 module orange.serialization.archives.XMLArchive;
 
 version (Tango)
-{
-	/*import tango.text.xml.DocPrinter;
-	import tango.text.xml.Document;*/
 	import tango.util.Convert : to;
-}
 
 else
 	import std.conv;
@@ -347,7 +343,7 @@ class XMLArchive (U = char) : Archive!(U)
 		}
 		
 		auto tmp = getElement(Tags.objectTag, key, Attributes.keyAttribute, false);
-		
+
 		if (!tmp.isValid)
 		{
 			lastElement = getElement(Tags.nullTag, key);
@@ -488,7 +484,7 @@ class XMLArchive (U = char) : Archive!(U)
 	}
 	
 	private doc.Node getElement (DataType tag, DataType key, DataType attribute = Attributes.keyAttribute, bool throwOnError = true)
-	{
+	{		
 		auto set = lastElement.query[tag].attribute((doc.Node node) {
 			if (node.name == attribute && node.value == key)
 				return true;
@@ -509,7 +505,7 @@ class XMLArchive (U = char) : Archive!(U)
 				else
 					throw new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__);
 			}
-			
+
 			return doc.Node.invalid;
 		}		
 	}
