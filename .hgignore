@@ -15,3 +15,5 @@ main
 main.d.deps
 *.framework
 kandil
+lib
+import
