@@ -149,7 +149,7 @@ class Serializer (ArchiveType : IArchive)
 					wrapper(value, this, key);
 				}
 				
-				else static if (isSerializable!(T, ArchiveType))
+				else static if (isSerializable!(T, Serializer))
 					value.toData(this, key);
 				
 				else
@@ -177,7 +177,7 @@ class Serializer (ArchiveType : IArchive)
 				
 				else
 				{
-					static if (isSerializable!(T, ArchiveType))
+					static if (isSerializable!(T, Serializer))
 						value.toData(this, key);
 					
 					else
@@ -217,7 +217,7 @@ class Serializer (ArchiveType : IArchive)
 				wrapper(value, this, key);
 			}
 			
-			else static if (isSerializable!(T, ArchiveType))
+			else static if (isSerializable!(T, Serializer))
 				value.toData(this, key);
 			
 			else
@@ -316,7 +316,7 @@ class Serializer (ArchiveType : IArchive)
 					wrapper(value, this, key);
 				}
 				
-				else static if (isSerializable!(T, ArchiveType))
+				else static if (isSerializable!(T, Serializer))
 					value.fromData(this, key);
 				
 				else
@@ -348,7 +348,7 @@ class Serializer (ArchiveType : IArchive)
 				
 				else
 				{
-					static if (isSerializable!(T, ArchiveType))
+					static if (isSerializable!(T, Serializer))
 						value.fromData(this, key);
 					
 					else
@@ -394,7 +394,7 @@ class Serializer (ArchiveType : IArchive)
 				wrapper(value, this, key);
 			}
 			
-			else static if (isSerializable!(T, ArchiveType))
+			else static if (isSerializable!(T, Serializer))
 				value.fromData(this, key);
 			
 			else

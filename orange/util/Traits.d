@@ -190,9 +190,9 @@ template isArchive (T)
 	
 }
 
-template isSerializable (T, ArchiveType)
+template isSerializable (T, SerializerType)
 {
-	const isSerializable = is(typeof(T.toData(ArchiveType.init, ArchiveType.DataType.init))) && is(typeof(T.fromData(ArchiveType.init, ArchiveType.DataType.init)));
+	const isSerializable = is(typeof(T.toData(SerializerType.init, SerializerType.DataType.init))) && is(typeof(T.fromData(SerializerType.init, SerializerType.DataType.init)));
 }
 
 template isISerializable (T)
