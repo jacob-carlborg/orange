@@ -196,7 +196,7 @@ class Serializer (ArchiveType : IArchive)
 	{		
 		archive.archive(value, key, {
 			foreach (i, e ; value)
-				archive.archive(e, toDataType(i));
+				serialize(e, toDataType(i));
 		});
 	}
 
@@ -204,7 +204,7 @@ class Serializer (ArchiveType : IArchive)
 	{
 		archive.archive(value, key, {
 			foreach(k, v ; value)
-				archive.archive(v, toDataType(k));
+				serialize(v, toDataType(k));
 		});
 	}
 
@@ -369,7 +369,7 @@ class Serializer (ArchiveType : IArchive)
 	{
 		return archive.unarchive!(T)(key, (T value) {
 			foreach (i, ref e ; value)
-				e = archive.unarchive!(typeof(e))(toDataType(i));
+				e = deserializeInternal!(typeof(e))(toDataType(i));
 			
 			return value;
 		});	
