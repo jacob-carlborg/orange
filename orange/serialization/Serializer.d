@@ -513,24 +513,24 @@ class Serializer (ArchiveType : IArchive)
 		assert(false, "throw exception here");
 	}
 	
-	private SerializeRegisterWrapper!(T, ArchiveType) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, DataType) dg)
+	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, DataType) dg)
 	{		
-		return new SerializeRegisterWrapper!(T, ArchiveType)(dg);
+		return new SerializeRegisterWrapper!(T, Serializer)(dg);
 	}
 
-	private SerializeRegisterWrapper!(T, ArchiveType) toSerializeRegisterWrapper (T) (void function (T, Serializer, DataType) func)
+	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void function (T, Serializer, DataType) func)
 	{		
-		return new SerializeRegisterWrapper!(T, ArchiveType)(func);
+		return new SerializeRegisterWrapper!(T, Serializer)(func);
 	}
 
-	private DeserializeRegisterWrapper!(T, ArchiveType) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, DataType) dg)
+	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, DataType) dg)
 	{		
-		return new DeserializeRegisterWrapper!(T, ArchiveType)(dg);
+		return new DeserializeRegisterWrapper!(T, Serializer)(dg);
 	}
 
-	private DeserializeRegisterWrapper!(T, ArchiveType) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, DataType) func)
+	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, DataType) func)
 	{		
-		return new DeserializeRegisterWrapper!(T, ArchiveType)(func);
+		return new DeserializeRegisterWrapper!(T, Serializer)(func);
 	}
 	
 	private DataType toDataType (T) (T value)
