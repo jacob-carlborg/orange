@@ -14,9 +14,8 @@ class RegisterBase
 	
 }
 
-class SerializeRegisterWrapper (T, ArchiveType : IArchive) : RegisterBase
+class SerializeRegisterWrapper (T, SerializerType) : RegisterBase
 {
-	private alias Serializer!(ArchiveType) SerializerType;
 	private alias SerializerType.DataType DataType;
 	private void delegate (T, SerializerType, DataType) dg;
 	private bool isDelegate;
@@ -42,9 +41,8 @@ class SerializeRegisterWrapper (T, ArchiveType : IArchive) : RegisterBase
 	}
 }
 
-class DeserializeRegisterWrapper (T, ArchiveType : IArchive) : RegisterBase
+class DeserializeRegisterWrapper (T, SerializerType) : RegisterBase
 {
-	private alias Serializer!(ArchiveType) SerializerType;
 	private alias SerializerType.DataType DataType;
 	private void delegate (ref T, SerializerType, DataType) dg;
 	private bool isDelegate;

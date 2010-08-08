@@ -493,9 +493,9 @@ class Serializer (ArchiveType : IArchive)
 		}
 	}
 	
-	private SerializeRegisterWrapper!(T, ArchiveType) getSerializerWrapper (T) (string type)
+	private SerializeRegisterWrapper!(T, Serializer) getSerializerWrapper (T) (string type)
 	{
-		auto wrapper = cast(SerializeRegisterWrapper!(T, ArchiveType)) serializers[type];
+		auto wrapper = cast(SerializeRegisterWrapper!(T, Serializer)) serializers[type];
 		
 		if (wrapper)
 			return wrapper;
@@ -503,9 +503,9 @@ class Serializer (ArchiveType : IArchive)
 		assert(false, "throw exception here");
 	}
 
-	private DeserializeRegisterWrapper!(T, ArchiveType) getDeserializerWrapper (T) (string type)
+	private DeserializeRegisterWrapper!(T, Serializer) getDeserializerWrapper (T) (string type)
 	{
-		auto wrapper = cast(DeserializeRegisterWrapper!(T, ArchiveType)) deserializers[type];
+		auto wrapper = cast(DeserializeRegisterWrapper!(T, Serializer)) deserializers[type];
 		
 		if (wrapper)
 			return wrapper;
