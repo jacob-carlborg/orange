@@ -105,11 +105,17 @@ class XMLArchive (U = char) : Archive!(U)
 			if (set.nodes.length == 1)
 				lastElement = set.nodes[0];
 			
-			else if (set.nodes.length == 0)
-				throw new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `The "` ~ to!(string)(Tags.dataTag) ~ `" tag could not be found.`, __FILE__, __LINE__);
-			
 			else
-				throw new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `There were more than one "` ~ to!(string)(Tags.dataTag) ~ `" tag.`, __FILE__, __LINE__);
+			{
+				if (errorCallback)
+				{
+					if (set.nodes.length == 0)
+						errorCallback(new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `The "` ~ to!(string)(Tags.dataTag) ~ `" tag could not be found.`, __FILE__, __LINE__), [Tags.dataTag]);
+					
+					else
+						errorCallback(new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `There were more than one "` ~ to!(string)(Tags.dataTag) ~ `" tag.`, __FILE__, __LINE__), [Tags.dataTag]);
+				}	
+			}
 		}
 	}
 	
@@ -350,7 +356,7 @@ class XMLArchive (U = char) : Archive!(U)
 			callDelegate = false;
 			return null;
 		}
-		
+	
 		lastElement = tmp;
 		
 		auto runtimeType = getValueOfAttribute(Attributes.runtimeTypeAttribute);
@@ -375,21 +381,34 @@ class XMLArchive (U = char) : Archive!(U)
 
 	private T unarchiveStruct (T) (DataType key)
 	{
-		lastElement = getElement(Tags.structTag, key);
+		auto element = getElement(Tags.structTag, key);
+		
+		if (element.isValid)
+			lastElement = element;
 		
 		return T.init;
 	}
 	
 	private T unarchiveString (T) (DataType key)
 	{
-		return fromDataType!(T)(getElement(Tags.stringTag, key).value);
+		auto element = getElement(Tags.stringTag, key);
+		
+		if (!element.isValid)
+			return T.init;			
+			
+		return fromDataType!(T)(element.value);
 	}
 
 	private T unarchiveArray (T) (DataType key)
 	{			
 		T value;
 		
-		lastElement = getElement(Tags.arrayTag, key);
+		auto element = getElement(Tags.arrayTag, key);
+		
+		if (!element.isValid)
+			return T.init;
+		
+		lastElement = element;
 		auto length = getValueOfAttribute(Attributes.lengthAttribute);
 		value.length = fromDataType!(size_t)(length);
 		
@@ -398,7 +417,10 @@ class XMLArchive (U = char) : Archive!(U)
 
 	private T unarchiveAssociativeArray (T) (DataType key)
 	{		
-		lastElement = getElement(Tags.associativeArrayTag, key);
+		auto element = getElement(Tags.associativeArrayTag, key);
+		
+		if (element.isValid)		
+			lastElement = element;
 		
 		return T.init;
 	}
@@ -412,8 +434,13 @@ class XMLArchive (U = char) : Archive!(U)
 			callDelegate = false;
 			return *reference;
 		}
+		
+		auto element = getElement(Tags.pointerTag, key);
+		
+		if (!element.isValid)
+			return T.init;
 
-		lastElement = getElement(Tags.pointerTag, key);
+		lastElement = element; 
 		id = getValueOfAttribute(Attributes.idAttribute);
 				
 		T result = new BaseTypeOfPointer!(T);
@@ -425,17 +452,30 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	private T unarchiveEnum (T) (DataType key)
 	{
-		return fromDataType!(T)(getElement(Tags.enumTag, key).value);
+		auto element = getElement(Tags.enumTag, key);
+		
+		if (!element.isValid)
+			return T.init;
+		
+		return fromDataType!(T)(element.value);
 	}
 
 	private T unarchivePrimitive (T) (DataType key)
 	{		
-		return fromDataType!(T)(getElement(toDataType(T.stringof), key).value);
+		auto element = getElement(toDataType(T.stringof), key);
+		
+		if (!element.isValid)
+			return T.init;
+		
+		return fromDataType!(T)(element.value);
 	}
 	
 	private T unarchiveTypeDef (T) (DataType key)
 	{
-		lastElement = getElement(Tags.typedefTag, key);
+		auto element = getElement(Tags.typedefTag, key);
+		
+		if (element.isValid)
+			lastElement = element;
 		
 		return T.init;
 	}
@@ -454,7 +494,10 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	public void unarchiveBaseClass (T : Object) (DataType key)
 	{
-		lastElement = getElement(Tags.baseTag, key);
+		auto element = getElement(Tags.baseTag, key);
+		
+		if (element.isValid)
+			lastElement = element;
 	}
 	
 	version (Tango)
@@ -497,13 +540,13 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		else
 		{
-			if (throwOnError)
+			if (throwOnError && errorCallback)
 			{
 				if (set.nodes.length == 0)					
-					throw new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__);
+					errorCallback(new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
 				
 				else
-					throw new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__);
+					errorCallback(new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
 			}
 
 			return doc.Node.invalid;
@@ -517,11 +560,17 @@ class XMLArchive (U = char) : Archive!(U)
 		if (set.nodes.length == 1)
 			return set.nodes[0].value;
 		
-		else if (set.nodes.length == 0)
-			throw new ArchiveException(`Could not find the attribute "` ~ to!(string)(attribute) ~ `".`, __FILE__, __LINE__);
-		
 		else
-			throw new ArchiveException(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__);
+		{
+			if (errorCallback)
+			{
+				if (set.nodes.length == 0)
+					errorCallback(new ArchiveException(`Could not find the attribute "` ~ to!(string)(attribute) ~ `".`, __FILE__, __LINE__), [attribute]);
+				
+				else
+					errorCallback(new ArchiveException(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__), [attribute]);
+			}
+		}		
 	}
 	
 	private void addArchivedReference (T) (T value, DataType id)

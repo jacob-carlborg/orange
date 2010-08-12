@@ -28,6 +28,10 @@ abstract class Archive (U) : IArchive
 	version (Tango) alias U[] DataType;
 	else mixin ("alias immutable(U)[] DataType;");
 	
+	alias void delegate (ArchiveException exception, DataType[] data) ErrorCallback;
+	
+	ErrorCallback errorCallback;
+	
 	abstract void beginArchiving ();
 	abstract void beginUnarchiving (DataType data);
 	abstract DataType data ();
@@ -49,5 +53,5 @@ abstract class Archive (U) : IArchive
 		
 		catch (ConversionException e)
 			throw new ArchiveException(e);
-	}
+	}	
 }

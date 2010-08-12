@@ -37,10 +37,12 @@ class Serializer (ArchiveType : IArchive)
 {
 	static assert(isArchive!(ArchiveType), format!(`The type "`, ArchiveType, `" does not implement the necessary methods to be an archive.`));
 	
+	alias ArchiveType.ErrorCallback ErrorCallback;
+	alias ArchiveType.DataType DataType;
+	
 	private
 	{
 		ArchiveType archive;
-		alias ArchiveType.DataType DataType;
 		
 		RegisterBase[string] serializers;
 		RegisterBase[string] deserializers;
@@ -49,11 +51,19 @@ class Serializer (ArchiveType : IArchive)
 		
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
+		
+		void delegate (ArchiveException exception, DataType[] data) throwOnErrorCallback;		
+		void delegate (ArchiveException exception, DataType[] data) doNothingOnErrorCallback;
 	}
 	
 	this ()
 	{
 		archive = new ArchiveType;
+		
+		throwOnErrorCallback = (ArchiveException exception, DataType[] data) { throw exception; };
+		doNothingOnErrorCallback = (ArchiveException exception, DataType[] data) { /* do nothing */ };
+		
+		setThrowOnErrorCallback();
 	}
 
 	void registerSerializer (T) (string type, void delegate (T, Serializer, DataType) dg)
@@ -83,6 +93,26 @@ class Serializer (ArchiveType : IArchive)
 		resetCounters();
 		
 		archive.reset;
+	}
+	
+	ErrorCallback errorCallback ()
+	{
+		return archive.errorCallback;
+	}
+	
+	ErrorCallback errorCallback (ErrorCallback errorCallback)
+	{
+		return archive.errorCallback = errorCallback;
+	}
+	
+	void setThrowOnErrorCallback ()
+	{
+		errorCallback = throwOnErrorCallback;
+	}
+	
+	void setDoNothingOnErrorCallback ()
+	{
+		errorCallback = doNothingOnErrorCallback;
 	}
 	
 	DataType serialize (T) (T value, DataType key = null)
