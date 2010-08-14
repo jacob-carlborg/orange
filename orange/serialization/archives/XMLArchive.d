@@ -360,8 +360,15 @@ class XMLArchive (U = char) : Archive!(U)
 		lastElement = tmp;
 		
 		auto runtimeType = getValueOfAttribute(Attributes.runtimeTypeAttribute);
+		
+		if (!runtimeType)
+			return T.init;
+		
 		auto name = fromDataType!(string)(runtimeType);
 		id = getValueOfAttribute(Attributes.idAttribute);
+		
+		if (!id)
+			return T.init;
 				
 		T result;
 		
@@ -410,6 +417,10 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		lastElement = element;
 		auto length = getValueOfAttribute(Attributes.lengthAttribute);
+		
+		if (!length)
+			return T.init;
+		
 		value.length = fromDataType!(size_t)(length);
 		
 		return value;
@@ -442,6 +453,9 @@ class XMLArchive (U = char) : Archive!(U)
 
 		lastElement = element; 
 		id = getValueOfAttribute(Attributes.idAttribute);
+		
+		if (!id)
+			return T.init;
 				
 		T result = new BaseTypeOfPointer!(T);
 		
@@ -570,7 +584,9 @@ class XMLArchive (U = char) : Archive!(U)
 				else
 					errorCallback(new ArchiveException(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__), [attribute]);
 			}
-		}		
+		}
+		
+		return null;	
 	}
 	
 	private void addArchivedReference (T) (T value, DataType id)
