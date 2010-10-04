@@ -24,6 +24,8 @@ else
 	
 	version = Phobos;
 }
+
+import orange.util.io;
 	
 template Char (T)
 {
@@ -116,25 +118,32 @@ final class XMLDocument (T = char)
 	{
 	    private InternalNode node;
 	    
-	    version (Phobos)
+	    version (Tango)
+	    {
+		    private static Node opCall (InternalNode node)
+	   		{
+		    	Node proxy;
+	   			proxy.node = node;
+
+	   			return proxy;
+	   		}
+	    }
+	    
+	    else
 	    {
 	        private bool shouldAddToDoc = true;
 	        private bool isRoot = true;
-	    }
-	    
-	    private static Node opCall (InternalNode node, bool shouldAddToDoc = false, bool isRoot = false)
-   		{
-	    	Node proxy;
-   			proxy.node = node;
-
-   			version (Phobos)
-   			{
+	        
+		    private static Node opCall (InternalNode node, bool shouldAddToDoc = false, bool isRoot = false)
+	   		{
+		    	Node proxy;
+	   			proxy.node = node;
    				proxy.shouldAddToDoc = shouldAddToDoc;
    				proxy.isRoot = isRoot;
-   			}
 
-   			return proxy;
-   		}
+	   			return proxy;
+	   		}
+	    }
 	    
 	    public static Node invalid ()
 	    {
@@ -214,6 +223,12 @@ final class XMLDocument (T = char)
 			
 			version (Tango) return *this;			
 			else return this;
+		}
+		
+		void attach (Node node)
+		{
+			version (Tango) this.node.move(node.node);
+			else this.node.elements ~= node.node;
 		}
 	}
 	
@@ -440,5 +455,11 @@ final class XMLDocument (T = char)
 		
 		else
 			return doc.prolog ~ "\n" ~ join(doc.pretty(indentation), "\n");
+	}
+	
+	Node createNode (tstring name, tstring value = null)
+	{
+		version (Tango) return Node(tree.element(name, value).node.detach);
+		else return Node(new Element(name, value), false, false);
 	}
 }

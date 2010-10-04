@@ -22,8 +22,8 @@ import orange.util._;
 private
 {
 	alias orange.util.CTFE.contains ctfeContains;
-	
-	private enum Mode
+
+	enum Mode
 	{
 		serializing,
 		deserializing
@@ -38,7 +38,7 @@ class Serializer (ArchiveType : IArchive)
 	static assert(isArchive!(ArchiveType), format!(`The type "`, ArchiveType, `" does not implement the necessary methods to be an archive.`));
 	
 	alias ArchiveType.ErrorCallback ErrorCallback;
-	alias ArchiveType.DataType DataType;
+	alias ArchiveType.DataType DataType;	
 	
 	private
 	{
@@ -120,6 +120,14 @@ class Serializer (ArchiveType : IArchive)
 		if (!hasBegunSerializing)
 			hasBegunSerializing = true;
 		
+		serializeInternal(value, key);
+		archive.postProcess;
+
+		return archive.data;
+	}
+	
+	private void serializeInternal (T) (T value, DataType key = null)
+	{
 		if (!key)
 			key = nextKey;
 		
@@ -163,8 +171,6 @@ class Serializer (ArchiveType : IArchive)
 			error:
 			throw new SerializationException(format!(`The type "`, T, `" cannot be serialized.`), __FILE__, __LINE__);
 		}
-		
-		return archive.data;
 	}
 	
 	private void serializeObject (T) (T value, DataType key)
@@ -223,10 +229,10 @@ class Serializer (ArchiveType : IArchive)
 	}
 
 	private void serializeArray (T) (T value, DataType key)
-	{		
+	{
 		archive.archive(value, key, {
 			foreach (i, e ; value)
-				serialize(e, toDataType(i));
+				serializeInternal(e, toDataType(i));
 		});
 	}
 
@@ -234,7 +240,7 @@ class Serializer (ArchiveType : IArchive)
 	{
 		archive.archive(value, key, {
 			foreach(k, v ; value)
-				serialize(v, toDataType(k));
+				serializeInternal(v, toDataType(k));
 		});
 	}
 
@@ -256,7 +262,7 @@ class Serializer (ArchiveType : IArchive)
 					throw new SerializationException(`The value with the key "` ~ to!(string)(key) ~ `"` ~ format!(` of the type "`, T, `" cannot be serialized on its own, either implement orange.serialization.Serializable.isSerializable or register a serializer.`), __FILE__, __LINE__);
 				
 				else
-					serialize(*value, key);
+					serializeInternal(*value, key);
 			}				
 		});
 	}
@@ -274,7 +280,7 @@ class Serializer (ArchiveType : IArchive)
 	private void serializeTypeDef (T) (T value, DataType key)
 	{
 		archive.archive(value, key, {
-			serialize!(BaseTypeOfTypeDef!(T))(value, key);
+			serializeInternal!(BaseTypeOfTypeDef!(T))(value, key);
 		});
 	}
 	
@@ -470,7 +476,7 @@ class Serializer (ArchiveType : IArchive)
 			{
 				alias typeof(T.tupleof[i]) Type;				
 				Type v = value.tupleof[i];
-				serialize(v, toDataType(field));
+				serializeInternal(v, toDataType(field));
 			}				
 		}
 		

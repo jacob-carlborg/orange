@@ -40,7 +40,8 @@ class XMLArchive (U = char) : Archive!(U)
 		static const DataType associativeArrayTag = "associativeArray";
 		static const DataType typedefTag = "typedef";
 		static const DataType nullTag = "null";
-		static const DataType enumTag = "enum";		
+		static const DataType enumTag = "enum";
+		static const DataType sliceTag = "slice";
 	}
 
 	private struct Attributes
@@ -53,10 +54,48 @@ class XMLArchive (U = char) : Archive!(U)
 		static const DataType idAttribute = "id";
 		static const DataType keyTypeAttribute = "keyType";
 		static const DataType valueTypeAttribute = "valueType";
+		static const DataType offsetAttribute = "offset";
 	}
 	
 	private
 	{
+		struct ArrayNode
+		{
+			XMLDocument!(U).Node parent;
+			XMLDocument!(U).Node node;
+			DataType id;
+			DataType key;
+		}
+		
+		struct Array
+		{
+			void* ptr;
+			size_t length;
+			size_t elementSize;
+			
+			static Array opCall (T) (T[] value)
+			{
+				Array array;
+				array.ptr = value.ptr;
+				array.length = value.length;
+				array.elementSize = T.sizeof;
+				
+				return array;
+			}
+			
+			bool isSliceOf (Array b)
+			{
+				return ptr >= b.ptr && ptr + length * elementSize <= b.ptr + b.length * b.elementSize;
+			}
+		}
+		
+		struct Slice
+		{
+			size_t length;
+			size_t offset;
+			DataType id;
+		}
+		
 		DataType archiveType = "org.dsource.orange.xml";
 		DataType archiveVersion = "0.1";
 		
@@ -70,6 +109,9 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		DataType[void*] archivedReferences;
 		void*[DataType] unarchivedReferences;
+		
+		ArrayNode[Array] arraysToBeArchived;
+		void[][DataType] unarchivedSlices;
 		
 		size_t idCounter;
 	}
@@ -228,18 +270,32 @@ class XMLArchive (U = char) : Archive!(U)
 	}
 	
 	private void archiveString (T) (T value, DataType key)
-	{
-		lastElement.element(Tags.stringTag, toDataType(value))
-		.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
-		.attribute(Attributes.keyAttribute, key);
+	{		
+		archiveArrayImpl(value, key, Tags.stringTag, toDataType(value));
 	}
 
 	private void archiveArray (T) (T value, DataType key)
-	{		
-		lastElement = lastElement.element(Tags.arrayTag)		
-		.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
+	{
+		archiveArrayImpl(value, key, Tags.arrayTag);
+	}
+	
+	private void archiveArrayImpl (T) (T value, DataType key, DataType tag, DataType content = null)
+	{
+		DataType id = nextId;
+		auto parent = lastElement;
+		
+		if (value.length == 0)
+			lastElement = lastElement.element(tag);
+		
+		else
+			lastElement = doc.createNode(tag, content);			
+		
+		lastElement.attribute(Attributes.typeAttribute, toDataType(BaseTypeOfArray!(T).stringof))
 		.attribute(Attributes.lengthAttribute, toDataType(value.length))
-		.attribute(Attributes.keyAttribute, key);
+		.attribute(Attributes.keyAttribute, key)
+		.attribute(Attributes.idAttribute, id);
+
+		arraysToBeArchived[Array(value)] = ArrayNode(parent, lastElement, id, key);
 	}
 
 	private void archiveAssociativeArray (T) (T value, DataType key)
@@ -314,7 +370,7 @@ class XMLArchive (U = char) : Archive!(U)
 				value = unarchiveString!(T)(key);
 			 
 			else static if (isArray!(T))
-				value = unarchiveArray!(T)(key);
+				value = unarchiveArray!(T)(key, callDelegate);
 
 			else static if (isAssociativeArray!(T))
 				value = unarchiveAssociativeArray!(T)(key);
@@ -361,18 +417,8 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		auto runtimeType = getValueOfAttribute(Attributes.runtimeTypeAttribute);
 		auto name = fromDataType!(string)(runtimeType);
-		id = getValueOfAttribute(Attributes.idAttribute);
-				
-		T result;
-		
-		/*static if (is(typeof(T._ctor)))
-		{
-			ParameterTupleOf!(typeof(T._ctor)) params;			
-			result = factory!(T, typeof(params))(name, params);
-		}
-		
-		else*/
-			 result = cast(T) newInstance(name);
+		id = getValueOfAttribute(Attributes.idAttribute);				
+		T result = cast(T) newInstance(name);
 		
 		addUnarchivedReference(result, id);
 		
@@ -391,16 +437,34 @@ class XMLArchive (U = char) : Archive!(U)
 	
 	private T unarchiveString (T) (DataType key)
 	{
+		auto slice = unarchiveSlice(key);
+		
+		if (auto tmp = getUnarchivedSlice!(T)(slice))
+			return *tmp;
+		
 		auto element = getElement(Tags.stringTag, key);
 		
 		if (!element.isValid)
 			return T.init;			
 			
-		return fromDataType!(T)(element.value);
+		auto value = fromDataType!(T)(element.value);
+		slice.id = getValueOfAttribute(Attributes.idAttribute, element);
+		
+		addUnarchivedSlice(value, slice.id);
+		
+		return value;
 	}
 
-	private T unarchiveArray (T) (DataType key)
-	{			
+	private T unarchiveArray (T) (DataType key, ref bool callDelegate)
+	{		
+		auto slice = unarchiveSlice(key);
+
+		if (auto tmp = getUnarchivedSlice!(T)(slice))
+		{
+			callDelegate = false;
+			return *tmp;
+		}
+		
 		T value;
 		
 		auto element = getElement(Tags.arrayTag, key);
@@ -409,8 +473,11 @@ class XMLArchive (U = char) : Archive!(U)
 			return T.init;
 		
 		lastElement = element;
-		auto length = getValueOfAttribute(Attributes.lengthAttribute);
+		auto length = getValueOfAttribute(Attributes.lengthAttribute);		
 		value.length = fromDataType!(size_t)(length);
+		slice.id = getValueOfAttribute(Attributes.idAttribute);	
+		
+		addUnarchivedSlice(value, slice.id);
 		
 		return value;
 	}
@@ -553,9 +620,11 @@ class XMLArchive (U = char) : Archive!(U)
 		}		
 	}
 	
-	private DataType getValueOfAttribute (DataType attribute)
+	private DataType getValueOfAttribute (DataType attribute, doc.Node element = doc.Node.invalid)
 	{
-		auto set = lastElement.query.attribute(attribute);
+		if (!element.isValid) element = lastElement;
+		
+		auto set = element.query.attribute(attribute);
 		
 		if (set.nodes.length == 1)
 			return set.nodes[0].value;
@@ -587,6 +656,13 @@ class XMLArchive (U = char) : Archive!(U)
 		unarchivedReferences[id] = cast(void*) value;
 	}
 	
+	private void addUnarchivedSlice (T) (T value, DataType id)
+	{
+		static assert(isArray!(T) || isString!(T), format!(`The given type "`, T, `" is not a slice type, i.e. array or string.`));
+
+		unarchivedSlices[id] = value;
+	}
+	
 	private DataType getArchivedReference (T) (T value)
 	{
 		if (auto tmp = cast(void*) value in archivedReferences)
@@ -600,6 +676,14 @@ class XMLArchive (U = char) : Archive!(U)
 		if (auto reference = id in unarchivedReferences)
 			return cast(T*) reference;
 		
+		return null;
+	}
+	
+	private T* getUnarchivedSlice (T) (Slice slice)
+	{
+		if (auto array = slice.id in unarchivedSlices)	
+			return &(cast(T) *array)[slice.offset .. slice.length + 1]; // dereference the array, cast it to the right type, 
+																		// slice it and then return a pointer to the result		
 		return null;
 	}
 	
@@ -623,6 +707,21 @@ class XMLArchive (U = char) : Archive!(U)
 		
 		return cast(DataType) null;
 	}
+	
+	private Slice unarchiveSlice (DataType key)
+	{
+		auto element = getElement(Tags.sliceTag, key, Attributes.keyAttribute, false);
+		
+		if (element.isValid)
+		{
+			auto length = fromDataType!(size_t)(getValueOfAttribute(Attributes.lengthAttribute, element));
+			auto offset = fromDataType!(size_t)(getValueOfAttribute(Attributes.offsetAttribute, element));
+			
+			return Slice(length, offset, element.value);
+		}
+		
+		return Slice.init;
+	}	
 	
 	private struct AssociativeArrayVisitor (Key, Value)
 	{
@@ -661,4 +760,32 @@ class XMLArchive (U = char) : Archive!(U)
 			return result;
 		}
 	}
+	
+	public void postProcess ()
+	{
+		bool foundSlice = true;
+		
+		foreach (slice, sliceNode ; arraysToBeArchived)
+		{
+			foreach (array, arrayNode ; arraysToBeArchived)
+			{
+				if (slice.isSliceOf(array) && slice != array)
+				{
+					sliceNode.parent.element(Tags.sliceTag, arrayNode.id)
+					.attribute(Attributes.keyAttribute, sliceNode.key)
+					.attribute(Attributes.offsetAttribute, toDataType((slice.ptr - array.ptr) / slice.elementSize))
+					.attribute(Attributes.lengthAttribute, toDataType(slice.length));
+					
+					foundSlice = true;
+					break;
+				}
+				
+				else
+					foundSlice = false;
+			}
+			
+			if (!foundSlice)
+				sliceNode.parent.attach(sliceNode.node);
+		}
+	}	
 }
