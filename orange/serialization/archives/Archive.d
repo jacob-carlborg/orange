@@ -17,6 +17,21 @@ else
 
 import orange.serialization.archives.ArchiveException;
 
+struct Slice
+{
+	size_t length;
+	void* ptr;
+	
+	static Slice opCall (T) (T[] value)
+	{
+		Slice slice;
+		slice.length = value.length;
+		slice.ptr = value.ptr;
+		
+		return slice;
+	}
+}
+
 interface IArchive
 {
 	void beginArchiving ();
@@ -53,5 +68,13 @@ abstract class Archive (U) : IArchive
 		
 		catch (ConversionException e)
 			throw new ArchiveException(e);
-	}	
+	}
+	
+	protected bool isSliceOf (T, U = T) (T[] a, U[] b)
+	{
+		void* aPtr = a.ptr;
+		void* bPtr = b.ptr;
+		
+		return aPtr >= bPtr && aPtr + a.length * T.sizeof <= bPtr + b.length * U.sizeof;
+	}
 }
