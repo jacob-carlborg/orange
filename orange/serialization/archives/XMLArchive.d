@@ -416,8 +416,16 @@ class XMLArchive (U = char) : Archive!(U)
 		lastElement = tmp;
 		
 		auto runtimeType = getValueOfAttribute(Attributes.runtimeTypeAttribute);
+		
+		if (!runtimeType)
+			return T.init;			
+		
 		auto name = fromDataType!(string)(runtimeType);
-		id = getValueOfAttribute(Attributes.idAttribute);				
+		id = getValueOfAttribute(Attributes.idAttribute);
+		
+		if (!id)
+			return T.init;
+		
 		T result = cast(T) newInstance(name);
 		
 		addUnarchivedReference(result, id);
@@ -473,9 +481,16 @@ class XMLArchive (U = char) : Archive!(U)
 			return T.init;
 		
 		lastElement = element;
-		auto length = getValueOfAttribute(Attributes.lengthAttribute);		
+		auto length = getValueOfAttribute(Attributes.lengthAttribute);
+		
+		if (!length)
+			return T.init;
+		
 		value.length = fromDataType!(size_t)(length);
 		slice.id = getValueOfAttribute(Attributes.idAttribute);	
+		
+		if (!slice.id)
+			return T.init;
 		
 		addUnarchivedSlice(value, slice.id);
 		
@@ -509,6 +524,9 @@ class XMLArchive (U = char) : Archive!(U)
 
 		lastElement = element; 
 		id = getValueOfAttribute(Attributes.idAttribute);
+		
+		if (!id)
+			return T.init;
 				
 		T result = new BaseTypeOfPointer!(T);
 		
@@ -617,7 +635,7 @@ class XMLArchive (U = char) : Archive!(U)
 			}
 
 			return doc.Node.invalid;
-		}		
+		}
 	}
 	
 	private DataType getValueOfAttribute (DataType attribute, doc.Node element = doc.Node.invalid)
@@ -639,7 +657,9 @@ class XMLArchive (U = char) : Archive!(U)
 				else
 					errorCallback(new ArchiveException(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__), [attribute]);
 			}
-		}		
+		}
+		
+		return null;
 	}
 	
 	private void addArchivedReference (T) (T value, DataType id)
