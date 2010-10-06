@@ -18,6 +18,8 @@ import orange.xml.XMLDocument;
 
 final class XMLArchive (U = char) : Archive!(U)
 {
+	private alias IArchive.IDataType IDataType;
+	
 	private struct Tags
 	{
 		static const DataType structTag = "struct";	
@@ -49,6 +51,14 @@ final class XMLArchive (U = char) : Archive!(U)
 		static const DataType offsetAttribute = "offset";
 	}
 	
+	private struct ArrayNode
+	{
+		XMLDocument!(U).Node parent;
+		XMLDocument!(U).Node node;
+		DataType id;
+		DataType key;
+	}
+	
 	private
 	{
 		DataType archiveType = "org.dsource.orange.xml";
@@ -64,9 +74,9 @@ final class XMLArchive (U = char) : Archive!(U)
 		void[][DataType] unarchivedSlices;
 	}
 	
-	this (ErrorCallback errorCallback)
+	this (ErrorCallback errorCallback = null)
 	{
-		this.errorCallback = errorCallback;
+		super(errorCallback);
 		doc = new XMLDocument!(U);
 	}
 	
@@ -152,34 +162,37 @@ final class XMLArchive (U = char) : Archive!(U)
 		doc.reset;
 	}
 	
-	void archiveArray (Array array, string type, string key, size_t id)
+	void archiveArray (Array array, string type, string key, size_t id, void delegate () dg)
 	{
 		internalArchiveArray(type, array, key, id, Tags.arrayTag);
+		dg();
 	}
 	
 	private void internalArchiveArray(string type, Array array, string key, size_t id, DataType tag, DataType content = null)
 	{
 		auto parent = lastElement;
 		
-		if (value.length == 0)
+		if (array.length == 0)
 			lastElement = lastElement.element(tag);
 		
 		else
 			lastElement = doc.createNode(tag, content);			
 		
 		lastElement.attribute(Attributes.typeAttribute, toDataType(type))
-		.attribute(Attributes.lengthAttribute, toDataType(length))
+		.attribute(Attributes.lengthAttribute, toDataType(array.length))
 		.attribute(Attributes.keyAttribute, toDataType(key))
 		.attribute(Attributes.idAttribute, toDataType(id));
 	}
 	
-	void archiveAssociativeArray (string keyType, string valueType, size_t length, string key, size_t id)
+	void archiveAssociativeArray (string keyType, string valueType, size_t length, string key, size_t id, void delegate () dg)
 	{
 		lastElement = lastElement.element(Tags.associativeArrayTag)		
 		.attribute(Attributes.keyTypeAttribute, toDataType(keyType))
 		.attribute(Attributes.valueTypeAttribute, toDataType(valueType))
 		.attribute(Attributes.lengthAttribute, toDataType(length))
 		.attribute(Attributes.keyAttribute, key);
+		
+		dg();
 	}
 	
 	void archiveEnum (bool value, string key, size_t id)
@@ -249,20 +262,29 @@ final class XMLArchive (U = char) : Archive!(U)
 		.attribute(Attributes.keyAttribute, toDataType(key));
 	}
 	
+	void archiveBaseClass (string type, string key, size_t id)
+	{
+		lastElement = lastElement.element(Tags.baseTag)
+		.attribute(Attributes.typeAttribute, toDataType(type))
+		.attribute(Attributes.keyAttribute, toDataType(key)); 
+	}
+	
 	void archiveNull (string type, string key)
 	{
 		lastElement.element(Tags.nullTag)
-		.attribute(Attributes.typeAttribute, toDataType(T.stringof))
-		.attribute(Attributes.keyAttribute, key);
+		.attribute(Attributes.typeAttribute, toDataType(type))
+		.attribute(Attributes.keyAttribute, toDataType(key));
 	}
 	
-	void archiveObject (string runtimeType, string type, string key, size_t id)
+	void archiveObject (string runtimeType, string type, string key, size_t id, void delegate () dg)
 	{
 		lastElement = lastElement.element(Tags.objectTag)
-		.attribute(Attributes.runtimeTypeAttribute, toDataType(name))
+		.attribute(Attributes.runtimeTypeAttribute, toDataType(runtimeType))
 		.attribute(Attributes.typeAttribute, toDataType(type))
 		.attribute(Attributes.keyAttribute, toDataType(key))
-		.attribute(Attributes.idAttribute, toDataType(id));		
+		.attribute(Attributes.idAttribute, toDataType(id));
+		
+		dg();
 	}
 	
 	void archivePointer (string key, size_t id)
@@ -272,7 +294,7 @@ final class XMLArchive (U = char) : Archive!(U)
 		.attribute(Attributes.idAttribute, toDataType(id));
 	}
 	
-	void archiveReference (size_t key, size_t id)
+	void archiveReference (string key, size_t id)
 	{
 		lastElement.element(Tags.referenceTag, toDataType(id))
 		.attribute(Attributes.keyAttribute, toDataType(key));
@@ -286,18 +308,22 @@ final class XMLArchive (U = char) : Archive!(U)
 		.attribute(Attributes.lengthAttribute, toDataType(slice.length));
 	}*/
 	
-	void archiveStruct (string type, size_t key, size_t id)
+	void archiveStruct (string type, string key, size_t id, void delegate () dg)
 	{
 		lastElement = lastElement.element(Tags.structTag)
 		.attribute(Attributes.typeAttribute, toDataType(type))
-		.attribute(Attributes.keyAttribute, key);
+		.attribute(Attributes.keyAttribute, toDataType(key));
+		
+		dg();
 	}
 	
-	void archiveTypedef (string type, size_t key, size_t id)
+	void archiveTypedef (string type, string key, size_t id, void delegate () dg)
 	{
 		lastElement = lastElement.element(Tags.typedefTag)
-		.attribute(Attributes.typeAttribute, toDataType(type));
-		.attribute(Attributes.key, toDataType(key));
+		.attribute(Attributes.typeAttribute, toDataType(type))
+		.attribute(Attributes.keyAttribute, toDataType(key));
+		
+		dg();
 	}
 	
 	void archive (string value, string key, size_t id)
@@ -325,117 +351,117 @@ final class XMLArchive (U = char) : Archive!(U)
 	
 	void archive (bool value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (byte value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
-	void archive (cdouble value, string key, size_t id)
+	/*void archive (cdouble value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
 	/*void archive (cent value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}*/
 	
-	void archive (cfloat value, string key, size_t id)
+	/*void archive (cfloat value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
 	void archive (char value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
-	void archive (creal value, string key, size_t id)
+	/*void archive (creal value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
 	void archive (dchar value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (double value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (float value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
-	void archive (idouble value, string key, size_t id)
+	/*void archive (idouble value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
-	void archive (ifloat value, string key, size_t id)
+	/*void archive (ifloat value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
 	void archive (int value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
-	void archive (ireal value, string key, size_t id)
+	/*void archive (ireal value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
-	}
+		archivePrimitive(value, key);
+	}*/
 	
 	void archive (long value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (real value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (short value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (ubyte value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	/*void archive (ucent value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}*/
 	
 	void archive (uint value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (ulong value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (ushort value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}
 	
 	void archive (wchar value, string key, size_t id)
 	{
-		archivePrimitive (value, key);
+		archivePrimitive(value, key);
 	}	
 	
 	private void archivePrimitive (T) (T value, string key)
@@ -444,8 +470,29 @@ final class XMLArchive (U = char) : Archive!(U)
 		.attribute(Attributes.keyAttribute, toDataType(key));
 	}
 	
-	private void addArchivedArray (doc.Node parent, doc.Node lastElement, size_t id, string key, size_t elementSize, )
+	version (Tango)
 	{
-		arraysToBeArchived[Array(value)] = ArrayNode(parent, lastElement, id, key);
-	}	
+		private template errorMessage (ArchiveMode mode = ArchiveMode.archiving)
+		{
+			static if (mode == ArchiveMode.archiving)
+				const errorMessage = "Could not continue archiving due to unrecognized data format: ";
+				
+			else static if (mode == ArchiveMode.unarchiving)
+				const errorMessage = "Could not continue unarchiving due to unrecognized data format: ";
+		}
+	}
+	
+	else
+	{
+		mixin(
+			`private template errorMessage (ArchiveMode mode = ArchiveMode.archiving)
+			{
+				static if (mode == ArchiveMode.archiving)
+					enum errorMessage = "Could not continue archiving due to unrecognized data format: ";
+					
+				else static if (mode == ArchiveMode.unarchiving)
+					enum errorMessage = "Could not continue unarchiving due to unrecognized data format: ";
+			}`
+		);
+	}
 }

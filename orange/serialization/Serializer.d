@@ -33,76 +33,47 @@ private
 	alias Mode.deserializing deserializing;
 }
 
-class Serializer (ArchiveType : IArchive)
+class Serializer
 {
-	static assert(isArchive!(ArchiveType), format!(`The type "`, ArchiveType, `" does not implement the necessary methods to be an archive.`));
-	
-	alias ArchiveType.ErrorCallback ErrorCallback;
-	alias ArchiveType.DataType DataType;	
+	alias void delegate (ArchiveException exception, IArchive.IDataType data) ErrorCallback;
+	alias IArchive.IDataType DataType;
 	
 	private
 	{
-		ArchiveType archive;
-		
-		RegisterBase[string] serializers;
-		RegisterBase[string] deserializers;
+		ErrorCallback errorCallback_;		
+		IArchive archive;
 		
 		size_t keyCounter;
+		size_t idCounter;
+		
+		RegisterBase[string] serializers;
+		RegisterBase[string] deserializers;		
 		
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
 		
-		void delegate (ArchiveException exception, DataType[] data) throwOnErrorCallback;		
-		void delegate (ArchiveException exception, DataType[] data) doNothingOnErrorCallback;
+		void delegate (ArchiveException exception, DataType data) throwOnErrorCallback;		
+		void delegate (ArchiveException exception, DataType data) doNothingOnErrorCallback;
 	}
 	
-	this ()
+	this (IArchive archive)
 	{
-		archive = new ArchiveType;
+		this.archive = archive;
 		
-		throwOnErrorCallback = (ArchiveException exception, DataType[] data) { throw exception; };
-		doNothingOnErrorCallback = (ArchiveException exception, DataType[] data) { /* do nothing */ };
+		throwOnErrorCallback = (ArchiveException exception, IArchive.IDataType data) { throw exception; };
+		doNothingOnErrorCallback = (ArchiveException exception, IArchive.IDataType data) { /* do nothing */ };
 		
 		setThrowOnErrorCallback();
-	}
-
-	void registerSerializer (T) (string type, void delegate (T, Serializer, DataType) dg)
-	{		
-		serializers[type] = toSerializeRegisterWrapper(dg);
-	}
-
-	void registerSerializer (T) (string type, void function (T, Serializer, DataType) func)
-	{		
-		serializers[type] = toSerializeRegisterWrapper(func);
-	}
-
-	void registerDeserializer (T) (string type, void delegate (ref T, Serializer, DataType) dg)
-	{		
-		deserializers[type] = toDeserializeRegisterWrapper(dg);
-	}
-
-	void registerDeserializer (T) (string type, void function (ref T, Serializer, DataType) func)
-	{		
-		deserializers[type] = toDeserializeRegisterWrapper(func);
-	}
-	
-	void reset ()
-	{
-		hasBegunSerializing = false;
-		hasBegunDeserializing = false;
-		resetCounters();
-		
-		archive.reset;
 	}
 	
 	ErrorCallback errorCallback ()
 	{
-		return archive.errorCallback;
+		return errorCallback_;
 	}
 	
 	ErrorCallback errorCallback (ErrorCallback errorCallback)
 	{
-		return archive.errorCallback = errorCallback;
+		return errorCallback_ = errorCallback;
 	}
 	
 	void setThrowOnErrorCallback ()
@@ -115,7 +86,7 @@ class Serializer (ArchiveType : IArchive)
 		errorCallback = doNothingOnErrorCallback;
 	}
 	
-	DataType serialize (T) (T value, DataType key = null)
+	DataType serialize (T) (T value, string key = null)
 	{
 		if (!hasBegunSerializing)
 			hasBegunSerializing = true;
@@ -126,7 +97,7 @@ class Serializer (ArchiveType : IArchive)
 		return archive.data;
 	}
 	
-	private void serializeInternal (T) (T value, DataType key = null)
+	private void serializeInternal (T) (T value, string key = null)
 	{
 		if (!key)
 			key = nextKey;
@@ -172,13 +143,13 @@ class Serializer (ArchiveType : IArchive)
 			throw new SerializationException(format!(`The type "`, T, `" cannot be serialized.`), __FILE__, __LINE__);
 		}
 	}
-	
-	private void serializeObject (T) (T value, DataType key)
-	{			
-		triggerEvents(serializing, value, {
-			archive.archive(value, key, {
-				auto runtimeType = value.classinfo.name;
 
+	private void serializeObject (T) (T value, string key)
+	{
+		auto runtimeType = value.classinfo.name; 
+		
+		triggerEvents(serializing, value, {
+			archive.archiveObject(runtimeType, T.stringof, key, nextId, {
 				if (runtimeType in serializers)
 				{
 					auto wrapper = getSerializerWrapper!(T)(runtimeType);
@@ -198,13 +169,13 @@ class Serializer (ArchiveType : IArchive)
 			});
 		});
 	}
-
+	
 	private void serializeStruct (T) (T value, DataType key)
-	{		
+	{
+		auto type = T.stringof;
+		
 		triggerEvents(serializing, value, {
-			archive.archive(value, key, {
-				auto type = toDataType(T.stringof);
-				
+			archive.archive(type, key, nextId, {				
 				if (type in serializers)
 				{
 					auto wrapper = getSerializerWrapper!(T)(type);
@@ -223,244 +194,24 @@ class Serializer (ArchiveType : IArchive)
 		});
 	}
 	
-	private void serializeString (T) (T value, DataType key)
+	private void serializeString (T) (T value, string key)
 	{
-		archive.archive(value, key);
+		archive.archive(value, key, nextId);
 	}
-
-	private void serializeArray (T) (T value, DataType key)
+	
+	private void serializeArray (T) (T value, string key)
 	{
-		archive.archive(value, key, {
+		auto array = Array(value.ptr, value.length, BaseTypeOfArray!(T).sizeof);
+		
+		archive.archiveArray(array, arrayToString!(T), key, nextId, {
 			foreach (i, e ; value)
 				serializeInternal(e, toDataType(i));
 		});
 	}
-
-	private void serializeAssociativeArray (T) (T value, DataType key)
-	{
-		archive.archive(value, key, {
-			foreach(k, v ; value)
-				serializeInternal(v, toDataType(k));
-		});
-	}
-
-	private void serializePointer (T) (T value, DataType key)
-	{
-		archive.archive(value, key, {
-			if (key in serializers)
-			{
-				auto wrapper = getSerializerWrapper!(T)(key);
-				wrapper(value, this, key);
-			}
-			
-			else static if (isSerializable!(T, Serializer))
-				value.toData(this, key);
-			
-			else
-			{
-				static if (isVoid!(BaseTypeOfPointer!(T)))
-					throw new SerializationException(`The value with the key "` ~ to!(string)(key) ~ `"` ~ format!(` of the type "`, T, `" cannot be serialized on its own, either implement orange.serialization.Serializable.isSerializable or register a serializer.`), __FILE__, __LINE__);
-				
-				else
-					serializeInternal(*value, key);
-			}				
-		});
-	}
 	
-	private void serializeEnum (T) (T value, DataType key)
-	{
-		archive.archive(value, key);
-	}
-
-	private void serializePrimitive (T) (T value, DataType key)
+	private void serializePrimitive (T) (T value, string key)
 	{		
-		archive.archive(value, key);
-	}
-	
-	private void serializeTypeDef (T) (T value, DataType key)
-	{
-		archive.archive(value, key, {
-			serializeInternal!(BaseTypeOfTypeDef!(T))(value, key);
-		});
-	}
-	
-	T deserialize (T) (DataType data, DataType key = null)
-	{		
-		if (hasBegunSerializing && !hasBegunDeserializing)
-			resetCounters();
-		
-		if (!hasBegunDeserializing)
-			hasBegunDeserializing = true;
-		
-		if (!key)
-			key = nextKey;
-		
-		archive.beginUnarchiving(data);
-		return deserializeInternal!(T)(key);
-	}
-	
-	private T deserializeInternal (T) (DataType key)
-	{
-		static if (isTypeDef!(T))
-			return deserializeTypeDef!(T)(key);
-		
-		else static if (isObject!(T))
-			return deserializeObject!(T)(key);
-
-		else static if (isStruct!(T))
-			return deserializeStruct!(T)(key);
-
-		else static if (isString!(T))
-			return deserializeString!(T)(key);
-		
-		else static if (isArray!(T))
-			return deserializeArray!(T)(key);
-
-		else static if (isAssociativeArray!(T))
-			return deserializeAssociativeArray!(T)(key);
-
-		else static if (isPrimitive!(T))
-			return deserializePrimitive!(T)(key);
-
-		else static if (isPointer!(T))
-		{			
-			static if (isFunctionPointer!(T))
-				goto error;
-			
-			return deserializePointer!(T)(key);
-		}		
-		
-		else static if (isEnum!(T))
-			return deserializeEnum!(T)(key);
-		
-		else
-		{
-			error:
-			throw new SerializationException(format!(`The type "`, T, `" cannot be deserialized.`), __FILE__, __LINE__);
-		}			
-	}
-
-	private T deserializeObject (T) (DataType key)
-	{		
-		T value = archive.unarchive!(T)(key, (T value) {			
-			triggerEvents(deserializing, value, {
-				auto runtimeType = value.classinfo.name;
-				
-				if (runtimeType in deserializers)
-				{
-					auto wrapper = getDeserializerWrapper!(T)(runtimeType);
-					wrapper(value, this, key);
-				}
-				
-				else static if (isSerializable!(T, Serializer))
-					value.fromData(this, key);
-				
-				else
-				{
-					if (isBaseClass(value))
-						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a deserializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
-					
-					objectStructDeserializeHelper(value);					
-				}
-			});
-			
-			return value;
-		});
-		
-		return value;
-	}
-
-	private T deserializeStruct (T) (DataType key)
-	{		
-		return archive.unarchive!(T)(key, (T value) {			
-			triggerEvents(deserializing, value, {
-				auto type = toDataType(T.stringof);
-				
-				if (type in deserializers)
-				{
-					auto wrapper = getDeserializerWrapper!(T)(type);
-					wrapper(value, this, key);
-				}
-				
-				else
-				{
-					static if (isSerializable!(T, Serializer))
-						value.fromData(this, key);
-					
-					else
-						objectStructDeserializeHelper(value);
-				}	
-			});
-			
-			return value;
-		});
-	}
-	
-	private T deserializeString (T) (DataType key)
-	{
-		return archive.unarchive!(T)(key);
-	}
-
-	private T deserializeArray (T) (DataType key)
-	{
-		return archive.unarchive!(T)(key, (T value) {
-			foreach (i, ref e ; value)
-				e = deserializeInternal!(typeof(e))(toDataType(i));
-			
-			return value;
-		});	
-	}
-
-	private T deserializeAssociativeArray (T) (DataType key)
-	{		
-		return archive.unarchive!(T)(key, (T value) {			
-			foreach (k, v ; archive.unarchiveAssociativeArrayVisitor!(T))
-				value[k] = v;
-			
-			return value;
-		});	
-	}
-
-	private T deserializePointer (T) (DataType key)
-	{
-		return archive.unarchive!(T)(key, (T value) {
-			if (key in deserializers)
-			{
-				auto wrapper = getDeserializerWrapper!(T)(key);
-				wrapper(value, this, key);
-			}
-			
-			else static if (isSerializable!(T, Serializer))
-				value.fromData(this, key);
-			
-			else
-			{
-				static if (isVoid!(BaseTypeOfPointer!(T)))
-					throw new SerializationException(`The value with the key "` ~ to!(string)(key) ~ `"` ~ format!(` of the type "`, T, `" cannot be deserialized on its own, either implement orange.serialization.Serializable.isSerializable or register a deserializer.`), __FILE__, __LINE__);
-				
-				else
-					*value = deserializeInternal!(BaseTypeOfPointer!(T))(key);
-			}
-			
-			return value;
-		});
-	}
-	
-	private T deserializeEnum (T) (DataType key)
-	{
-		return archive.unarchive!(T)(key);
-	}
-
-	private T deserializePrimitive (T) (DataType key)
-	{		
-		return archive.unarchive!(T)(key);
-	}
-	
-	private T deserializeTypeDef (T) (DataType key)
-	{
-		return archive.unarchive!(T)(key, (T value) {
-			return deserializeInternal!(BaseTypeOfTypeDef!(T))(key);
-		});
+		archive.archive(value, key, nextId);
 	}
 	
 	private void objectStructSerializeHelper (T) (ref T value)
@@ -511,7 +262,7 @@ class Serializer (ArchiveType : IArchive)
 		
 		static if (!is(Base == Object))
 		{
-			archive.archiveBaseClass!(Base)(nextKey);
+			archive.archiveBaseClass(Base.stringof, nextKey, nextId);
 			Base base = value;
 			objectStructSerializeHelper(base);
 		}
@@ -549,33 +300,29 @@ class Serializer (ArchiveType : IArchive)
 		assert(false, "throw exception here");
 	}
 	
-	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, DataType) dg)
+	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, string) dg)
 	{		
 		return new SerializeRegisterWrapper!(T, Serializer)(dg);
 	}
 
-	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void function (T, Serializer, DataType) func)
+	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void function (T, Serializer, string) func)
 	{		
 		return new SerializeRegisterWrapper!(T, Serializer)(func);
 	}
 
-	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, DataType) dg)
+	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, string) dg)
 	{		
 		return new DeserializeRegisterWrapper!(T, Serializer)(dg);
 	}
 
-	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, DataType) func)
+	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, string) func)
 	{		
 		return new DeserializeRegisterWrapper!(T, Serializer)(func);
 	}
 	
-	private DataType toDataType (T) (T value)
+	private template arrayToString (T)
 	{
-		try
-			return to!(DataType)(value);
-		
-		catch (ConversionException e)
-			throw new SerializationException(e);
+		const arrayToString = BaseTypeOfArray!(T).stringof;
 	}
 	
 	private bool isBaseClass (T) (T value)
@@ -586,7 +333,12 @@ class Serializer (ArchiveType : IArchive)
 		return T.stringof != name[index + 1 .. $];
 	}
 	
-	private DataType nextKey ()
+	private size_t nextId ()
+	{
+		return idCounter++;
+	}
+	
+	private string nextKey ()
 	{
 		return toDataType(keyCounter++);
 	}
@@ -594,6 +346,12 @@ class Serializer (ArchiveType : IArchive)
 	private void resetCounters ()
 	{
 		keyCounter = 0;
+		idCounter = 0;
+	}
+	
+	private string toDataType (T) (T value)
+	{
+		return to!(string)(value);
 	}
 	
 	private void triggerEvent (string name, T) (T value)

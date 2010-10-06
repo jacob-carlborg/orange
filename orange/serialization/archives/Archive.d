@@ -18,21 +18,17 @@ else
 import orange.serialization.archives.ArchiveException;
 import orange.util.string;
 
+private enum ArchiveMode
+{
+	archiving,
+	unarchiving
+}
+
 struct Array
 {
 	void* ptr;
 	size_t length;
 	size_t elementSize;
-	
-	static Array opCall (T) (T[] value)
-	{
-		Array array;
-		array.ptr = value.ptr;
-		array.length = value.length;
-		array.elementSize = T.sizeof;
-		
-		return array;
-	}
 	
 	bool isSliceOf (Array b)
 	{
@@ -59,8 +55,8 @@ interface IArchive
 	void postProcess ();
 	void reset ();
 	
-	void archiveArray (string type, size_t length, size_t elementSize, string key, size_t id);
-	void archiveAssociativeArray (string keyType, string valueType, size_t length, string key, size_t id);
+	void archiveArray (Array array, string type, string key, size_t id, void delegate () dg);
+	void archiveAssociativeArray (string keyType, string valueType, size_t length, string key, size_t id, void delegate () dg);
 	
 	void archiveEnum (bool value, string key, size_t id);
 	void archiveEnum (byte value, string key, size_t id);
@@ -75,31 +71,32 @@ interface IArchive
 	void archiveEnum (ushort value, string key, size_t id);
 	void archiveEnum (wchar value, string key, size_t id);
 	
+	void archiveBaseClass (string type, string key, size_t id);
 	void archiveNull (string type, string key);
-	void archiveObject (string runtimeType, string type, string key, size_t id);
+	void archiveObject (string runtimeType, string type, string key, size_t id, void delegate () dg);
 	void archivePointer (string key, size_t id);
 	void archiveReference (string key, size_t id);
 	//void archiveSlice (size_t length, size_t offset, string key, size_t id);
-	void archiveStruct (string type, string key, size_t id);
-	void archiveTypedef (string type, string key, size_t id);
+	void archiveStruct (string type, string key, size_t id, void delegate () dg);
+	void archiveTypedef (string type, string key, size_t id, void delegate () dg);
 
 	void archive (string value, string key, size_t id);
 	void archive (wstring value, string key, size_t id);
 	void archive (dstring value, string key, size_t id);	
 	void archive (bool value, string key, size_t id);
 	void archive (byte value, string key, size_t id);
-	void archive (cdouble value, string key, size_t id);
+	//void archive (cdouble value, string key, size_t id);
 	//void archive (cent value, string key, size_t id);
-	void archive (cfloat value, string key, size_t id);
+	//void archive (cfloat value, string key, size_t id);
 	void archive (char value, string key, size_t id);
-	void archive (creal value, string key, size_t id);
+	//void archive (creal value, string key, size_t id);
 	void archive (dchar value, string key, size_t id);
 	void archive (double value, string key, size_t id);
 	void archive (float value, string key, size_t id);
-	void archive (idouble value, string key, size_t id);
-	void archive (ifloat value, string key, size_t id);
+	//void archive (idouble value, string key, size_t id);
+	//void archive (ifloat value, string key, size_t id);
 	void archive (int value, string key, size_t id);
-	void archive (ireal value, string key, size_t id);
+	//void archive (ireal value, string key, size_t id);
 	void archive (long value, string key, size_t id);
 	void archive (real value, string key, size_t id);
 	void archive (short value, string key, size_t id);
@@ -111,14 +108,19 @@ interface IArchive
 	void archive (wchar value, string key, size_t id);
 }
 
-abstract class Archive (U) //: IArchive
+abstract class Archive (U) : IArchive
 {
 	version (Tango) alias U[] DataType;
 	else mixin ("alias immutable(U)[] DataType;");
 	
 	alias void delegate (ArchiveException exception, DataType[] data) ErrorCallback;
 	
-	ErrorCallback errorCallback;
+	protected ErrorCallback errorCallback;
+	
+	protected this (ErrorCallback errorCallback)
+	{
+		this.errorCallback = errorCallback;
+	}
 	
 	protected DataType toDataType (T) (T value)
 	{
