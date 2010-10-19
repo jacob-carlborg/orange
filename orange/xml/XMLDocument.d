@@ -12,7 +12,7 @@ version (Tango)
 	import tango.text.xml.Document;
 	import tango.io.Stdout;
 	
-	import orange.util.string;
+	import orange.core.string;
 }
 
 else
@@ -25,7 +25,7 @@ else
 	version = Phobos;
 }
 
-import orange.util.io;
+import orange.core.io;
 	
 template Char (T)
 {

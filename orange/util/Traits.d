@@ -123,9 +123,9 @@ template isReference (T)
 	const bool isReference = isObject!(T) || isPointer!(T);
 }
 
-template isTypeDef (T)
+template isTypedef (T)
 {
-	const bool isTypeDef = is(T == typedef);
+	const bool isTypedef = is(T == typedef);
 }
 
 template isVoid (T)
@@ -133,13 +133,9 @@ template isVoid (T)
 	const bool isVoid = is(T == void);
 }
 
-template BaseTypeOfArray (T)
+template ElementTypeOfArray(T : T[])
 {
-	static if (is(T U : U[]))
-		alias BaseTypeOfArray!(U) BaseTypeOfArray;
-	
-	else
-		alias T BaseTypeOfArray;
+	alias T ElementTypeOfArray;
 }
 
 template BaseTypeOfPointer (T)
@@ -151,13 +147,22 @@ template BaseTypeOfPointer (T)
 		alias T BaseTypeOfPointer;
 }
 
-template BaseTypeOfTypeDef (T)
+template BaseTypeOfTypedef (T)
 {
 	static if (is(T U == typedef))
-		alias BaseTypeOfTypeDef!(U) BaseTypeOfTypeDef;
+		alias BaseTypeOfTypedef!(U) BaseTypeOfTypedef;
 	
 	else
-		alias T BaseTypeOfTypeDef;
+		alias T BaseTypeOfTypedef;
+}
+
+template BaseTypeOfEnum (T)
+{
+	static if (is(T U == enum))
+		alias BaseTypeOfEnum!(U) BaseTypeOfEnum;
+	
+	else
+		alias T BaseTypeOfEnum;
 }
 
 template KeyTypeOfAssociativeArray (T)

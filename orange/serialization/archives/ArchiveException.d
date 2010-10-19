@@ -7,7 +7,7 @@
 module orange.serialization.archives.ArchiveException;
 
 import orange.serialization.SerializationException;
-import orange.util.string;
+import orange.core.string;
 
 class ArchiveException : SerializationException
 {	

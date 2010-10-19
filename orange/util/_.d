@@ -9,8 +9,6 @@ module orange.util._;
 public:
 
 import orange.util.CTFE;
-import orange.util.io;
 import orange.util.Reflection;
-import orange.util.string;
 import orange.util.Traits;
 import orange.util.Use;

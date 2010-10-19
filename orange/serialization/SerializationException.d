@@ -6,7 +6,7 @@
  */
 module orange.serialization.SerializationException;
 
-import orange.util.string;
+import orange.core.string;
 
 version (Tango)
 	alias Exception ExceptionBase;

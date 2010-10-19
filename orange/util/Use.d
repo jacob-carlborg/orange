@@ -21,7 +21,7 @@ else
 	alias ParameterTypeTuple ParameterTupleOf;
 }
 
-struct OpInStruct (ARGS...)
+struct Use (ARGS...)
 {
 	static assert (ARGS.length > 0);
 	

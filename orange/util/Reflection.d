@@ -6,8 +6,8 @@
  */
 module orange.util.Reflection;
 
+import orange.core.string;
 import orange.util.CTFE;
-import orange.util.string;
 
 /**
  * Returns the name of the given function

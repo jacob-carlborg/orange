@@ -6,8 +6,9 @@
  */
 module orange.serialization.RegisterWrapper;
 
-import orange.serialization.archives.Archive;
-import orange.serialization.Serializer;
+//import orange.serialization.archives.Archive;
+//import orange.serialization.Serializer;
+import orange.core.string;
 
 class RegisterBase
 {
@@ -16,22 +17,21 @@ class RegisterBase
 
 class SerializeRegisterWrapper (T, SerializerType) : RegisterBase
 {
-	private alias SerializerType.DataType DataType;
-	private void delegate (T, SerializerType, DataType) dg;
+	private void delegate (T, SerializerType, string) dg;
 	private bool isDelegate;
 
-	this (void delegate (T, SerializerType, DataType) dg)
+	this (void delegate (T, SerializerType, string) dg)
 	{
 		isDelegate = true;
 		this.dg = dg;
 	}
 
-	this (void function (T, SerializerType, DataType) func)
+	this (void function (T, SerializerType, string) func)
 	{
 		dg.funcptr = func;
 	}
 
-	void opCall (T value, SerializerType archive, DataType key)
+	void opCall (T value, SerializerType archive, string key)
 	{
 		if (dg && isDelegate)
 			dg(value, archive, key);
@@ -43,22 +43,21 @@ class SerializeRegisterWrapper (T, SerializerType) : RegisterBase
 
 class DeserializeRegisterWrapper (T, SerializerType) : RegisterBase
 {
-	private alias SerializerType.DataType DataType;
-	private void delegate (ref T, SerializerType, DataType) dg;
+	private void delegate (ref T, SerializerType, string) dg;
 	private bool isDelegate;
 
-	this (void delegate (ref T, SerializerType, DataType) dg)
+	this (void delegate (ref T, SerializerType, string) dg)
 	{
 		isDelegate = true;
 		this.dg = dg;
 	}
 
-	this (void function (ref T, SerializerType, DataType) func)
+	this (void function (ref T, SerializerType, string) func)
 	{
 		dg.funcptr = func;
 	}
 
-	void opCall (ref T value, SerializerType archive, DataType key)
+	void opCall (ref T value, SerializerType archive, string key)
 	{
 		if (dg && isDelegate)
 			dg(value, archive, key);

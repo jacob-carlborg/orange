@@ -6,7 +6,7 @@
  */
 module orange.util.CTFE;
 
-import orange.util.string;
+import orange.core.string;
 import orange.util.Traits;
 
 template format (ARGS...)
