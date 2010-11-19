@@ -956,103 +956,20 @@ class Serializer
 		return annotations;
 	}
 }
-
-
-
-debug (OrangeUnitTest)
-{
-	import orange.serialization.archives.XMLArchive;
-
-	enum Foo { a, b, c }
-	typedef int Int;
-	
-	class A {}
-	struct B {}
-	class C { string str; }
-	class D { int[] arr; }
-	class E { int[int] aa; }
-	class F { int value; int* ptr; }
-	class G { Foo foo; }
-	
-	class H
-	{
-		bool bool_;
-		byte byte_;
-		//cdouble cdouble_; // currently not suppported by to!()
-		//cent cent_; // currently not implemented but a reserved keyword
-		//cfloat cfloat_; // currently not suppported by to!()
-		char char_;
-		//creal creal_; // currently not suppported by to!()
-		dchar dchar_;
-		double double_;
-		float float_;
-		//idouble idouble_; // currently not suppported by to!()
-		//ifloat ifloat_; // currently not suppported by to!()
-		int int_;
-		//ireal ireal_;  // currently not suppported by to!()
-		long long_;
-		real real_;
-		short short_;
-		ubyte ubyte_;
-		//ucent ucent_; // currently not implemented but a reserved keyword
-		uint uint_;
-		ulong ulong_;
-		ushort ushort_;
-		wchar wchar_;
-		
-		equals_t opEquals (Object other)
-		{
-			if (auto o =  cast(H) other)
-			{
-				return bool_ == o.bool_ &&
-					   byte_ == o.byte_ &&
-					   //cdouble_ == o.cdouble_ && // currently not suppported by to!()
-					   //cent_ == o.cent_ && // currently not implemented but a reserved keyword
-					   //cfloat_ == o.cfloat_ && // currently not suppported by to!()
-					   char_ == o.char_ &&
-					   //creal_ == o.creal_ && // currently not suppported by to!()
-					   dchar_ == o.dchar_ &&
-					   double_ == o.double_ &&
-					   float_ == o.float_ &&
-					   //idouble_ == o.idouble_ && // currently not suppported by to!()
-					   //ifloat_ == o.ifloat_ && // currently not suppported by to!()
-					   int_ == o.int_ &&
-					   //ireal_ == o.ireal_ &&  // currently not suppported by to!()
-					   long_ == o.long_ &&
-					   real_ == o.real_ &&
-					   short_ == o.short_ &&
-					   ubyte_ == o.ubyte_ &&
-					   //ucent_ == o.ucent_ && // currently not implemented but a reserved keyword
-					   uint_ == o.uint_ &&
-					   ulong_ == o.ulong_ &&
-					   ushort_ == o.ushort_ &&
-					   wchar_ == o.wchar_;
-			}
-			
-			return false;
-		}
-	}
-	
-	class I
-	{
-		Int a;
-	}
-	
+version (none):
 	void main ()
 	{
-		auto archive = new XMLArchive!(char);
-		auto serializer = new Serializer(archive);
-		string data;
+
 		
 		void serializeObject ()
 		{
 			serializer.reset;
 			data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <struct type="B" key="0"/>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <struct type="B" key="0"/>
+	  </data>
+	</archive>`;
 				
 			serializer.serialize(B());
 			assert(archive.data == data);
@@ -1062,11 +979,11 @@ debug (OrangeUnitTest)
 		{
 			serializer.reset;
 			data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <struct type="B" key="0"/>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <struct type="tests.Serializer.B" key="0"/>
+	  </data>
+	</archive>`;
 				
 			serializer.serialize(B());
 			assert(archive.data == data);
@@ -1080,13 +997,13 @@ debug (OrangeUnitTest)
 		
 		serializer.reset;
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.C" type="C" key="0" id="0">
-            <string type="char" length="3" key="str" id="1">foo</string>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.C" type="C" key="0" id="0">
+	          <string type="char" length="3" key="str" id="1">foo</string>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto c = new C;
 		c.str = "foo";
@@ -1099,23 +1016,23 @@ debug (OrangeUnitTest)
 		assert(c.str == cDeserialized.str);
 			
 		// Array
-	
+
 		serializer.reset;
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.D" type="D" key="0" id="0">
-            <array type="int" length="6" key="arr" id="1">
-                <int key="0">27</int>
-                <int key="1">382</int>
-                <int key="2">283</int>
-                <int key="3">3820</int>
-                <int key="4">32</int>
-                <int key="5">832</int>
-            </array>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.D" type="D" key="0" id="0">
+	          <array type="int" length="6" key="arr" id="1">
+	              <int key="0">27</int>
+	              <int key="1">382</int>
+	              <int key="2">283</int>
+	              <int key="3">3820</int>
+	              <int key="4">32</int>
+	              <int key="5">832</int>
+	          </array>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto d = new D;
 		d.arr = [27, 382, 283, 3820, 32, 832];
@@ -1131,38 +1048,38 @@ debug (OrangeUnitTest)
 		
 		serializer.reset();
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.E" type="E" key="0" id="0">
-            <associativeArray keyType="int" valueType="int" length="4" key="aa">
-                <key key="0">
-                    <int key="0">1</int>
-                </key>
-                <value key="0">
-                    <int key="0">2</int>
-                </value>
-                <key key="1">
-                    <int key="1">3</int>
-                </key>
-                <value key="1">
-                    <int key="1">4</int>
-                </value>
-                <key key="2">
-                    <int key="2">6</int>
-                </key>
-                <value key="2">
-                    <int key="2">7</int>
-                </value>
-                <key key="3">
-                    <int key="3">39</int>
-                </key>
-                <value key="3">
-                    <int key="3">472</int>
-                </value>
-            </associativeArray>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.E" type="E" key="0" id="0">
+	          <associativeArray keyType="int" valueType="int" length="4" key="aa">
+	              <key key="0">
+	                  <int key="0">1</int>
+	              </key>
+	              <value key="0">
+	                  <int key="0">2</int>
+	              </value>
+	              <key key="1">
+	                  <int key="1">3</int>
+	              </key>
+	              <value key="1">
+	                  <int key="1">4</int>
+	              </value>
+	              <key key="2">
+	                  <int key="2">6</int>
+	              </key>
+	              <value key="2">
+	                  <int key="2">7</int>
+	              </value>
+	              <key key="3">
+	                  <int key="3">39</int>
+	              </key>
+	              <value key="3">
+	                  <int key="3">472</int>
+	              </value>
+	          </associativeArray>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto e = new E;
 		e.aa = [3 : 4, 1 : 2, 39 : 472, 6 : 7];
@@ -1178,16 +1095,16 @@ debug (OrangeUnitTest)
 		
 		serializer.reset();
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.F" type="F" key="0" id="0">
-            <pointer key="ptr" id="2">
-                <int key="1">9</int>
-            </pointer>
-            <int key="value">9</int>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.F" type="F" key="0" id="0">
+	          <pointer key="ptr" id="2">
+	              <int key="1">9</int>
+	          </pointer>
+	          <int key="value">9</int>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto f = new F;
 		f.value = 9;
@@ -1204,13 +1121,13 @@ debug (OrangeUnitTest)
 		
 		serializer.reset();
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.G" type="G" key="0" id="0">
-            <enum type="Foo" baseType="int" key="foo">1</enum>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.G" type="G" key="0" id="0">
+	          <enum type="Foo" baseType="int" key="foo">1</enum>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto g = new G;
 		g.foo = Foo.b;
@@ -1226,27 +1143,27 @@ debug (OrangeUnitTest)
 		
 		serializer.reset;
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.H" type="H" key="0" id="0">
-            <byte key="byte_">1</byte>
-            <char key="char_">a</char>
-            <dchar key="dchar_">b</dchar>
-            <double key="double_">0</double>
-            <float key="float_">0</float>
-            <int key="int_">1</int>
-            <long key="long_">1</long>
-            <real key="real_">0</real>
-            <short key="short_">1</short>
-            <ubyte key="ubyte_">1</ubyte>
-            <uint key="uint_">1</uint>
-            <ulong key="ulong_">1</ulong>
-            <ushort key="ushort_">1</ushort>
-            <wchar key="wchar_">c</wchar>
-            <bool key="bool_">true</bool>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.H" type="H" key="0" id="0">
+	          <byte key="byte_">1</byte>
+	          <char key="char_">a</char>
+	          <dchar key="dchar_">b</dchar>
+	          <double key="double_">0</double>
+	          <float key="float_">0</float>
+	          <int key="int_">1</int>
+	          <long key="long_">1</long>
+	          <real key="real_">0</real>
+	          <short key="short_">1</short>
+	          <ubyte key="ubyte_">1</ubyte>
+	          <uint key="uint_">1</uint>
+	          <ulong key="ulong_">1</ulong>
+	          <ushort key="ushort_">1</ushort>
+	          <wchar key="wchar_">c</wchar>
+	          <bool key="bool_">true</bool>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto h = new H;
 		
@@ -1284,15 +1201,15 @@ debug (OrangeUnitTest)
 		
 		serializer.reset();
 		data = `<?xml version="1.0" encoding="UTF-8"?>
-<archive type="org.dsource.orange.xml" version="1.0.0">
-    <data>
-        <object runtimeType="orange.serialization.Serializer.I" type="I" key="0" id="0">
-            <typedef type="Int" key="a">
-                <int key="1">1</int>
-            </typedef>
-        </object>
-    </data>
-</archive>`;
+	<archive type="org.dsource.orange.xml" version="1.0.0">
+	  <data>
+	      <object runtimeType="orange.serialization.Serializer.I" type="I" key="0" id="0">
+	          <typedef type="Int" key="a">
+	              <int key="1">1</int>
+	          </typedef>
+	      </object>
+	  </data>
+	</archive>`;
 		
 		auto i = new I;
 		i.a = 1;
@@ -1306,4 +1223,3 @@ debug (OrangeUnitTest)
 
 		println("unit tests successful");
 	}
-}

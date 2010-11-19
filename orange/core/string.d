@@ -48,6 +48,8 @@ else
 	alias std.string.toString fromStringz;
 }
 
+import orange.util.Traits;
+
 version (Tango)
 {
 	/**
@@ -885,4 +887,54 @@ version (Phobos)
 		
 		return i;
 	}
+}
+
+T[] replace (T) (T[] source, dchar match, dchar replacement)
+{
+	static assert(isChar!(T), `The type "` ~ T.stringof ~ `" is not a valid type for this function only strings are accepted`);
+	
+	dchar endOfCodeRange;
+	
+	static if (is(T == wchar))
+	{
+		const encodedLength = 2;
+		endOfCodeRange = wchar.init;
+	}
+	
+	else static if (is(T == char))
+	{
+		const encodedLength = 4;
+		endOfCodeRange = '\x7F';
+	}
+	
+	if (replacement <= endOfCodeRange && match <= endOfCodeRange)
+	{
+		foreach (ref c ; source)
+			if (c == match)
+				c = replacement;
+		
+		return source;
+	}
+	
+	else
+	{
+		static if (!is(T == dchar))
+		{
+			T[encodedLength] encodedMatch;
+			T[encodedLength] encodedReplacement;
+			
+			version (Tango)
+				return source.substitute(encode(encodedMatch, match), encode(encodedReplacement, replacement));
+			
+			else
+			{
+				auto matchLength = encode(encodedMatch, match);
+				auto replacementLength = encode(encodedReplacement, replacement);
+				
+				return std.string.replace(source, encodedMatch[0 .. matchLength], encodedReplacement[0 .. replacementLength]);
+			}
+		}
+	}
+	
+	return source;
 }

@@ -19,7 +19,10 @@ else
 	version = Phobos;
 	
 	import std.c.string : memmove;
-}	
+}
+
+import orange.core.string;
+import orange.util.Traits;
 
 /**
  * Inserts the specified element at the specified position in the array. Shifts the
@@ -276,6 +279,36 @@ body
 }
 
 /**
+ * Returns $(D_KEYWORD true) if the array contains the given pattern.
+ * 
+ * Params:
+ *     arr = the array to check if it contains the element
+ *     pattern = the pattern whose presence in the array is to be tested
+ *     
+ * Returns: $(D_KEYWORD true) if the array contains the given pattern
+ */
+bool contains (T) (T[] arr, T[] pattern)
+{
+	static if (isChar!(T))
+	{
+		version (Tango)
+			return tango.text.Util.containsPattern(arr, pattern);
+		
+		else
+			return stdString.indexOf(arr, element) != -1;
+	}
+	
+	else
+	{
+		version (Tango)
+			return tango.core.Array.contains(arr, pattern);
+		
+		else
+			return !algorithm.find(arr, pattern).empty;
+	}
+}
+
+/**
  * Returns $(D_KEYWORD true) if this array contains no elements.
  * 
  * Params:
@@ -433,7 +466,7 @@ alias indexOf find;
  * 
  * Returns: the array
  */
-T[] replace (T, U = size_t) (ref T[] arr, U pos, U n, T[] elements)
+/*T[] replace (T, U = size_t) (ref T[] arr, U pos, U n, T[] elements)
 in
 {
 	assert(pos <= arr.length, "mambo.collection.Array.replace: The position was greter than the length of the array");
@@ -491,7 +524,52 @@ body
 	}
 	
 	return arr;
+}*/
+
+/**
+ * Replaces all the occurences of $(D_PARAM pattern) with $(D_PARAM replacement)
+ * 
+ * Params:
+ *     arr = the array to do the raplce in
+ *     pattern = the pattern to match
+ *     replacement = the values to subsitute
+ *     
+ * Returns: the passed in array with all the patterns subsituted
+ */
+T[] replace (T : wchar) (T[] arr, dchar pattern, dchar replacement)
+{
+	foreach (i, dchar e ; arr)
+		if (e == pattern)
+			arr[i] = replacement;
+	
+	return arr;
 }
+
+/**
+ * Replaces all the occurences of $(D_PARAM pattern) with $(D_PARAM replacement)
+ * 
+ * Params:
+ *     arr = the array to do the raplce in
+ *     pattern = the pattern to match
+ *     replacement = the values to subsitute
+ *     
+ * Returns: the passed in array with all the patterns subsituted
+ */
+/*T[] replace (T) (T[] arr, T pattern, T replacement)
+{
+	version (Tango)
+		tango.core.Array.replace(arr, pattern, replacement);
+	
+	
+	else
+	{
+		foreach (ref e ; arr)
+			if (e == pattern)
+				e = replacement;
+	}
+	
+	return arr;
+}*/
 
 /**
  * Erases a part of the array content, shortening the length of the array.

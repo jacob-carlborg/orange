@@ -8,6 +8,7 @@ module orange._;
 
 public:
 
+import orange.core._;
 import orange.serialization._;
 import orange.serialization.archives._;
 import orange.util._;

@@ -28,6 +28,8 @@ else
 	version = Phobos;
 }
 
+import orange.core.string;
+
 template isPrimitive (T)
 {
 	const bool isPrimitive = is(T == bool) ||
@@ -91,7 +93,7 @@ template isArray (T)
 
 template isString (T)
 {
-	const bool isString = is(T : char[]) || is(T : wchar[]) || is(T : dchar[]);
+	const bool isString = is(T : string) || is(T : wstring) || is(T : dstring);
 }
 
 template isAssociativeArray (T)

@@ -6,56 +6,215 @@
  */
 module orange.test.UnitTester;
 
+version (Tango)
+{
+	import tango.io.device.File;
+	import tango.io.stream.Lines;
+	import tango.util.Convert;
+	import tango.sys.Environment;
+}
+	
+
+else
+	import std.conv;
+
 import tango.core.Exception;
+import tango.io.FilePath;
 import orange.core._;
 import orange.util._;
 
+Use!(void delegate (), string) describe (string message)
+{
+	return UnitTester.instance.describe(message);
+}
+
+Use!(void delegate (), string) it (string message)
+{
+	return UnitTester.instance.test(message);
+}
+
+void delegate () before ()
+{
+	return UnitTester.instance.before;
+}
+
+void delegate () before (void delegate () before)
+{
+	return UnitTester.instance.before = before;
+}
+
+void delegate () after ()
+{
+	return UnitTester.instance.after;
+}
+
+void delegate () after (void delegate () after)
+{
+	return UnitTester.instance.after = after;
+}
+
+void run ()
+{
+	UnitTester.instance.run;
+}
+
+private:
+
 class UnitTester
 {	
-	private
+	private:
+		
+	struct DescriptionManager
 	{
-		struct Test
+		Description[] descriptions;
+		size_t lastIndex = size_t.max;
+		
+		void opCatAssign (Description description)
 		{
-			void delegate () test;
-			string message;
-			AssertException exception;
-			
-			bool failed ()
-			{
-				return !succeeded;
-			}
-			
-			bool succeeded ()
-			{
-				return !exception;
-			}
-			
-			void run ()
-			{
-				if (!isPending)
-					test();
-			}
-			
-			bool isPending ()
-			{
-				return test is null;
-			}
+			descriptions ~= description;
+			lastIndex++;
 		}
 		
-		Test[] tests;
-		AssertException[] exceptions;
-		void delegate () pre_;
-		void delegate () post_;
-		size_t failures;
-		size_t pending;
-		size_t lastIndex = size_t.max;
-	}	
+		void opCatAssign (Test test)
+		{
+			last.tests ~= test;
+		}
+		
+		Description opIndex (size_t i)
+		{
+			return descriptions[i];
+		}
+		
+		Description last ()
+		{
+			return descriptions[$ - 1];
+		}
+		
+		Description first ()
+		{
+			return descriptions[0];
+		}
+		
+		int opApply (int delegate(ref Description) dg)
+		{
+			int result = 0;
+			
+			foreach (desc ; descriptions)
+			{
+				result = dg(desc);
+				
+				if (result)
+					return result;
+			}
+			
+			return result;
+		}
+		
+		size_t length ()
+		{
+			return descriptions.length;
+		}
+	}
+	
+	class Description
+	{
+		private
+		{
+			DescriptionManager descriptions;
+			Test[] tests;
+			Test[] failures;
+			Test[] pending;
+			size_t lastIndex = size_t.max;
+			string message;
+			void delegate () description;
+		}
+		
+		this (string message)
+		{
+			this.message = message;
+		}
+		
+		void run ()
+		{
+			if (shouldRun)
+				description();
+		}
+		
+		bool shouldRun ()
+		{
+			return description !is null;
+		}
+	}
+	
+	struct Test
+	{
+		void delegate () test;
+		string message;
+		AssertException exception;
+		
+		bool failed ()
+		{
+			return !succeeded;
+		}
+		
+		bool succeeded ()
+		{
+			if (exception is null)
+				return true;
+			
+			return false;
+		}
+		
+		void run ()
+		{
+			if (!isPending)
+				test();
+		}
+		
+		bool isPending ()
+		{
+			return test is null;
+		}
+	}
+	
+	static UnitTester instance_;
+	
+	DescriptionManager descriptions;
+	Description currentDescription;
+	
+	void delegate () before_;
+	void delegate () after_;
+	
+	size_t numberOfFailures;
+	size_t numberOfPending;
+	size_t numberOfTests;
+	size_t failureId;
+	
+	string defaultIndentation = "    ";
+	string indentation;
+	
+	static UnitTester instance ()
+	{
+		if (instance_)
+			return instance_;
+		
+		return instance_ = new UnitTester;
+	}
+	
+	Use!(void delegate (), string) describe (string message)
+	{
+		addDescription(message);		
+		Use!(void delegate (), string) use;
+		
+		use.args[0] = &internalDescribe;
+		use.args[1] = message;
+		
+		return use;
+	}
 	
 	Use!(void delegate (), string) test (string message)
 	{
-		tests ~= Test(null, message);
-		lastIndex++;
-		
+		addTest(message);		
 		Use!(void delegate (), string) use;
 		
 		use.args[0] = &internalTest;		
@@ -65,101 +224,298 @@ class UnitTester
 	}
 	
 	void run ()
-	{
-		foreach (test ; tests)
-		{
-			if (test.isPending)
-				pending++;
-			
-			try
-			{
-				execute in {
-					test.run();
-				};				
-			}				
-			
-			catch (AssertException e)
-			{
-				exceptions ~= e;
-				failures++;
-			}				
-		}
-		
+	{		
+		foreach (description ; descriptions)
+			runDescription(description);
+
 		printResult;
 	}
 	
-	void delegate () pre ()
+	void runDescription (Description description)
 	{
-		return pre_;
+		restore(currentDescription) in {
+			currentDescription = description;
+			description.run;
+
+			foreach (desc ; description.descriptions)
+				runDescription(desc);
+			
+			foreach (ref test ; description.tests)
+			{
+				if (test.isPending)
+					addPendingTest(description, test);
+
+				try
+				{
+					execute in {
+						test.run();
+					};				
+				}				
+				
+				catch (AssertException e)
+					handleFailure(description, test, e);
+			}
+		};
 	}
 	
-	void delegate () pre (void delegate () pre)
+	void delegate () before ()
 	{
-		return pre_ = pre;
+		return before_;
 	}
 	
-	void delegate () post ()
+	void delegate () before (void delegate () before)
 	{
-		return post_;
+		return before_ = before;
+	}
+	
+	void delegate () after ()
+	{
+		return after_;
 	}
 
-	void delegate () post (void delegate () post)
+	void delegate () after (void delegate () after)
 	{
-		return post_ = post;
+		return after_ = after;
 	}
 	
-	private void internalTest (void delegate () dg, string message)
+	void addTest (string message)
 	{
-		tests[lastIndex] = Test(dg, message);
+		numberOfTests++;
+		currentDescription.tests ~= Test(null, message);
 	}
 	
-	private void printResult ()
+	void addDescription (string message)
+	{
+		if (currentDescription)
+			currentDescription.descriptions ~= new Description(message);
+		
+		else
+			descriptions ~= new Description(message);
+	}
+	
+	void addPendingTest (Description description, ref Test test)
+	{
+		numberOfPending++;
+		description.pending ~= test;
+	}
+	
+	void handleFailure (Description description, ref Test test, AssertException exception)
+	{
+		numberOfFailures++;
+		test.exception = exception;
+		description.failures ~= test;
+	}
+	
+	void internalDescribe (void delegate () dg, string message)
+	{
+		if (currentDescription)
+			currentDescription.descriptions.last.description = dg;
+		
+		else
+			descriptions.last.description = dg;
+	}
+	
+	void internalTest (void delegate () dg, string message)
+	{
+		currentDescription.tests[$ - 1] = Test(dg, message);
+	}
+	
+	void printResult ()
 	{	
 		if (isAllTestsSuccessful)
 			return printSuccess();
 		
-		foreach (test ; tests)
+		foreach (description ; descriptions)
 		{
-			print("- ", test.message);
-			
-			if (test.isPending)
-				print(" ", "(PENDING: Not Yet Implemented)");
-			
-			println();
+			printDescription(description);
+			printResultImpl(description.descriptions);
 		}
 		
-		print("\n", tests.length, " test, ", failures, " failures");
-		printPending();	
+		failureId = 0;
+		
+		printPending;		
+		printFailures;
+
+		print("\n", numberOfTests, " ", "test".pluralize(numberOfTests),", ", numberOfFailures, " ", "failure".pluralize(numberOfFailures));
+		printNumberOfPending;
 		println();
 	}
 	
-	private void printPending ()
+	void printResultImpl (DescriptionManager descriptions)
+	{
+		restore(indentation) in {
+			indentation ~= defaultIndentation;
+			
+			foreach (description ; descriptions)
+			{
+				printDescription(description);
+				printResultImpl(description.descriptions);
+			}
+		};
+	}
+	
+	void printDescription (Description description)
+	{
+		println(indentation, description.message);
+		
+		restore(indentation) in {
+			indentation ~= defaultIndentation;
+
+			foreach (i, ref test ; description.tests)
+			{
+				print(indentation, "- ", test.message);
+				
+				if (test.isPending)
+					print(" (PENDING: Not Yet Implemented)");
+				
+				if (test.failed)
+					print(" (FAILED - ", ++failureId, ')');
+				
+				println();
+			}
+		};
+	}
+	
+	void printPending ()
+	{
+		if (!hasPending)
+			return;
+		
+		println("\nPending:");
+		
+		restore(indentation) in {
+			indentation ~= defaultIndentation;
+			
+			foreach (description ; descriptions)
+			{
+				printPendingDescription(description);
+				printPendingImpl(description.descriptions);
+			}
+		};
+	}
+	
+	void printPendingImpl (DescriptionManager descriptions)
+	{
+		foreach (description ; descriptions)
+		{
+			printPendingDescription(description);
+			printPendingImpl(description.descriptions);
+		}
+	}
+	
+	void printPendingDescription (Description description)
+	{
+		foreach (test ; description.pending)
+			println(indentation, description.message, " ", test.message, "\n", indentation, indentation, "# Not Yet Implemented");
+	}
+	
+	void printFailures ()
+	{
+		if (!hasFailures)
+			return;
+		
+		println("\nFailures:");
+		
+		restore(indentation) in {
+			indentation ~= defaultIndentation;
+			
+			foreach (description ; descriptions)
+			{
+				printFailuresDescription(description);
+				printFailuresImpl(description.descriptions);
+			}
+		};
+	}
+	
+	void printFailuresImpl (DescriptionManager descriptions)
+	{
+		foreach (description ; descriptions)
+		{
+			printFailuresDescription(description);
+			printFailuresImpl(description.descriptions);
+		}
+	}
+	
+	void printFailuresDescription (Description description)
+	{
+		foreach (test ; description.failures)
+		{
+			auto str = indentation ~ to!(string)(++failureId) ~ ") ";
+			auto whitespace = toWhitespace(str.length);
+			
+			println(str, description.message, " ", test.message);			
+			println(whitespace, "# ", test.exception.file, ".d:", test.exception.line);
+			println(whitespace, "Stack trace:");
+			print(whitespace);
+			test.exception.writeOut(&printStackTrace);
+			println();
+			//println(readFailedTest(test, 0));
+		}
+	}
+	
+	void printStackTrace (string str)
+	{
+		return print(str);
+		
+		/*if (str.find("start") < size_t.max ||
+		    str.find("main") < size_t.max ||
+		    str.find("rt.compiler.") < size_t.max ||
+		    str.find("orange.") ||
+		    str.find(":0") ||
+		    str.find("_d_assert") ||
+		    str.find("onAssertError") ||
+		    str.find("tango.core.Exception.AssertException._ctor ") ||
+		    str.find("object.") ||
+		    str.find("tango.core.tools."))
+				return;*/
+	}
+	
+	string readFailedTest (ref Test test, int numberOfSurroundingLines = 3)
+	{		
+		auto filename = test.exception.file.dup.replace('.', '/');
+		
+		filename ~= ".d";
+		filename = Environment.toAbsolute(filename);
+		auto lineNumber = test.exception.line;
+		string str;
+		auto file = new File(filename);		
+		
+		foreach (i, line ; new Lines!(char)(file))			
+			if (i >= (lineNumber - 1) - numberOfSurroundingLines && i <= (lineNumber - 1) + numberOfSurroundingLines)
+				str ~= line ~ '\n';
+		
+		file.close;
+		
+		return str;
+	}
+	
+	void printNumberOfPending ()
 	{
 		if (hasPending)
-			print(", ", pending, " pending");
+			print(", ", numberOfPending, " pending");
 	}
 	
-	private void printSuccess ()
+	void printSuccess ()
 	{
-		println("All ", tests.length, " tests passed successfully.");
+		println("All ", numberOfTests, " test".pluralize(numberOfTests), " passed successfully.");
 	}
 	
-	private bool isAllTestsSuccessful ()
+	bool isAllTestsSuccessful ()
 	{
 		return !hasPending && !hasFailures;
 	}
 	
-	private bool hasPending ()
+	bool hasPending ()
 	{
-		return pending > 0;
+		return numberOfPending > 0;
 	}
 	
-	private bool hasFailures ()
+	bool hasFailures ()
 	{
-		return failures > 0;
+		return numberOfFailures > 0;
 	}
 	
-	private Use!(void delegate ()) execute ()
+	Use!(void delegate ()) execute ()
 	{
 		Use!(void delegate ()) use;
 		
@@ -168,10 +524,31 @@ class UnitTester
 		return use;
 	}
 	
-	private void executeImpl (void delegate () dg)
+	void executeImpl (void delegate () dg)
 	{
-		if (pre) pre();
+		auto before = this.before;
+		auto after = this.after;
+		
+		if (before) before();
 		if (dg) dg();
-		if (post) post();
+		if (after) after();
+	}
+	
+	string toWhitespace (size_t value)
+	{
+		string str;
+		
+		for (size_t i = 0; i < value; i++)
+			str ~= ' ';
+		
+		return str;
+	}
+	
+	string pluralize (string str, int value)
+	{
+		if (value == 1)
+			return str;
+		
+		return str ~ "s";
 	}
 }
