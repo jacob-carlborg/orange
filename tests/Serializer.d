@@ -246,7 +246,7 @@ unittest
 	k = new K;
 	k.a = [3 : 4, 1 : 2, 39 : 472, 6 : 7];
 	k.b = k.a;
-
+	
 	describe("Serializer") in {
 		describe("serialize object") in {
 			it("should return a serialized object") in {
@@ -330,7 +330,7 @@ unittest
 				
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.E" type="E" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa"`));
+				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa" id="1"`));
 				
 				assert(archive.data().containsXmlTag("key", `key="0"`));
 				assert(archive.data().containsXmlTag("int", `key="0"`, "1"));
@@ -497,11 +497,44 @@ unittest
 			};
 		};
 		
-		describe("associative array references") in {
-			it("should return ") in {
+		describe("serialize associative array references") in {
+			it("should return a serialized associative array and a serialized reference") in {
 				serializer.reset();
 				serializer.serialize(k);
-				println(archive.data);
+				
+				assert(archive.data().containsDefaultXmlContent());
+				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.K" type="K" key="0" id="0"`));
+				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="a" id="1"`));
+				
+				assert(archive.data().containsXmlTag("key", `key="0"`));
+				assert(archive.data().containsXmlTag("int", `key="0"`, "1"));
+				assert(archive.data().containsXmlTag("value", `key="0"`));
+				assert(archive.data().containsXmlTag("int", `key="0"`, "2"));
+				
+				assert(archive.data().containsXmlTag("key", `key="1"`));
+				assert(archive.data().containsXmlTag("int", `key="1"`, "3"));
+				assert(archive.data().containsXmlTag("value", `key="1"`));
+				assert(archive.data().containsXmlTag("int", `key="1"`, "4"));
+				
+				assert(archive.data().containsXmlTag("key", `key="2"`));
+				assert(archive.data().containsXmlTag("int", `key="2"`, "6"));
+				assert(archive.data().containsXmlTag("value", `key="2"`));
+				assert(archive.data().containsXmlTag("int", `key="2"`, "7"));
+				
+				assert(archive.data().containsXmlTag("key", `key="3"`));
+				assert(archive.data().containsXmlTag("int", `key="3"`, "39"));
+				assert(archive.data().containsXmlTag("value", `key="3"`));
+				assert(archive.data().containsXmlTag("int", `key="3"`, "472"));
+
+				assert(archive.data().containsXmlTag("reference", `key="b"`, "1"));
+			};
+		};
+		
+		describe("deserialize associative array references") in {
+			it("should return two deserialized associative arrays pointing to the same data") in {
+				auto kDeserialized = serializer.deserialize!(K)(archive.data);
+				
+				assert(kDeserialized.a is kDeserialized.b);
 			};
 		};
 	};

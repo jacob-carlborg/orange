@@ -47,7 +47,7 @@ struct Slice
 	size_t id = size_t.max;
 }
 
-interface IArchive
+interface Archive
 {
 	alias Serializer.Id Id;
 	
@@ -113,7 +113,7 @@ interface IArchive
 	
 	Id unarchiveArray (string key, void delegate (size_t length) dg);
 	void unarchiveArray (Id id, void delegate (size_t length) dg);
-	void unarchiveAssociativeArray (string type, void delegate (size_t length) dg);
+	Id unarchiveAssociativeArray (string type, void delegate (size_t length) dg);
 	void unarchiveAssociativeArrayKey (string key, void delegate () dg);
 	void unarchiveAssociativeArrayValue (string key, void delegate () dg);
 	
@@ -173,7 +173,7 @@ interface IArchive
 	void postProcessArray (Id id);
 }
 
-abstract class Archive (U) : IArchive
+abstract class Base (U) : Archive
 {
 	version (Tango) alias U[] Data;
 	else mixin ("alias immutable(U)[] Data;");

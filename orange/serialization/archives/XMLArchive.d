@@ -18,9 +18,9 @@ import orange.serialization.Serializer;
 import orange.util._;
 import orange.xml.XMLDocument;
 
-final class XMLArchive (U = char) : Archive!(U)
+final class XMLArchive (U = char) : Base!(U)
 {
-	private alias IArchive.Id Id;
+	private alias Archive.Id Id;
 	
 	private struct Tags
 	{
@@ -180,7 +180,8 @@ final class XMLArchive (U = char) : Archive!(U)
 			.attribute(Attributes.keyTypeAttribute, toData(keyType))
 			.attribute(Attributes.valueTypeAttribute, toData(valueType))
 			.attribute(Attributes.lengthAttribute, toData(length))
-			.attribute(Attributes.keyAttribute, key);
+			.attribute(Attributes.keyAttribute, key)
+			.attribute(Attributes.idAttribute, toData(id));
 			
 			dg();
 		};		
@@ -560,23 +561,29 @@ final class XMLArchive (U = char) : Archive!(U)
 		};
 	}
 	
-	void unarchiveAssociativeArray (string key, void delegate (size_t length) dg)
+	Id unarchiveAssociativeArray (string key, void delegate (size_t length) dg)
 	{
-		restore(lastElement) in {
+		return restore!(Id)(lastElement) in {
 			auto element = getElement(Tags.associativeArrayTag, key);
 			
 			if (!element.isValid)
-				return;
+				return Id.max;
 			
-			lastElement = element;
+			lastElement = element;			
 			auto len = getValueOfAttribute(Attributes.lengthAttribute);
 			
 			if (!len)
-				return;
+				return Id.max;
 			
 			auto length = fromData!(size_t)(len);
+			auto id = getValueOfAttribute(Attributes.idAttribute);
+			
+			if (!id)
+				return Id.max;
 			
 			dg(length);
+			
+			return id.toId();
 		};
 	}
 	

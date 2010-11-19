@@ -51,7 +51,7 @@ class Serializer
 	private
 	{		
 		ErrorCallback errorCallback_;		
-		IArchive archive;
+		Archive archive;
 		
 		size_t keyCounter;
 		Id idCounter;
@@ -72,7 +72,7 @@ class Serializer
 		void delegate (ArchiveException exception, string[] data) doNothingOnErrorCallback;
 	}
 	
-	this (IArchive archive)
+	this (Archive archive)
 	{
 		this.archive = archive;
 		
@@ -264,10 +264,18 @@ class Serializer
 	
 	private void serializeAssociativeArray (T) (T value, string key)
 	{
+		auto reference = getSerializedReference(value);
+		
+		if (reference != Id.max)
+			return archive.archiveReference(key, reference);
+		
+		Id id = nextId;
+		addSerializedReference(value, id);
+		
 		string keyType = KeyTypeOfAssociativeArray!(T).stringof;
 		string valueType = ValueTypeOfAssociativeArray!(T).stringof;
 		
-		archive.archiveAssociativeArray(keyType, valueType, value.length, key, nextId, {
+		archive.archiveAssociativeArray(keyType, valueType, value.length, key, id, {
 			size_t i;
 			
 			foreach(k, v ; value)
@@ -541,12 +549,17 @@ class Serializer
 	
 	private T deserializeAssociativeArray (T) (string key)
 	{
+		auto id = deserializeReference(key);
+		
+		if (auto reference = getDeserializedReference!(T)(id))
+			return *reference;
+		
 		T value;
 		
 		alias KeyTypeOfAssociativeArray!(T) Key;
 		alias ValueTypeOfAssociativeArray!(T) Value;
 		
-		archive.unarchiveAssociativeArray(key, (size_t length) {
+		id = archive.unarchiveAssociativeArray(key, (size_t length) {
 			for (size_t i = 0; i < length; i++)
 			{
 				Key aaKey;
@@ -565,45 +578,10 @@ class Serializer
 			}
 		});
 		
-		return value;
-	}
-	
-	/*			auto id = deserializeReference(key);
-		
-		if (auto reference = getDeserializedReference!(T)(id))
-			return *reference;
-
-		T value;
-		Object val = value;
-		
-		archive.unarchiveObject(key, id, val, {
-			triggerEvents(deserializing, value, {
-				value = cast(T) val;
-				auto runtimeType = value.classinfo.name;
-				
-				if (runtimeType in deserializers)
-				{
-					auto wrapper = getDeserializerWrapper!(T)(runtimeType);
-					wrapper(value, this, key);
-				}
-				
-				else static if (isSerializable!(T, Serializer))
-					value.fromData(this, key);
-				
-				else
-				{
-					if (isBaseClass(value))
-						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a deserializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
-
-					objectStructDeserializeHelper(value);					
-				}
-			});
-		});
-		
 		addDeserializedReference(value, id);
 		
 		return value;
-	 */
+	}
 	
 	private T deserializePointer (T) (string key)
 	{
@@ -742,14 +720,14 @@ class Serializer
 	
 	private void addSerializedReference (T) (T value, Id id)
 	{
-		static assert(isReference!(T), format!(`The given type "`, T, `" is not a reference type, i.e. object or pointer.`));
+		static assert(isReference!(T) || isAssociativeArray!(T), format!(`The given type "`, T, `" is not a reference type, i.e. object, pointer or associative array.`));
 		
 		serializedReferences[cast(void*) value] = id;
 	}
 	
 	private void addDeserializedReference (T) (T value, Id id)
 	{
-		static assert(isReference!(T), format!(`The given type "`, T, `" is not a reference type, i.e. object or pointer.`));
+		static assert(isReference!(T) || isAssociativeArray!(T), format!(`The given type "`, T, `" is not a reference type, i.e. object, pointer or associative array.`));
 		
 		deserializedReferences[id] = cast(void*) value;
 	}
@@ -781,7 +759,7 @@ class Serializer
 	{
 		if (auto array = slice.id in deserializedSlices)
 			return &(cast(T) *array)[slice.offset .. slice.offset + slice.length]; // dereference the array, cast it to the right type, 
-																		// slice it and then return a pointer to the result		}
+																				   // slice it and then return a pointer to the result
 		return null;		
 	}
 	
@@ -956,270 +934,3 @@ class Serializer
 		return annotations;
 	}
 }
-version (none):
-	void main ()
-	{
-
-		
-		void serializeObject ()
-		{
-			serializer.reset;
-			data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <struct type="B" key="0"/>
-	  </data>
-	</archive>`;
-				
-			serializer.serialize(B());
-			assert(archive.data == data);
-		}
-		
-		void serializeStruct ()
-		{
-			serializer.reset;
-			data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <struct type="tests.Serializer.B" key="0"/>
-	  </data>
-	</archive>`;
-				
-			serializer.serialize(B());
-			assert(archive.data == data);
-		}
-		
-		// Struct
-		
-
-		
-		// String
-		
-		serializer.reset;
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.C" type="C" key="0" id="0">
-	          <string type="char" length="3" key="str" id="1">foo</string>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto c = new C;
-		c.str = "foo";
-		serializer.serialize(c);
-		assert(archive.data == data);
-		
-		// Deserializing
-		
-		auto cDeserialized = serializer.deserialize!(C)(data);
-		assert(c.str == cDeserialized.str);
-			
-		// Array
-
-		serializer.reset;
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.D" type="D" key="0" id="0">
-	          <array type="int" length="6" key="arr" id="1">
-	              <int key="0">27</int>
-	              <int key="1">382</int>
-	              <int key="2">283</int>
-	              <int key="3">3820</int>
-	              <int key="4">32</int>
-	              <int key="5">832</int>
-	          </array>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto d = new D;
-		d.arr = [27, 382, 283, 3820, 32, 832];
-		serializer.serialize(d);
-		assert(archive.data == data);	
-		
-		// Deserializing
-		
-		auto dDeserialized = serializer.deserialize!(D)(data);
-		assert(d.arr == dDeserialized.arr);
-		
-		// Associative Array
-		
-		serializer.reset();
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.E" type="E" key="0" id="0">
-	          <associativeArray keyType="int" valueType="int" length="4" key="aa">
-	              <key key="0">
-	                  <int key="0">1</int>
-	              </key>
-	              <value key="0">
-	                  <int key="0">2</int>
-	              </value>
-	              <key key="1">
-	                  <int key="1">3</int>
-	              </key>
-	              <value key="1">
-	                  <int key="1">4</int>
-	              </value>
-	              <key key="2">
-	                  <int key="2">6</int>
-	              </key>
-	              <value key="2">
-	                  <int key="2">7</int>
-	              </value>
-	              <key key="3">
-	                  <int key="3">39</int>
-	              </key>
-	              <value key="3">
-	                  <int key="3">472</int>
-	              </value>
-	          </associativeArray>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto e = new E;
-		e.aa = [3 : 4, 1 : 2, 39 : 472, 6 : 7];
-		serializer.serialize(e);
-		assert(archive.data == data);
-		
-		// Deserializing
-		
-		auto eDeserialized = serializer.deserialize!(E)(data);
-		//assert(e.aa == eDeserialized.aa); // cannot compare associative array
-
-		// Pointer
-		
-		serializer.reset();
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.F" type="F" key="0" id="0">
-	          <pointer key="ptr" id="2">
-	              <int key="1">9</int>
-	          </pointer>
-	          <int key="value">9</int>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto f = new F;
-		f.value = 9;
-		f.ptr = &f.value;
-		serializer.serialize(f);
-		//assert(archive.data == data); // this is not a reliable comparison, the order of int and pointer is not reliable
-		
-		// Deserializing
-		
-		auto fDeserialized = serializer.deserialize!(F)(data);
-		assert(*f.ptr == *fDeserialized.ptr);
-		
-		// Enum
-		
-		serializer.reset();
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.G" type="G" key="0" id="0">
-	          <enum type="Foo" baseType="int" key="foo">1</enum>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto g = new G;
-		g.foo = Foo.b;
-		serializer.serialize(g);
-		assert(archive.data == data);
-		
-		// Deserializing
-		
-		auto gDeserialized = serializer.deserialize!(G)(data);
-		assert(g.foo == gDeserialized.foo);
-		
-		// Primitives
-		
-		serializer.reset;
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.H" type="H" key="0" id="0">
-	          <byte key="byte_">1</byte>
-	          <char key="char_">a</char>
-	          <dchar key="dchar_">b</dchar>
-	          <double key="double_">0</double>
-	          <float key="float_">0</float>
-	          <int key="int_">1</int>
-	          <long key="long_">1</long>
-	          <real key="real_">0</real>
-	          <short key="short_">1</short>
-	          <ubyte key="ubyte_">1</ubyte>
-	          <uint key="uint_">1</uint>
-	          <ulong key="ulong_">1</ulong>
-	          <ushort key="ushort_">1</ushort>
-	          <wchar key="wchar_">c</wchar>
-	          <bool key="bool_">true</bool>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto h = new H;
-		
-		h.bool_ = true;
-		h.byte_ = 1;
-		h.char_ = 'a';
-		//h.cdouble_ = 0.0 + 0.0 * 1.0i; // currently not suppported by to!() 
-		//h.cfloat_ = 0.0f + 0.0f * 1.0i; // currently not suppported by to!() 
-		//h.creal_ = 0.0 + 0.0 * 1.0i; // currently not suppported by to!() 
-		h.dchar_ = 'b';
-		h.double_ = 0.0;
-		h.float_ = 0.0f;
-		//h.idouble_ = 0.0 * 1.0i; // currently not suppported by to!() 
-		//h.ifloat_ = 0.0f * 1.0i; // currently not suppported by to!()
-		h.int_ = 1;
-		//h.ireal_ = 0.0 * 1.0i; // currently not suppported by to!()
-		h.long_ = 1L;
-		h.real_ = 0.0;
-		h.short_ = 1;
-		h.ubyte_ = 1U;
-		h.uint_ = 1U;
-		h.ulong_ = 1LU;
-		h.ushort_ = 1U;
-		h.wchar_ = 'c';
-		
-		serializer.serialize(h);
-		//assert(archive.data == data); // this is not a reliable comparison	
-		
-		// Deserializing
-		
-		auto hDeserialized = serializer.deserialize!(H)(data);
-		assert(h == hDeserialized);
-		
-		// Typedef
-		
-		serializer.reset();
-		data = `<?xml version="1.0" encoding="UTF-8"?>
-	<archive type="org.dsource.orange.xml" version="1.0.0">
-	  <data>
-	      <object runtimeType="orange.serialization.Serializer.I" type="I" key="0" id="0">
-	          <typedef type="Int" key="a">
-	              <int key="1">1</int>
-	          </typedef>
-	      </object>
-	  </data>
-	</archive>`;
-		
-		auto i = new I;
-		i.a = 1;
-		serializer.serialize(i);
-		assert(archive.data == data);
-		
-		// Deserializing
-		
-		auto iDeserialized = serializer.deserialize!(I)(data);
-		assert(i.a == iDeserialized.a);
-
-		println("unit tests successful");
-	}
