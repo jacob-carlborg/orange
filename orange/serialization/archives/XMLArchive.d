@@ -273,7 +273,8 @@ final class XMLArchive (U = char) : Base!(U)
 		lastElement.element(Tags.enumTag, toData(value))
 		.attribute(Attributes.typeAttribute, toData(type))
 		.attribute(Attributes.baseTypeAttribute, toData(T.stringof))
-		.attribute(Attributes.keyAttribute, toData(key));
+		.attribute(Attributes.keyAttribute, toData(key))
+		.attribute(Attributes.idAttribute, toData(id));
 	}
 	
 	void archiveBaseClass (string type, string key, Id id)
@@ -281,7 +282,8 @@ final class XMLArchive (U = char) : Base!(U)
 		restore(lastElement) in {
 			lastElement = lastElement.element(Tags.baseTag)
 			.attribute(Attributes.typeAttribute, toData(type))
-			.attribute(Attributes.keyAttribute, toData(key)); 
+			.attribute(Attributes.keyAttribute, toData(key))
+			.attribute(Attributes.idAttribute, toData(id)); 
 		};
 	}
 	
@@ -324,8 +326,10 @@ final class XMLArchive (U = char) : Base!(U)
 	{
 		if (auto pointerNode = getArchivedPointer(pointerId))
 		{
-			pointerNode.parent.element(Tags.referenceTag, toData(pointeeId)).
-			attribute(Attributes.keyAttribute, toData(pointerNode.key));
+			pointerNode.parent.element(Tags.pointerTag)
+			.attribute(Attributes.keyAttribute, toData(pointerNode.key))
+			.attribute(Attributes.idAttribute, toData(pointerId))
+			.element(Tags.referenceTag, toData(pointeeId));
 		}
 	}
 	
@@ -354,7 +358,8 @@ final class XMLArchive (U = char) : Base!(U)
 		restore(lastElement) in {
 			lastElement = lastElement.element(Tags.structTag)
 			.attribute(Attributes.typeAttribute, toData(type))
-			.attribute(Attributes.keyAttribute, toData(key));
+			.attribute(Attributes.keyAttribute, toData(key))
+			.attribute(Attributes.idAttribute, toData(id));
 			
 			dg();
 		};
@@ -365,7 +370,8 @@ final class XMLArchive (U = char) : Base!(U)
 		restore(lastElement) in {
 			lastElement = lastElement.element(Tags.typedefTag)
 			.attribute(Attributes.typeAttribute, toData(type))
-			.attribute(Attributes.keyAttribute, toData(key));
+			.attribute(Attributes.keyAttribute, toData(key))
+			.attribute(Attributes.idAttribute, toData(id));
 			
 			dg();
 		};
@@ -398,131 +404,132 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	void archive (bool value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (byte value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
-	// currently not suppported by to!()
+
+	//currently not suppported by to!()
 	/*void archive (cdouble value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	//currently not implemented but a reserved keyword
 	/*void archive (cent value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	//currently not suppported by to!()
 	/*void archive (cfloat value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	void archive (char value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	//currently not suppported by to!()
 	/*void archive (creal value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	void archive (dchar value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (double value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (float value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	//currently not suppported by to!()
 	/*void archive (idouble value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	//currently not suppported by to!()
 	/*void archive (ifloat value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	void archive (int value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	//currently not suppported by to!()
 	/*void archive (ireal value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	void archive (long value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (real value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (short value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (ubyte value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	//currently not implemented but a reserved keyword
 	/*void archive (ucent value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}*/
-	
+
 	void archive (uint value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (ulong value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (ushort value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
-	
+
 	void archive (wchar value, string key, Id id)
 	{
-		archivePrimitive(value, key);
+		archivePrimitive(value, key, id);
 	}
 	
-	private void archivePrimitive (T) (T value, string key)
+	private void archivePrimitive (T) (T value, string key, Id id)
 	{
 		lastElement.element(toData(T.stringof), toData(value))
-		.attribute(Attributes.keyAttribute, toData(key));
+		.attribute(Attributes.keyAttribute, toData(key))
+		.attribute(Attributes.idAttribute, toData(id));
 	}
 	
 	Id unarchiveArray (string key, void delegate (size_t) dg)

@@ -138,33 +138,36 @@ class Serializer
 		return archive.untypedData;
 	}
 	
-	private void serializeInternal (T) (T value, string key = null)
+	private void serializeInternal (T) (T value, string key = null, Id id = Id.max)
 	{
 		if (!key)
 			key = nextKey;
 		
+		if (id == Id.max)
+			id = nextId;
+		
 		archive.beginArchiving();
 		
 		static if ( is(T == typedef) )
-			serializeTypedef(value, key);
+			serializeTypedef(value, key, id);
 		
 		else static if (isObject!(T))
-			serializeObject(value, key);
+			serializeObject(value, key, id);
 
 		else static if (isStruct!(T))
-			serializeStruct(value, key);
+			serializeStruct(value, key, id);
 
 		else static if (isString!(T))
-			serializeString(value, key);
+			serializeString(value, key, id);
 		
 		else static if (isArray!(T))
-			serializeArray(value, key);
+			serializeArray(value, key, id);
 
 		else static if (isAssociativeArray!(T))
-			serializeAssociativeArray(value, key);
+			serializeAssociativeArray(value, key, id);
 
 		else static if (isPrimitive!(T))
-			serializePrimitive(value, key);
+			serializePrimitive(value, key, id);
 
 		else static if (isPointer!(T))
 		{
@@ -172,11 +175,11 @@ class Serializer
 				goto error;
 				
 			else
-				serializePointer(value, key);
+				serializePointer(value, key, id);
 		}			
 		
 		else static if (isEnum!(T))
-			serializeEnum(value, key);
+			serializeEnum(value, key, id);
 		
 		else
 		{
@@ -185,7 +188,7 @@ class Serializer
 		}
 	}
 
-	private void serializeObject (T) (T value, string key)
+	private void serializeObject (T) (T value, string key, Id id)
 	{
 		if (!value)
 			return archive.archiveNull(T.stringof, key);
@@ -197,7 +200,6 @@ class Serializer
 		
 		auto runtimeType = value.classinfo.name;
 		
-		Id id = nextId;
 		addSerializedReference(value, id);
 
 		triggerEvents(serializing, value, {			
@@ -222,12 +224,12 @@ class Serializer
 		});
 	}
 	
-	private void serializeStruct (T) (T value, string key)
+	private void serializeStruct (T) (T value, string key, Id id)
 	{			
 		string type = T.stringof;
 		
 		triggerEvents(serializing, value, {
-			archive.archiveStruct(type, key, nextId, {
+			archive.archiveStruct(type, key, id, {
 				if (type in serializers)
 				{
 					auto wrapper = getSerializerWrapper!(T)(type);
@@ -246,19 +248,17 @@ class Serializer
 		});
 	}
 	
-	private void serializeString (T) (T value, string key)
+	private void serializeString (T) (T value, string key, Id id)
 	{
-		auto id = nextId;
 		auto array = Array(value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
 		
 		archive.archive(value, key, id);			
 		addSerializedArray(array, id);
 	}
 	
-	private void serializeArray (T) (T value, string key)
+	private void serializeArray (T) (T value, string key, Id id)
 	{
 		auto array = Array(value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
-		auto id = nextId;
 
 		archive.archiveArray(array, arrayToString!(T), key, id, {
 			foreach (i, e ; value)
@@ -268,14 +268,13 @@ class Serializer
 		addSerializedArray(array, id);
 	}
 	
-	private void serializeAssociativeArray (T) (T value, string key)
+	private void serializeAssociativeArray (T) (T value, string key, Id id)
 	{
 		auto reference = getSerializedReference(value);
 		
 		if (reference != Id.max)
 			return archive.archiveReference(key, reference);
-		
-		Id id = nextId;
+
 		addSerializedReference(value, id);
 		
 		string keyType = KeyTypeOfAssociativeArray!(T).stringof;
@@ -299,12 +298,10 @@ class Serializer
 		});
 	}
 	
-	private void serializePointer (T) (T value, string key)
+	private void serializePointer (T) (T value, string key, Id id)
 	{
 		if (!value)
 			return archive.archiveNull(T.stringof, key);
-		
-		Id id = nextId;
 		
 		archive.archivePointer(key, id, {
 			if (key in serializers)
@@ -329,24 +326,24 @@ class Serializer
 		addSerializedPointer(value, id);
 	}
 	
-	private void serializeEnum (T) (T value, string key)
+	private void serializeEnum (T) (T value, string key, Id id)
 	{
 		alias BaseTypeOfEnum!(T) EnumBaseType;
 		auto val = cast(EnumBaseType) value;
 		string type = T.stringof;
 		
-		archive.archiveEnum(val, type, key, nextId);
+		archive.archiveEnum(val, type, key, id);
 	}
 	
-	private void serializePrimitive (T) (T value, string key)
+	private void serializePrimitive (T) (T value, string key, Id id)
 	{	
-		archive.archive(value, key, nextId);
+		archive.archive(value, key, id);
 	}
 	
-	private void serializeTypedef (T) (T value, string key)
+	private void serializeTypedef (T) (T value, string key, Id id)
 	{
 		archive.archiveTypedef(T.stringof, key, nextId, {
-			serializeInternal!(BaseTypeOfTypedef!(T))(value, nextKey);
+			serializeInternal!(BaseTypeOfTypedef!(T))(value, id);
 		});
 	}
 	
@@ -665,11 +662,12 @@ class Serializer
 			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
 			{
 				alias typeof(T.tupleof[i]) Type;				
-				Type v = value.tupleof[i];
+				Type v = value.tupleof[i];				
+				auto id = nextId;
 				
-				addSerializedValue(value.tupleof[i], nextId);
-				serializeInternal(v, toData(field));
-			}				
+				addSerializedValue(value.tupleof[i], id);
+				serializeInternal(v, toData(field), id);
+			}
 		}
 		
 		static if (isObject!(T) && !is(T == Object))
