@@ -79,6 +79,7 @@ interface Archive
 	void archiveNull (string type, string key);
 	void archiveObject (string runtimeType, string type, string key, Id id, void delegate () dg);
 	void archivePointer (string key, Id id, void delegate () dg);
+	void archivePointer (Id pointerId, Id pointeeId);
 	void archiveReference (string key, Id id);
 	void archiveSlice (Slice slice, Id sliceId, Id arrayId);
 	void archiveStruct (string type, string key, Id id, void delegate () dg);
@@ -171,6 +172,7 @@ interface Archive
     wchar unarchiveWchar (string key);
 	
 	void postProcessArray (Id id);
+	void postProcessPointer (Id id);
 }
 
 abstract class Base (U) : Archive

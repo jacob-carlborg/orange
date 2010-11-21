@@ -57,7 +57,7 @@ final class XMLArchive (U = char) : Base!(U)
 		static const Data baseTypeAttribute = "baseType";
 	}
 	
-	private struct ArrayNode
+	private struct Node
 	{
 		XMLDocument!(U).Node parent;
 		XMLDocument!(U).Node node;
@@ -76,7 +76,8 @@ final class XMLArchive (U = char) : Base!(U)
 		bool hasBegunArchiving;
 		bool hasBegunUnarchiving;
 		
-		ArrayNode[Id] archivedArrays;
+		Node[Id] archivedArrays;
+		Node[Id] archivedPointers;
 		void[][Data] unarchivedSlices;
 	}
 	
@@ -307,12 +308,25 @@ final class XMLArchive (U = char) : Base!(U)
 	void archivePointer (string key, Id id, void delegate () dg)
 	{
 		restore(lastElement) in {
-			lastElement = lastElement.element(Tags.pointerTag)
+			auto parent = lastElement;
+			lastElement = doc.createNode(Tags.pointerTag);
+			
+			lastElement.element(Tags.pointerTag)
 			.attribute(Attributes.keyAttribute, toData(key))
 			.attribute(Attributes.idAttribute, toData(id));
 			
+			addArchivedPointer(id, parent, lastElement, key);			
 			dg();
 		};
+	}
+	
+	void archivePointer (Id pointerId, Id pointeeId)
+	{
+		if (auto pointerNode = getArchivedPointer(pointerId))
+		{
+			pointerNode.parent.element(Tags.referenceTag, toData(pointeeId)).
+			attribute(Attributes.keyAttribute, toData(pointerNode.key));
+		}
 	}
 	
 	void archiveReference (string key, Id id)
@@ -992,17 +1006,40 @@ final class XMLArchive (U = char) : Base!(U)
 			array.parent.attach(array.node);
 	}
 	
-	private void addArchivedArray (Id id, doc.Node parent, doc.Node element, string key)
+	void postProcessPointer (Id id)
 	{
-		archivedArrays[id] = ArrayNode(parent, element, id, key);
+		if (auto pointer = getArchivedPointer(id))
+			pointer.parent.attach(pointer.node);
 	}
 	
-	private ArrayNode* getArchivedArray (Id id)
+	private void addArchivedArray (Id id, doc.Node parent, doc.Node element, string key)
+	{
+		archivedArrays[id] = Node(parent, element, id, key);
+	}
+	
+	private Node* getArchivedArray (Id id)
 	{
 		if (auto array = id in archivedArrays)
 			return array;
 
-		errorCallback(new ArchiveException(`Could not continue archiving due to no array with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__), [to!(string)(id)]);
+		if (errorCallback)
+			errorCallback(new ArchiveException(`Could not continue archiving due to no array with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__), [to!(string)(id)]);
+		
+		return null;
+	}
+	
+	private void addArchivedPointer (Id id, doc.Node parent, doc.Node element, string key)
+	{
+		archivedPointers[id] = Node(parent, element, id, key);
+	}
+	
+	private Node* getArchivedPointer (Id id)
+	{
+		if (auto pointer = id in archivedPointers)
+			return pointer;
+
+		if (errorCallback)
+			errorCallback(new ArchiveException(`Could not continue archiving due to no pointer with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__), [to!(string)(id)]);
 		
 		return null;
 	}

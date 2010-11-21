@@ -65,6 +65,9 @@ class Serializer
 		Array[Id] serializedArrays;
 		void[][Id] deserializedSlices;
 		
+		Id[void*] serializedPointers;
+		Id[void*] serializedValues;
+		
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
 		
@@ -114,6 +117,9 @@ class Serializer
 		
 		serializedArrays = null;
 		deserializedSlices = null;
+		
+		serializedValues = null;
+		serializedPointers = null;
 		
 		hasBegunSerializing = false;
 		hasBegunDeserializing = false;
@@ -298,14 +304,7 @@ class Serializer
 		if (!value)
 			return archive.archiveNull(T.stringof, key);
 		
-		auto reference = getSerializedReference(value);
-		
-		if (reference != Id.max)
-			return archive.archiveReference(key, reference);
-		
 		Id id = nextId;
-
-		addSerializedReference(value, id);
 		
 		archive.archivePointer(key, id, {
 			if (key in serializers)
@@ -326,6 +325,8 @@ class Serializer
 					serializeInternal(*value, nextKey);
 			}
 		});
+		
+		addSerializedPointer(value, id);
 	}
 	
 	private void serializeEnum (T) (T value, string key)
@@ -665,6 +666,8 @@ class Serializer
 			{
 				alias typeof(T.tupleof[i]) Type;				
 				Type v = value.tupleof[i];
+				
+				addSerializedValue(value.tupleof[i], nextId);
 				serializeInternal(v, toData(field));
 			}				
 		}
@@ -739,6 +742,16 @@ class Serializer
 		deserializedSlices[id] = value;
 	}
 	
+	private void addSerializedValue (T) (ref T value, Id id)
+	{
+		serializedValues[&value] = id;
+	}
+	
+	private void addSerializedPointer (T) (T value, Id id)
+	{
+		serializedPointers[value] = id;
+	}
+	
 	private Id getSerializedReference (T) (T value)
 	{
 		if (auto tmp = cast(void*) value in serializedReferences)
@@ -767,6 +780,14 @@ class Serializer
 	{
 		if (auto array = id in deserializedSlices)
 			return cast(T*) array;
+	}
+	
+	private Id getSerializedPointer (T) (T value)
+	{
+		if (auto tmp = cast(void*) value in serializedPointers)
+			return *tmp;
+		
+		return Id.max;
 	}
 	
 	private T[] toSlice (T) (T[] array, Slice slice)
@@ -819,6 +840,12 @@ class Serializer
 		serializedArrays[id] = array;
 	}
 	
+	private void postProcess ()
+	{
+		postProcessArrays();
+		postProcessPointers();
+	}
+	
 	private void postProcessArrays ()
 	{
 		bool foundSlice = true;
@@ -844,9 +871,16 @@ class Serializer
 		}
 	}
 	
-	private void postProcess ()
+	private void postProcessPointers ()
 	{
-		postProcessArrays();
+		foreach (key, pointerId ; serializedPointers)
+		{
+			if (auto pointeeId = key in serializedValues)
+				archive.archivePointer(pointerId, *pointeeId);
+			
+			else
+				archive.postProcessPointer(pointerId);
+		}
 	}
 	
 	private template arrayToString (T)
