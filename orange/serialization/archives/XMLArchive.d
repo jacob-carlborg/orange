@@ -313,8 +313,7 @@ final class XMLArchive (U = char) : Base!(U)
 			auto parent = lastElement;
 			lastElement = doc.createNode(Tags.pointerTag);
 			
-			lastElement.element(Tags.pointerTag)
-			.attribute(Attributes.keyAttribute, toData(key))
+			lastElement.attribute(Attributes.keyAttribute, toData(key))
 			.attribute(Attributes.idAttribute, toData(id));
 			
 			addArchivedPointer(id, parent, lastElement, key);			

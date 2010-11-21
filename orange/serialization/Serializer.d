@@ -65,7 +65,7 @@ class Serializer
 		Array[Id] serializedArrays;
 		void[][Id] deserializedSlices;
 		
-		Id[void*] serializedPointers;
+		void*[Id] serializedPointers;
 		Id[void*] serializedValues;
 		
 		bool hasBegunSerializing;
@@ -747,7 +747,7 @@ class Serializer
 	
 	private void addSerializedPointer (T) (T value, Id id)
 	{
-		serializedPointers[value] = id;
+		serializedPointers[id] = value;
 	}
 	
 	private Id getSerializedReference (T) (T value)
@@ -778,14 +778,6 @@ class Serializer
 	{
 		if (auto array = id in deserializedSlices)
 			return cast(T*) array;
-	}
-	
-	private Id getSerializedPointer (T) (T value)
-	{
-		if (auto tmp = cast(void*) value in serializedPointers)
-			return *tmp;
-		
-		return Id.max;
 	}
 	
 	private T[] toSlice (T) (T[] array, Slice slice)
@@ -871,9 +863,9 @@ class Serializer
 	
 	private void postProcessPointers ()
 	{
-		foreach (key, pointerId ; serializedPointers)
+		foreach (pointerId, value ; serializedPointers)
 		{
-			if (auto pointeeId = key in serializedValues)
+			if (auto pointeeId = value in serializedValues)
 				archive.archivePointer(pointerId, *pointeeId);
 			
 			else
