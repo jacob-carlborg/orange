@@ -343,7 +343,7 @@ class Serializer
 	private void serializeTypedef (T) (T value, string key, Id id)
 	{
 		archive.archiveTypedef(T.stringof, key, nextId, {
-			serializeInternal!(BaseTypeOfTypedef!(T))(value, id);
+			serializeInternal!(BaseTypeOfTypedef!(T))(value, nextKey);
 		});
 	}
 	

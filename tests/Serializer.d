@@ -269,9 +269,9 @@ unittest
 			it("should return a serialized struct") in {
 				serializer.reset;
 				serializer.serialize(B());
-				
+
 				assert(archive.data().containsDefaultXmlContent());
-				assert(archive.data().contains(`<struct type="B" key="0"/>`));
+				assert(archive.data().contains(`<struct type="B" key="0" id="0"/>`));
 			};
 		};
 		
@@ -304,15 +304,16 @@ unittest
 			it("should return a serialized array") in {
 				serializer.reset;
 				serializer.serialize(d);
-				
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.D" type="D" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("int", `key="0"`, "27"));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "382"));
-				assert(archive.data().containsXmlTag("int", `key="2"`, "283"));
-				assert(archive.data().containsXmlTag("int", `key="3"`, "3820"));
-				assert(archive.data().containsXmlTag("int", `key="4"`, "32"));
-				assert(archive.data().containsXmlTag("int", `key="5"`, "832"));
+				assert(archive.data().containsXmlTag("array", `type="int" length="6" key="arr" id="1"`));
+				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "27"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "382"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "283"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="5"`, "3820"));
+				assert(archive.data().containsXmlTag("int", `key="4" id="6"`, "32"));
+				assert(archive.data().containsXmlTag("int", `key="5" id="7"`, "832"));
 			};
 		};
 		
@@ -331,26 +332,26 @@ unittest
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.E" type="E" key="0" id="0"`));
 				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa" id="1"`));
-				
+
 				assert(archive.data().containsXmlTag("key", `key="0"`));
-				assert(archive.data().containsXmlTag("int", `key="0"`, "1"));
+				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));
 				assert(archive.data().containsXmlTag("value", `key="0"`));
-				assert(archive.data().containsXmlTag("int", `key="0"`, "2"));
+				assert(archive.data().containsXmlTag("int", `key="0" id="3"`, "2"));
 				
 				assert(archive.data().containsXmlTag("key", `key="1"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "3"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="4"`, "3"));
 				assert(archive.data().containsXmlTag("value", `key="1"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "4"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="5"`, "4"));
 				
 				assert(archive.data().containsXmlTag("key", `key="2"`));
-				assert(archive.data().containsXmlTag("int", `key="2"`, "6"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="6"`, "6"));
 				assert(archive.data().containsXmlTag("value", `key="2"`));
-				assert(archive.data().containsXmlTag("int", `key="2"`, "7"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="7"`, "7"));
 				
 				assert(archive.data().containsXmlTag("key", `key="3"`));
-				assert(archive.data().containsXmlTag("int", `key="3"`, "39"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="8"`, "39"));
 				assert(archive.data().containsXmlTag("value", `key="3"`));
-				assert(archive.data().containsXmlTag("int", `key="3"`, "472"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="9"`, "472"));
 			};
 		};
 		
@@ -368,19 +369,20 @@ unittest
 		describe("serialize pointer") in {
 			it("should return a serialized pointer") in {
 				serializer.reset();
-				
 				serializer.serialize(f);
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.F" type="F" key="0" id="0"`));
 				assert(archive.data().containsXmlTag("pointer", `key="ptr" id="2"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "9"));
-				assert(archive.data().containsXmlTag("int", `key="value"`, "9"));
+				assert(archive.data().containsXmlTag("reference", null, "1"));
+				assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));
 			};
 		};
 		
 		describe("deserialize pointer") in {
 			it("should return a deserialized pointer equal to the original pointer") in {
 				auto fDeserialized = serializer.deserialize!(F)(archive.data);
+
 				assert(*f.ptr == *fDeserialized.ptr);
 			};
 		};
@@ -389,9 +391,10 @@ unittest
 			it("should return a serialized enum") in {
 				serializer.reset();
 				serializer.serialize(g);
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.G" type="G" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("enum", `type="Foo" baseType="int" key="foo"`, "1"));
+				assert(archive.data().containsXmlTag("enum", `type="Foo" baseType="int" key="foo" id="1"`, "1"));
 			};
 		};
 
@@ -406,25 +409,25 @@ unittest
 		describe("serialize primitives") in {
 			it("should return serialized primitives") in {
 				serializer.reset;
-				
 				serializer.serialize(h);
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.H" type="H" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("byte", `key="byte_"`, "1"));
-				assert(archive.data().containsXmlTag("char", `key="char_"`, "a"));
-				assert(archive.data().containsXmlTag("dchar", `key="dchar_"`, "b"));
-				assert(archive.data().containsXmlTag("double", `key="double_"`, "0"));
-				assert(archive.data().containsXmlTag("float", `key="float_"`, "0"));
-				assert(archive.data().containsXmlTag("int", `key="int_"`, "1"));
-				assert(archive.data().containsXmlTag("long", `key="long_"`, "1"));
-				assert(archive.data().containsXmlTag("real", `key="real_"`, "0"));
-				assert(archive.data().containsXmlTag("short", `key="short_"`, "1"));
-				assert(archive.data().containsXmlTag("ubyte", `key="ubyte_"`, "1"));
-				assert(archive.data().containsXmlTag("uint", `key="uint_"`, "1"));
-				assert(archive.data().containsXmlTag("ulong", `key="ulong_"`, "1"));
-				assert(archive.data().containsXmlTag("ushort", `key="ushort_"`, "1"));
-				assert(archive.data().containsXmlTag("wchar", `key="wchar_"`, "c"));
-				assert(archive.data().containsXmlTag("bool", `key="bool_"`, "true"));
+				assert(archive.data().containsXmlTag("bool", `key="bool_" id="1"`, "true"));
+				assert(archive.data().containsXmlTag("byte", `key="byte_" id="2"`, "1"));
+				assert(archive.data().containsXmlTag("char", `key="char_" id="3"`, "a"));
+				assert(archive.data().containsXmlTag("dchar", `key="dchar_" id="4"`, "b"));
+				assert(archive.data().containsXmlTag("double", `key="double_" id="5"`, "0"));
+				assert(archive.data().containsXmlTag("float", `key="float_" id="6"`, "0"));
+				assert(archive.data().containsXmlTag("int", `key="int_" id="7"`, "1"));
+				assert(archive.data().containsXmlTag("long", `key="long_" id="8"`, "1"));
+				assert(archive.data().containsXmlTag("real", `key="real_" id="9"`, "0"));
+				assert(archive.data().containsXmlTag("short", `key="short_" id="10"`, "1"));
+				assert(archive.data().containsXmlTag("ubyte", `key="ubyte_" id="11"`, "1"));
+				assert(archive.data().containsXmlTag("uint", `key="uint_" id="12"`, "1"));
+				assert(archive.data().containsXmlTag("ulong", `key="ulong_" id="13"`, "1"));
+				assert(archive.data().containsXmlTag("ushort", `key="ushort_" id="14"`, "1"));
+				assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
 			};
 		};
 		
@@ -441,8 +444,8 @@ unittest
 				serializer.serialize(i);
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.I" type="I" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("typedef", `type="Int" key="a"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "1"));
+				assert(archive.data().containsXmlTag("typedef", `type="Int" key="a" id="2"`));
+				assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "1"));
 			};
 		};
 		
@@ -505,26 +508,26 @@ unittest
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.K" type="K" key="0" id="0"`));
 				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="a" id="1"`));
-				
+
 				assert(archive.data().containsXmlTag("key", `key="0"`));
-				assert(archive.data().containsXmlTag("int", `key="0"`, "1"));
+				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));
 				assert(archive.data().containsXmlTag("value", `key="0"`));
-				assert(archive.data().containsXmlTag("int", `key="0"`, "2"));
+				assert(archive.data().containsXmlTag("int", `key="0" id="3"`, "2"));
 				
 				assert(archive.data().containsXmlTag("key", `key="1"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "3"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="4"`, "3"));
 				assert(archive.data().containsXmlTag("value", `key="1"`));
-				assert(archive.data().containsXmlTag("int", `key="1"`, "4"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="5"`, "4"));
 				
 				assert(archive.data().containsXmlTag("key", `key="2"`));
-				assert(archive.data().containsXmlTag("int", `key="2"`, "6"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="6"`, "6"));
 				assert(archive.data().containsXmlTag("value", `key="2"`));
-				assert(archive.data().containsXmlTag("int", `key="2"`, "7"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="7"`, "7"));
 				
 				assert(archive.data().containsXmlTag("key", `key="3"`));
-				assert(archive.data().containsXmlTag("int", `key="3"`, "39"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="8"`, "39"));
 				assert(archive.data().containsXmlTag("value", `key="3"`));
-				assert(archive.data().containsXmlTag("int", `key="3"`, "472"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="9"`, "472"));
 
 				assert(archive.data().containsXmlTag("reference", `key="b"`, "1"));
 			};
