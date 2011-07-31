@@ -45,6 +45,7 @@ final class XMLArchive (U = char) : Base!(U)
 
 	private struct Attributes
 	{
+		static const Data invalidAttribute = "\0";
 		static const Data typeAttribute = "type";
 		static const Data versionAttribute = "version";
 		static const Data lengthAttribute = "length";
@@ -321,14 +322,15 @@ final class XMLArchive (U = char) : Base!(U)
 		};
 	}
 	
-	void archivePointer (Id pointerId, Id pointeeId)
+	void archivePointer (Id pointeeId, string key, Id id)
 	{
-		if (auto pointerNode = getArchivedPointer(pointerId))
+		if (auto pointerNode = getArchivedPointer(id))
 		{
 			pointerNode.parent.element(Tags.pointerTag)
 			.attribute(Attributes.keyAttribute, toData(pointerNode.key))
-			.attribute(Attributes.idAttribute, toData(pointerId))
-			.element(Tags.referenceTag, toData(pointeeId));
+			.attribute(Attributes.idAttribute, toData(id))
+			.element(Tags.referenceTag, toData(pointeeId))
+			.attribute(Attributes.keyAttribute, toData(key));
 		}
 	}
 	
@@ -731,11 +733,39 @@ final class XMLArchive (U = char) : Base!(U)
 		};
 	}
 	
+	/*
+	 * 	Id unarchiveArray (string key, void delegate (size_t) dg)
+	{
+		return restore!(Id)(lastElement) in {			
+			auto element = getElement(Tags.arrayTag, key);
+			
+			if (!element.isValid)
+				return Id.max;
+	
+			lastElement = element;
+			auto len = getValueOfAttribute(Attributes.lengthAttribute);
+			
+			if (!len)
+				return Id.max;
+			
+			auto length = fromData!(size_t)(len);
+			auto id = getValueOfAttribute(Attributes.idAttribute);	
+			
+			if (!id)
+				return Id.max;
+			
+			dg(length);
+			
+			return id.toId();
+		};
+	}
+	 */
+	
 	Id unarchivePointer (string key, void delegate () dg)
 	{
 		return restore!(Id)(lastElement) in {
 			auto tmp = getElement(Tags.pointerTag, key, Attributes.keyAttribute, false);
-			
+
 			if (!tmp.isValid)
 			{
 				lastElement = getElement(Tags.nullTag, key);
@@ -743,14 +773,14 @@ final class XMLArchive (U = char) : Base!(U)
 			}
 			
 			lastElement = tmp;
-			auto stringId = getValueOfAttribute(Attributes.idAttribute);
+			auto id = getValueOfAttribute(Attributes.idAttribute);
 
-			if (!stringId)
+			if (!id)
 				return Id.max;
 			
 			dg();
 			
-			return stringId.toId();
+			return id.toId();
 		};
 	}
 	
@@ -943,6 +973,11 @@ final class XMLArchive (U = char) : Base!(U)
 	{
 		return unarchivePrimitive!(int)(key);
 	}
+	
+	int unarchiveInt (Id id)
+	{
+		return unarchivePrimitive!(int)(id);
+	}
 
 	// currently not suppported by to!()
     /*ireal unarchiveIreal (string key)
@@ -996,9 +1031,9 @@ final class XMLArchive (U = char) : Base!(U)
 		return unarchivePrimitive!(wchar)(key);
 	}
 	
-	T unarchivePrimitive (T) (string key)
+	T unarchivePrimitive (T, U) (U keyOrId)
 	{
-		auto element = getElement(toData(T.stringof), key);
+		auto element = getElement(toData(T.stringof), keyOrId);
 
 		if (!element.isValid)
 			return T.init;
@@ -1050,9 +1085,18 @@ final class XMLArchive (U = char) : Base!(U)
 		return null;
 	}
 	
-	private doc.Node getElement (Data tag, string k, Data attribute = Attributes.keyAttribute, bool throwOnError = true)
-	{		
-		auto key = toData(k);
+	private doc.Node getElement (T) (Data tag, T keyOrID, Data attribute = Attributes.invalidAttribute, bool throwOnError = true)
+	{
+		if (attribute == Attributes.invalidAttribute)
+		{
+			static if (is(T : Id))
+				attribute = Attributes.idAttribute;
+				
+			else
+				attribute = Attributes.keyAttribute;
+		}
+
+		auto key = toData(keyOrID);
 		
 		auto set = lastElement.query[tag].attribute((doc.Node node) {
 			if (node.name == attribute && node.value == key)
@@ -1060,7 +1104,7 @@ final class XMLArchive (U = char) : Base!(U)
 			
 			return false;
 		});
-		
+
 		if (set.nodes.length == 1)
 			return set.nodes[0].parent;
 		

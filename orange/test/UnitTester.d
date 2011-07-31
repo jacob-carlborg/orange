@@ -449,7 +449,7 @@ class UnitTester
 			print(whitespace);
 			test.exception.writeOut(&printStackTrace);
 			println();
-			//println(readFailedTest(test, 0));
+			println(readFailedTest(test));
 		}
 	}
 	

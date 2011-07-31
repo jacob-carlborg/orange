@@ -79,7 +79,7 @@ interface Archive
 	void archiveNull (string type, string key);
 	void archiveObject (string runtimeType, string type, string key, Id id, void delegate () dg);
 	void archivePointer (string key, Id id, void delegate () dg);
-	void archivePointer (Id pointerId, Id pointeeId);
+	void archivePointer (Id pointeeId, string key, Id id);
 	void archiveReference (string key, Id id);
 	void archiveSlice (Slice slice, Id sliceId, Id arrayId);
 	void archiveStruct (string type, string key, Id id, void delegate () dg);
@@ -90,18 +90,18 @@ interface Archive
 	void archive (dstring value, string key, Id id);	
 	void archive (bool value, string key, Id id);
 	void archive (byte value, string key, Id id);
-	//void archive (cdouble value, string key, Id id); // currently not suppported by to!()
+	//void archive (cdouble value, string key, Id id); // currently not supported by to!()
 	//void archive (cent value, string key, Id id);
-	//void archive (cfloat value, string key, Id id); // currently not suppported by to!()
+	//void archive (cfloat value, string key, Id id); // currently not supported by to!()
 	void archive (char value, string key, Id id); // currently not implemented but a reserved keyword
-	//void archive (creal value, string key, Id id); // currently not suppported by to!()
+	//void archive (creal value, string key, Id id); // currently not supported by to!()
 	void archive (dchar value, string key, Id id);
 	void archive (double value, string key, Id id);
 	void archive (float value, string key, Id id);
-	//void archive (idouble value, string key, Id id); // currently not suppported by to!()
-	//void archive (ifloat value, string key, Id id); // currently not suppported by to!()
+	//void archive (idouble value, string key, Id id); // currently not supported by to!()
+	//void archive (ifloat value, string key, Id id); // currently not supported by to!()
 	void archive (int value, string key, Id id);
-	//void archive (ireal value, string key, Id id); // currently not suppported by to!()
+	//void archive (ireal value, string key, Id id); // currently not supported by to!()
 	void archive (long value, string key, Id id);
 	void archive (real value, string key, Id id);
 	void archive (short value, string key, Id id);
@@ -149,18 +149,19 @@ interface Archive
 	dstring unarchiveDstring (Id id);
     bool unarchiveBool (string key);
     byte unarchiveByte (string key);
-    //cdouble unarchiveCdouble (string key); // currently not suppported by to!()
+    //cdouble unarchiveCdouble (string key); // currently not supported by to!()
     //cent unarchiveCent (string key); // currently not implemented but a reserved keyword
-    //cfloat unarchiveCfloat (string key); // currently not suppported by to!()
+    //cfloat unarchiveCfloat (string key); // currently not supported by to!()
     char unarchiveChar (string key); // currently not implemented but a reserved keyword
-    //creal unarchiveCreal (string key); // currently not suppported by to!()
+    //creal unarchiveCreal (string key); // currently not supported by to!()
     dchar unarchiveDchar (string key);
     double unarchiveDouble (string key);
     float unarchiveFloat (string key);
-    //idouble unarchiveIdouble (string key); // currently not suppported by to!()
-    //ifloat unarchiveIfloat (string key); // currently not suppported by to!()*/
+    //idouble unarchiveIdouble (string key); // currently not supported by to!()
+    //ifloat unarchiveIfloat (string key); // currently not supported by to!()*/
     int unarchiveInt (string key);
-    //ireal unarchiveIreal (string key); // currently not suppported by to!()
+	int unarchiveInt (Id id);
+    //ireal unarchiveIreal (string key); // currently not supported by to!()
     long unarchiveLong (string key);
     real unarchiveReal (string key);
     short unarchiveShort (string key);

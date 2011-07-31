@@ -55,10 +55,10 @@ bool containsXmlTag (string source, string tag, string attributes, string conten
 	
 	if (simple)
 		return source.contains(pattern ~ "/>");
-	
+
 	if (content.length > 0)
 		return source.contains(pattern ~ '>' ~ content ~ "</" ~ tag ~ '>');
-	
+
 	return source.contains(pattern ~ '>') && source.contains("</" ~ tag ~ '>');
 }
 
@@ -87,8 +87,10 @@ struct B
 class C { string str; }
 class D { int[] arr; }
 class E { int[int] aa; }
-class F { int value; int* ptr; }
+class F { int value; int* ptr; int* ptr2; }
 class G { Foo foo; }
+
+int pointee;
 
 class H
 {
@@ -179,6 +181,7 @@ C c;
 D d;
 E e;
 F f;
+F fDeserialized;
 G g;
 H h;
 I i;
@@ -204,9 +207,11 @@ unittest
 	e = new E;
 	e.aa = [3 : 4, 1 : 2, 39 : 472, 6 : 7];
 	
+	pointee = 3;
 	f = new F;
 	f.value = 9;
 	f.ptr = &f.value;
+	f.ptr2 = &pointee;
 	
 	g = new G;
 	g.foo = Foo.b;
@@ -374,16 +379,20 @@ unittest
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.F" type="F" key="0" id="0"`));
 				assert(archive.data().containsXmlTag("pointer", `key="ptr" id="2"`));
-				assert(archive.data().containsXmlTag("reference", null, "1"));
+				assert(archive.data().containsXmlTag("reference", `key="1"`, "1"));
 				assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));
 			};
 		};
 		
 		describe("deserialize pointer") in {
-			it("should return a deserialized pointer equal to the original pointer") in {
-				auto fDeserialized = serializer.deserialize!(F)(archive.data);
+			fDeserialized = serializer.deserialize!(F)(archive.data);
 
+			it("should return a deserialized pointer equal to the original pointer") in {
 				assert(*f.ptr == *fDeserialized.ptr);
+			};
+			
+			it("the pointer should point to the deserialized value") in {
+				assert(fDeserialized.ptr == &fDeserialized.value);
 			};
 		};
 		
@@ -449,12 +458,12 @@ unittest
 			};
 		};
 		
-		describe("deserialize typedef") in {
-			it("should return a deserialized typedef equal to the original typedef") in {
-				auto iDeserialized = serializer.deserialize!(I)(archive.data);
-				assert(i.a == iDeserialized.a);
-			};
-		};
+		// describe("deserialize typedef") in {
+		// 	it("should return a deserialized typedef equal to the original typedef") in {
+		// 		auto iDeserialized = serializer.deserialize!(I)(archive.data);
+		// 		assert(i.a == iDeserialized.a);
+		// 	};
+		// };
 		
 		describe("serialize slices") in {
 			it("should return serialized slices") in {
