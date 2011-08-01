@@ -12,15 +12,11 @@ version (Tango)
 else
 {
 	import std.conv;
-	alias ConvError ConversionException;
+	alias ConvException ConversionException;
 }
 
 import orange.serialization.archives.ArchiveException;
-import orange.serialization.Serializer;
 import orange.core.string;
-
-version (Tango) alias void[] UntypedData;
-else mixin ("alias immutable(void)[] UntypedData;");
 
 private enum ArchiveMode
 {
@@ -30,7 +26,9 @@ private enum ArchiveMode
 
 struct Array
 {
-	void* ptr;
+	version (Tango) void* ptr;
+	else mixin("immutable(void)* ptr;");
+
 	size_t length;
 	size_t elementSize;
 	
@@ -49,7 +47,10 @@ struct Slice
 
 interface Archive
 {
-	alias Serializer.Id Id;
+	alias size_t Id;
+	
+	version (Tango) alias void[] UntypedData;
+	else mixin ("alias immutable(void)[] UntypedData;");
 	
 	void beginArchiving ();
 	void beginUnarchiving (UntypedData data);
@@ -160,7 +161,7 @@ interface Archive
     //idouble unarchiveIdouble (string key); // currently not supported by to!()
     //ifloat unarchiveIfloat (string key); // currently not supported by to!()*/
     int unarchiveInt (string key);
-	int unarchiveInt (Id id);
+	//int unarchiveInt (Id id);
     //ireal unarchiveIreal (string key); // currently not supported by to!()
     long unarchiveLong (string key);
     real unarchiveReal (string key);

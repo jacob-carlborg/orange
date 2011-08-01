@@ -555,7 +555,7 @@ final class XMLArchive (U = char) : Base!(U)
 			
 			dg(length);
 			
-			return id.toId();
+			return toId(id);
 		};
 	}
 	
@@ -605,7 +605,7 @@ final class XMLArchive (U = char) : Base!(U)
 			
 			dg(length);
 			
-			return id.toId();
+			return toId(id);
 		};
 	}
 	
@@ -732,34 +732,6 @@ final class XMLArchive (U = char) : Base!(U)
 			dg();
 		};
 	}
-	
-	/*
-	 * 	Id unarchiveArray (string key, void delegate (size_t) dg)
-	{
-		return restore!(Id)(lastElement) in {			
-			auto element = getElement(Tags.arrayTag, key);
-			
-			if (!element.isValid)
-				return Id.max;
-	
-			lastElement = element;
-			auto len = getValueOfAttribute(Attributes.lengthAttribute);
-			
-			if (!len)
-				return Id.max;
-			
-			auto length = fromData!(size_t)(len);
-			auto id = getValueOfAttribute(Attributes.idAttribute);	
-			
-			if (!id)
-				return Id.max;
-			
-			dg(length);
-			
-			return id.toId();
-		};
-	}
-	 */
 	
 	Id unarchivePointer (string key, void delegate () dg)
 	{
@@ -973,11 +945,6 @@ final class XMLArchive (U = char) : Base!(U)
 	{
 		return unarchivePrimitive!(int)(key);
 	}
-	
-	int unarchiveInt (Id id)
-	{
-		return unarchivePrimitive!(int)(id);
-	}
 
 	// currently not suppported by to!()
     /*ireal unarchiveIreal (string key)
@@ -1031,9 +998,9 @@ final class XMLArchive (U = char) : Base!(U)
 		return unarchivePrimitive!(wchar)(key);
 	}
 	
-	T unarchivePrimitive (T, U) (U keyOrId)
+	T unarchivePrimitive (T) (string key)
 	{
-		auto element = getElement(toData(T.stringof), keyOrId);
+		auto element = getElement(toData(T.stringof), key);
 
 		if (!element.isValid)
 			return T.init;
@@ -1085,19 +1052,8 @@ final class XMLArchive (U = char) : Base!(U)
 		return null;
 	}
 	
-	private doc.Node getElement (T) (Data tag, T keyOrID, Data attribute = Attributes.invalidAttribute, bool throwOnError = true)
-	{
-		if (attribute == Attributes.invalidAttribute)
-		{
-			static if (is(T : Id))
-				attribute = Attributes.idAttribute;
-				
-			else
-				attribute = Attributes.keyAttribute;
-		}
-
-		auto key = toData(keyOrID);
-		
+	private doc.Node getElement (Data tag, string key, Data attribute = Attributes.keyAttribute, bool throwOnError = true)
+	{		
 		auto set = lastElement.query[tag].attribute((doc.Node node) {
 			if (node.name == attribute && node.value == key)
 				return true;

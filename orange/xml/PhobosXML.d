@@ -131,7 +131,7 @@ mixin(`import std.array;
 import std.string;
 import std.encoding;
 
-immutable cdata = "<![CDATA[";
+enum cdata = "<![CDATA[";
 
 final class Attribute : Element
 {
@@ -1015,7 +1015,7 @@ class Element : Item
 				string[] b = item.pretty(indent);
 				foreach(s;b)
 				{
-					a ~= rjustify(s,s.length + indent);
+					a ~= rightJustify(s,s.length + indent);
 				}
 			}
 			a ~= tag.toEndString;

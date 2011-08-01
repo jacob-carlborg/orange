@@ -1,6 +1,8 @@
 LIBNAME		=	orange
 SRC			=	\
-	_.d \
+	core/io.d \
+	core/string.d \
+	core/_.d \
 	serialization/Events.d \
 	serialization/RegisterWrapper.d \
 	serialization/Serializable.d \
@@ -16,12 +18,11 @@ SRC			=	\
 	util/Traits.d \
 	util/Use.d \
 	util/_.d \
-	util/io.d \
-	util/string.d \
 	util/collection/Array.d \
+	util/collection/_.d \
 	xml/PhobosXML.d \
 	xml/XMLDocument.d \
-	_.d
+	xml/_.d \
 
 DC			=	dmd
 DCFLAGS		=	-I/usr/include/d -I/usr/local/include/d
@@ -60,4 +61,4 @@ $(TARGET) : $(OBJ)
 
 %.o : %.d
 	@echo Compiling $< . . .
-	@$(DC) -c $(DCFLAGS) $< -of$@ -Hfimport/$(basename $@).di
+	@$(DC) -c $< -of$@ -Hfimport/$(basename $@).di

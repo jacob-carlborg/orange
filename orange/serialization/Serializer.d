@@ -12,12 +12,13 @@ version (Tango)
 else
 {
 	import std.conv;
-	alias ConvError ConversionException;
+	alias ConvException ConversionException;
 }
 
 import orange.core._;
 import orange.serialization._;
-import orange.serialization.archives._;
+import orange.serialization.archives.Archive;
+import orange.serialization.archives.ArchiveException;
 import orange.util._;
 
 private
@@ -36,7 +37,7 @@ private
 	private char toUpper (char c)
 	{
 		if (c >= 'a' && c <= 'z')
-			return c - 32;
+			return cast(char) (c - 32);
 
 		return c;
 	}
@@ -45,8 +46,8 @@ private
 class Serializer
 {
 	alias void delegate (ArchiveException exception, string[] data) ErrorCallback;
-	alias UntypedData Data;
-	alias size_t Id;
+	alias Archive.UntypedData Data;
+	alias Archive.Id Id;
 	
 	private
 	{

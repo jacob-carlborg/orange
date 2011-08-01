@@ -12,7 +12,7 @@ dsss.last
 *.dylib
 main.d
 main
-main.d.deps
+*.deps
 *.framework
 kandil
 lib

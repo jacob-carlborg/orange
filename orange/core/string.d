@@ -32,11 +32,12 @@ else
 {	
 	import std.string;
 	import std.utf;
-	import std.ctype : isxdigit;
+	static import std.ascii;
+	static import std.conv;
 	
 	version = Phobos;
 	
-	private alias std.string.tolower toFold;
+	private alias std.string.toLower toFold;
 	
 	alias std.utf.toUTF8 toString;
 	alias std.utf.toUTF16 toString16;
@@ -45,7 +46,7 @@ else
 	alias std.string.toStringz toStringz;
 	alias std.utf.toUTF16z toString16z;
 	
-	alias std.string.toString fromStringz;
+	alias std.ascii.isHexDigit isHexDigit;
 }
 
 import orange.util.Traits;
@@ -758,10 +759,11 @@ alias compareIgnoreCase icompare;
  *     
  * Returns: true if the given character is a hexdecimal digit character otherwise false
  */
-bool isHexDigit (dchar ch)
+version (Tango)
 {
-	version (Tango)
+	bool isHexDigit (dchar ch)
 	{
+
 		switch (ch)
 		{
 			case 'A': return true;				
@@ -770,26 +772,22 @@ bool isHexDigit (dchar ch)
 			case 'D': return true;
 			case 'E': return true;
 			case 'F': return true;
-			
+	
 			case 'a': return true;
 			case 'b': return true;
 			case 'c': return true;
 			case 'd': return true;
 			case 'e': return true;
 			case 'f': return true;
-			
+	
 			default: break;
 		}
-		
+
 		if (isDigit(ch))
 			return true;
+	
+		return false;
 	}
-
-	else
-		if (isxdigit(ch) != 0)
-			return true;
-		
-	return false;
 }
 
 /*version (Tango)
@@ -823,6 +821,19 @@ version (Phobos)
 	dchar* toString32z (dstring str)
 	{
 		return (str ~ '\0').dup.ptr;
+	}
+	
+	/**
+	 * Converts a C-style 0 terminated string to a string
+	 * 
+	 * Params:
+	 *     str = the C-style 0 terminated string
+	 *     
+	 * Returns: the converted string
+	 */
+	string fromStringz (char* str)
+	{
+		return std.conv.to!(string)(str);
 	}
 	
 	/**
