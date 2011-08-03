@@ -101,7 +101,7 @@ size_t indexOf (T) (T[] arr, T element)
  */
 bool contains (T) (T[] arr, T element)
 {
-	return arr.indexOf(element) != size_t.max;
+	return indexOf(arr, element) != size_t.max;
 }
 
 /**

@@ -260,7 +260,7 @@ class Serializer
 	
 	private void serializeString (T) (T value, string key, Id id)
 	{
-		auto array = Array(value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
+		auto array = Array(cast(void*) value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
 		
 		archive.archive(value, key, id);			
 		addSerializedArray(array, id);
@@ -274,7 +274,7 @@ class Serializer
 			foreach (i, e ; value)
 				serializeInternal(e, toData(i));
 		});
-		
+
 		addSerializedArray(array, id);
 	}
 	
@@ -504,13 +504,13 @@ class Serializer
 		if (slice.id != size_t.max)
 		{
 			static if (is(T == string))
-				value = archive.unarchiveString(slice.id).toSlice(slice);
+				value = toSlice(archive.unarchiveString(slice.id), slice);
 			
 			else static if (is(T == wstring))
-				value = archive.unarchiveWstring(slice.id).toSlice(slice);
+				value = toSlice(archive.unarchiveWstring(slice.id), slice);
 			
 			else static if (is(T == dstring))
-				value = archive.unarchiveDstring(slice.id).toSlice(slice);
+				value = toSlice(archive.unarchiveDstring(slice.id), slice);
 		}
 		
 		else
@@ -538,10 +538,10 @@ class Serializer
 			return *tmp;
 		
 		T value;
-		
+
 		auto dg = (size_t length) {
 			value.length = length;
-			
+
 			foreach (i, ref e ; value)
 				e = deserializeInternal!(typeof(e))(toData(i));
 		};
@@ -550,8 +550,8 @@ class Serializer
 		{
 			archive.unarchiveArray(slice.id, dg);
 			addDeserializedSlice(value, slice.id);
-			
-			return value.toSlice(slice);
+
+			return toSlice(value, slice);
 		}			
 		
 		else
@@ -683,13 +683,22 @@ class Serializer
 	private void objectStructSerializeHelper (T) (ref T value)
 	{
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
-		const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+		
+		version (Tango)
+			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+			
+		else
+			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
-			const field = nameOfFieldAt!(T, i);
+			version (Tango)
+				const field = nameOfFieldAt!(T, i);
+				
+			else
+				mixin(`enum field = nameOfFieldAt!(T, i);`);
 			
-			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
 				alias typeof(T.tupleof[i]) Type;				
 				Type v = value.tupleof[i];				
@@ -707,13 +716,22 @@ class Serializer
 	private void objectStructDeserializeHelper (T) (ref T value)
 	{		
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
-		const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+				
+		version (Tango)
+			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+			
+		else
+			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
-			const field = nameOfFieldAt!(T, i);
+			version (Tango)
+				const field = nameOfFieldAt!(T, i);
+				
+			else
+				mixin(`enum field = nameOfFieldAt!(T, i);`);
 						
-			static if (!internalFields.ctfeContains(field) && !nonSerializedFields.ctfeContains(field))
+			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
 				alias TypeOfField!(T, field) Type;
 				
@@ -780,7 +798,7 @@ class Serializer
 	{
 		static assert(isArray!(T) || isString!(T), format!(`The given type "`, T, `" is not a slice type, i.e. array or string.`));
 
-		deserializedSlices[id] = value;
+		deserializedSlices[id] = cast(void[]) value;
 	}
 	
 	private void addSerializedValue (T) (ref T value, Id id, string key)
@@ -950,7 +968,11 @@ class Serializer
 	
 	private template arrayToString (T)
 	{
-		const arrayToString = ElementTypeOfArray!(T).stringof;
+		version (Tango)
+			const arrayToString = ElementTypeOfArray!(T).stringof;
+			
+		else
+			mixin(`enum arrayToString = ElementTypeOfArray!(T).stringof;`);
 	}
 	
 	private bool isBaseClass (T) (T value)

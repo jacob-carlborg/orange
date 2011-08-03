@@ -537,22 +537,22 @@ final class XMLArchive (U = char) : Base!(U)
 	{
 		return restore!(Id)(lastElement) in {			
 			auto element = getElement(Tags.arrayTag, key);
-			
+
 			if (!element.isValid)
 				return Id.max;
-	
+
 			lastElement = element;
 			auto len = getValueOfAttribute(Attributes.lengthAttribute);
-			
+
 			if (!len)
 				return Id.max;
-			
+
 			auto length = fromData!(size_t)(len);
 			auto id = getValueOfAttribute(Attributes.idAttribute);	
-			
+
 			if (!id)
 				return Id.max;
-			
+
 			dg(length);
 			
 			return toId(id);
@@ -690,7 +690,11 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	wchar unarchiveEnumWchar (string key)
 	{
-		return unarchiveEnum!(wchar)(key);
+		version (Tango)
+			return unarchiveEnum!(wchar)(key);
+			
+		else
+			return wchar.init;
 	}	
 	
 	private T unarchiveEnum (T) (string key)
@@ -727,7 +731,7 @@ final class XMLArchive (U = char) : Base!(U)
 			if (!stringId)
 				return;
 
-			id = stringId.toId();
+			id = toId(stringId);
 			result = newInstance(name);
 			dg();
 		};
@@ -752,7 +756,7 @@ final class XMLArchive (U = char) : Base!(U)
 			
 			dg();
 			
-			return id.toId();
+			return toId(id);
 		};
 	}
 	
@@ -846,7 +850,7 @@ final class XMLArchive (U = char) : Base!(U)
 		if (!stringId)
 			return T.init;
 
-		id = stringId.toId();
+		id = toId(stringId);
 		return value;
 	}
 	
@@ -995,7 +999,11 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	wchar unarchiveWchar (string key)
 	{
-		return unarchivePrimitive!(wchar)(key);
+		version (Tango)
+			return unarchivePrimitive!(wchar)(key);
+			
+		else
+			return wchar.init;
 	}
 	
 	T unarchivePrimitive (T) (string key)

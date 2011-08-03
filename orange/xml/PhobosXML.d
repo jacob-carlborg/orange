@@ -1250,7 +1250,7 @@ class Tag
 
 			string toEndString() { return "</" ~ name ~ ">"; }
 
-			string toEmptyString() { return toNonEndString() ~ " />"; }
+			string toEmptyString() { return toNonEndString() ~ "/>"; }
 		}
 
 		/**

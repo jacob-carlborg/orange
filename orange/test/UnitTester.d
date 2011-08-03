@@ -8,18 +8,24 @@ module orange.test.UnitTester;
 
 version (Tango)
 {
+	import tango.core.Exception;
 	import tango.io.device.File;
+	import tango.io.FilePath;
 	import tango.io.stream.Lines;
-	import tango.util.Convert;
 	import tango.sys.Environment;
+	import tango.util.Convert;
 }
 	
 
 else
+{
+	import core.exception;
 	import std.conv;
+	
+	private alias AssertError AssertException;
+}
 
-import tango.core.Exception;
-import tango.io.FilePath;
+
 import orange.core._;
 import orange.util._;
 
@@ -224,7 +230,7 @@ class UnitTester
 	}
 	
 	void run ()
-	{		
+	{
 		foreach (description ; descriptions)
 			runDescription(description);
 
@@ -240,7 +246,7 @@ class UnitTester
 			foreach (desc ; description.descriptions)
 				runDescription(desc);
 			
-			foreach (ref test ; description.tests)
+			foreach (test ; description.tests)
 			{
 				if (test.isPending)
 					addPendingTest(description, test);
@@ -336,7 +342,7 @@ class UnitTester
 		printPending;		
 		printFailures;
 
-		print("\n", numberOfTests, " ", "test".pluralize(numberOfTests),", ", numberOfFailures, " ", "failure".pluralize(numberOfFailures));
+		print("\n", numberOfTests, " ", pluralize("test", numberOfTests),", ", numberOfFailures, " ", pluralize("failure", numberOfFailures));
 		printNumberOfPending;
 		println();
 	}
@@ -357,7 +363,7 @@ class UnitTester
 	void printDescription (Description description)
 	{
 		println(indentation, description.message);
-		
+
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
 
@@ -382,7 +388,7 @@ class UnitTester
 			return;
 		
 		println("\nPending:");
-		
+
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
 			
@@ -415,7 +421,7 @@ class UnitTester
 			return;
 		
 		println("\nFailures:");
-		
+
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
 			
@@ -447,9 +453,13 @@ class UnitTester
 			println(whitespace, "# ", test.exception.file, ".d:", test.exception.line);
 			println(whitespace, "Stack trace:");
 			print(whitespace);
-			test.exception.writeOut(&printStackTrace);
-			println();
-			println(readFailedTest(test));
+			
+			version (Tango)
+			{
+				test.exception.writeOut(&printStackTrace);
+				println();
+				println(readFailedTest(test));
+			}				
 		}
 	}
 	
@@ -469,24 +479,27 @@ class UnitTester
 		    str.find("tango.core.tools."))
 				return;*/
 	}
-	
-	string readFailedTest (ref Test test, int numberOfSurroundingLines = 3)
-	{		
-		auto filename = test.exception.file.dup.replace('.', '/');
-		
-		filename ~= ".d";
-		filename = Environment.toAbsolute(filename);
-		auto lineNumber = test.exception.line;
-		string str;
-		auto file = new File(filename);		
-		
-		foreach (i, line ; new Lines!(char)(file))			
-			if (i >= (lineNumber - 1) - numberOfSurroundingLines && i <= (lineNumber - 1) + numberOfSurroundingLines)
-				str ~= line ~ '\n';
-		
-		file.close;
-		
-		return str;
+
+	version (Tango)
+	{
+		string readFailedTest (ref Test test, int numberOfSurroundingLines = 3)
+		{		
+			auto filename = test.exception.file.dup.replace('.', '/');
+
+			filename ~= ".d";
+			filename = Environment.toAbsolute(filename);
+			auto lineNumber = test.exception.line;
+			string str;
+			auto file = new File(filename);		
+
+			foreach (i, line ; new Lines!(char)(file))			
+				if (i >= (lineNumber - 1) - numberOfSurroundingLines && i <= (lineNumber - 1) + numberOfSurroundingLines)
+					str ~= line ~ '\n';
+
+			file.close;
+
+			return str;
+		}
 	}
 	
 	void printNumberOfPending ()
@@ -497,7 +510,7 @@ class UnitTester
 	
 	void printSuccess ()
 	{
-		println("All ", numberOfTests, " test".pluralize(numberOfTests), " passed successfully.");
+		println("All ", numberOfTests, pluralize(" test", numberOfTests), " passed successfully.");
 	}
 	
 	bool isAllTestsSuccessful ()

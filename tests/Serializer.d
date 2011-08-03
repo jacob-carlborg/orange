@@ -33,7 +33,8 @@ bool containsArchive (string source)
 
 bool containsArchiveHeader (string source)
 {
-	return source.contains(`<archive type="org.dsource.orange.xml" version="1.0.0">`);
+	return source.contains(`<archive type="org.dsource.orange.xml" version="1.0.0">`) ||
+		source.contains(`<archive version="1.0.0" type="org.dsource.orange.xml">`);
 }
 
 bool containsXmlTag (string source, string tag, bool simple = false)
@@ -78,13 +79,24 @@ class A
 
 struct B
 {
-	equals_t opEquals (B b)
+	version (Tango)
 	{
-		return true;
+		equals_t opEquals (B b)
+		{
+			return true;
+		}
+	}
+	
+	else
+	{
+		mixin(`bool opEquals (ref const B) const
+		{
+			return true;
+		}`);
 	}
 }
 
-class C { string str; }
+class C { string str; wstring wstr; dstring dstr; }
 class D { int[] arr; }
 class E { int[int] aa; }
 class F { int value; int* ptr; int* ptr2; }
@@ -116,13 +128,15 @@ class H
 	uint uint_;
 	ulong ulong_;
 	ushort ushort_;
-	wchar wchar_;
+	
+	version (Tango)
+		wchar wchar_; // Phobos to!() function can't handle string -> wchar
 	
 	equals_t opEquals (Object other)
 	{
 		if (auto o =  cast(H) other)
 		{
-			return bool_ == o.bool_ &&
+			auto result = bool_ == o.bool_ &&
 				   byte_ == o.byte_ &&
 				   //cdouble_ == o.cdouble_ && // currently not suppported by to!()
 				   //cent_ == o.cent_ && // currently not implemented but a reserved keyword
@@ -143,8 +157,13 @@ class H
 				   //ucent_ == o.ucent_ && // currently not implemented but a reserved keyword
 				   uint_ == o.uint_ &&
 				   ulong_ == o.ulong_ &&
-				   ushort_ == o.ushort_ &&
-				   wchar_ == o.wchar_;
+				   ushort_ == o.ushort_;
+				
+				   version (Tango)
+				   		return result && wchar_ == o.wchar_;
+
+				   else
+						return result;
 		}
 		
 		return false;
@@ -158,11 +177,11 @@ class I
 
 class J
 {
-	string firstSource;
-	string firstSlice;
+	int[] firstSource;
+	int[] firstSlice;
 	
-	string secondSlice;
-	string secondSource;
+	int[] secondSlice;
+	int[] secondSource;
 }
 
 class K
@@ -200,6 +219,9 @@ unittest
 	
 	c = new C;
 	c.str = "foo";
+	c.wstr = "bar";
+	c.dstr = "foobar";
+	
 	
 	d = new D;
 	d.arr = [27, 382, 283, 3820, 32, 832].dup;
@@ -237,15 +259,17 @@ unittest
 	h.uint_ = 1U;
 	h.ulong_ = 1LU;
 	h.ushort_ = 1U;
-	h.wchar_ = 'c';
+	
+	version (Tango)
+		h.wchar_ = 'c';
 	
 	i = new I;
 	i.a = 1;
 	
 	j = new J;
-	j.firstSource = "0123456789";
+	j.firstSource = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].dup;
 	j.firstSlice = j.firstSource[3 .. 7];
-	j.secondSource = "abcdefg";
+	j.secondSource = [10, 11, 12, 13, 14, 15].dup;
 	j.secondSlice = j.secondSource[1 .. 4];
 	
 	k = new K;
@@ -257,7 +281,7 @@ unittest
 			it("should return a serialized object") in {
 				serializer.reset;
 				serializer.serialize(a);
-				
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().contains(`<object runtimeType="tests.Serializer.A" type="A" key="0" id="0"/>`));
 			};
@@ -287,14 +311,28 @@ unittest
 			};
 		};
 		
-		describe("serialize string") in {
-			it("should return a serialized string") in {
+		describe("serialize strings") in {
+			it("should return serialized strings") in {
 				serializer.reset;
-
 				serializer.serialize(c);
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.C" type="C" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("string", `type="char" length="3" key="str" id="1"`, "foo"));
+				
+				version (Tango) auto type = "char";
+				else auto type = "immutable(char)";
+
+				assert(archive.data().containsXmlTag("string", `type="` ~ type ~ `" length="3" key="str" id="1"`, "foo"));
+				
+				version (Tango) type = "wchar";
+				else type = "immutable(wchar)";
+
+				assert(archive.data().containsXmlTag("string", `type="` ~ type ~ `" length="3" key="wstr" id="2"`, "bar"));
+				
+				version (Tango) type = "dchar";
+				else type = "immutable(dchar)";
+				
+				assert(archive.data().containsXmlTag("string", `type="` ~ type ~ `" length="6" key="dstr" id="3"`, "foobar"));
 			};
 		};
 		
@@ -333,10 +371,10 @@ unittest
 			it("should return a serialized associative array") in {
 				serializer.reset();
 				serializer.serialize(e);
-				
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.E" type="E" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa" id="1"`));
+				version (Tango) assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa" id="1"`));
 
 				assert(archive.data().containsXmlTag("key", `key="0"`));
 				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));
@@ -436,7 +474,9 @@ unittest
 				assert(archive.data().containsXmlTag("uint", `key="uint_" id="12"`, "1"));
 				assert(archive.data().containsXmlTag("ulong", `key="ulong_" id="13"`, "1"));
 				assert(archive.data().containsXmlTag("ushort", `key="ushort_" id="14"`, "1"));
-				assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
+				
+				version (Tango)
+					assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
 			};
 		};
 		
@@ -472,10 +512,33 @@ unittest
 
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.J" type="J" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("string", `type="char" length="10" key="firstSource" id="1"`, "0123456789"));
-				assert(archive.data().containsXmlTag("slice", `key="firstSlice" offset="3" length="4"`, "1"));
-				assert(archive.data().containsXmlTag("slice", `key="secondSlice" offset="1" length="3"`, "4"));
-				assert(archive.data().containsXmlTag("string", `type="char" length="7" key="secondSource" id="4"`, "abcdefg"));
+				assert(archive.data().containsXmlTag("array", `type="int" length="10" key="firstSource" id="1"`));
+				
+				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "0"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "1"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "2"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="5"`, "3"));
+				assert(archive.data().containsXmlTag("int", `key="4" id="6"`, "4"));
+				assert(archive.data().containsXmlTag("int", `key="5" id="7"`, "5"));
+				assert(archive.data().containsXmlTag("int", `key="6" id="8"`, "6"));
+				assert(archive.data().containsXmlTag("int", `key="7" id="9"`, "7"));
+				assert(archive.data().containsXmlTag("int", `key="8" id="10"`, "8"));
+				assert(archive.data().containsXmlTag("int", `key="9" id="11"`, "9"));
+
+				version (Tango)
+				{
+					assert(archive.data().containsXmlTag("slice", `key="firstSlice" offset="3" length="4"`, "1"));
+					assert(archive.data().containsXmlTag("slice", `key="secondSlice" offset="1" length="3"`, "21"));
+				}
+
+				assert(archive.data().containsXmlTag("array", `type="int" length="6" key="secondSource" id="21"`));
+				
+				assert(archive.data().containsXmlTag("int", `key="0" id="22"`, "10"));
+				assert(archive.data().containsXmlTag("int", `key="1" id="23"`, "11"));
+				assert(archive.data().containsXmlTag("int", `key="2" id="24"`, "12"));
+				assert(archive.data().containsXmlTag("int", `key="3" id="25"`, "13"));
+				assert(archive.data().containsXmlTag("int", `key="4" id="26"`, "14"));
+				assert(archive.data().containsXmlTag("int", `key="5" id="27"`, "15"));
 			};
 		};
 		
@@ -501,11 +564,11 @@ unittest
 			};
 			
 			it("the slices should be able to modify the sources") in {
-				jDeserialized.firstSlice[0] = 'a';
-				jDeserialized.secondSlice[0] = '0';
+				jDeserialized.firstSlice[0] = 55;
+				jDeserialized.secondSlice[0] = 3;
 
-				assert(jDeserialized.firstSource == "012a456789");
-				assert(jDeserialized.secondSource == "a0cdefg");
+				assert(jDeserialized.firstSource == [0, 1, 2, 55, 4, 5, 6, 7, 8, 9]);
+				assert(jDeserialized.secondSource == [10, 3, 12, 13, 14, 15]);
 			};
 		};
 		
@@ -513,10 +576,10 @@ unittest
 			it("should return a serialized associative array and a serialized reference") in {
 				serializer.reset();
 				serializer.serialize(k);
-				
+
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.K" type="K" key="0" id="0"`));
-				assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="a" id="1"`));
+				version (Tango) assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="a" id="1"`));
 
 				assert(archive.data().containsXmlTag("key", `key="0"`));
 				assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));

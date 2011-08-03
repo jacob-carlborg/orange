@@ -228,7 +228,7 @@ final class XMLDocument (T = char)
 		void attach (Node node)
 		{
 			version (Tango) this.node.move(node.node);
-			else this.node.elements ~= node.node;
+			else this.node ~= node.node;
 		}
 	}
 	

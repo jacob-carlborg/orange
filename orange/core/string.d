@@ -34,6 +34,7 @@ else
 	import std.utf;
 	static import std.ascii;
 	static import std.conv;
+	static import std.array;
 	
 	version = Phobos;
 	
@@ -922,7 +923,7 @@ T[] replace (T) (T[] source, dchar match, dchar replacement)
 	{
 		foreach (ref c ; source)
 			if (c == match)
-				c = replacement;
+				c = cast(T) replacement;
 		
 		return source;
 	}
@@ -942,7 +943,7 @@ T[] replace (T) (T[] source, dchar match, dchar replacement)
 				auto matchLength = encode(encodedMatch, match);
 				auto replacementLength = encode(encodedReplacement, replacement);
 				
-				return std.string.replace(source, encodedMatch[0 .. matchLength], encodedReplacement[0 .. replacementLength]);
+				return std.array.replace(source, encodedMatch[0 .. matchLength], encodedReplacement[0 .. replacementLength]);
 			}
 		}
 	}

@@ -15,6 +15,7 @@ version (Tango)
 else
 {
 	import std.typetuple;
+	import std.typecons;
 	import std.traits;
 	
 	alias ReturnType ReturnTypeOf;
@@ -46,7 +47,13 @@ struct Use (ARGS...)
 			return args[0](dg);
 			
 		else
-			return args[0](dg, args[1 .. $]);
+		{
+			version (Tango)
+				return args[0](dg, args[1 .. $]);
+			
+			else
+				return args[0](dg, args.expand[1 .. $]);
+		}
 	}
 }
 

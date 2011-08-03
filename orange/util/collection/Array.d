@@ -19,6 +19,7 @@ else
 	version = Phobos;
 	
 	import std.c.string : memmove;
+	import algorithm = std.algorithm;
 }
 
 import orange.core.string;

@@ -28,6 +28,10 @@ DC			=	dmd
 DCFLAGS		=	-I/usr/include/d -I/usr/local/include/d
 
 
+UNITTEST = test/UnitTester.d \
+	tests/Serializer.d \
+	tests/all.d \
+
 # Everything below this line should be fairly generic (with a few hard-coded things).
 
 OBJ         =   $(addsuffix .o,$(addprefix $(LIBNAME)/,$(basename $(SRC))))

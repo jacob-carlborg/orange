@@ -53,6 +53,19 @@ struct NonSerializedField (alias f)
 	const field = f.stringof;
 }
 
-package const nonSerializedField = "__nonSerialized";
-package const serializedField = "__serialized";
-package const internalFields = [nonSerializedField[], onDeserializedField, onDeserializingField, onSerializedField, onSerializingField];
+package:
+
+version (Tango)
+{
+	const nonSerializedField = "__nonSerialized";
+	const serializedField = "__serialized";
+	const internalFields = [nonSerializedField[], onDeserializedField, onDeserializingField, onSerializedField, onSerializingField];
+}
+
+else
+{
+	mixin(
+	`enum nonSerializedField = "__nonSerialized";
+	enum serializedField = "__serialized";
+	enum internalFields = [nonSerializedField[], onDeserializedField, onDeserializingField, onSerializedField, onSerializingField];`);
+}

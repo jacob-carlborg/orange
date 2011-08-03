@@ -26,8 +26,11 @@ private enum ArchiveMode
 
 struct Array
 {
-	version (Tango) void* ptr;
-	else mixin("immutable(void)* ptr;");
+	version (Tango)
+		void* ptr;
+		
+	else
+		mixin(`const(void)* ptr;`);
 
 	size_t length;
 	size_t elementSize;
