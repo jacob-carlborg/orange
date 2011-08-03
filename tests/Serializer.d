@@ -405,7 +405,8 @@ unittest
 				foreach (k, v ; eDeserialized.aa)
 					assert(e.aa[k] == v);
 				
-				//assert(e.aa == eDeserialized.aa); // cannot compare associative array
+				version (D_Version2)
+					assert(e.aa == eDeserialized.aa);
 			};
 		};
 		
