@@ -319,8 +319,8 @@ unittest
 				assert(archive.data().containsDefaultXmlContent());
 				assert(archive.data().containsXmlTag("object", `runtimeType="tests.Serializer.C" type="C" key="0" id="0"`));
 				
-				version (Tango) auto type = "char";
-				else auto type = "immutable(char)";
+				version (Tango) string type = "char";
+				else string type = "immutable(char)";
 
 				assert(archive.data().containsXmlTag("string", `type="` ~ type ~ `" length="3" key="str" id="1"`, "foo"));
 				
