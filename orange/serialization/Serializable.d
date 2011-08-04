@@ -8,39 +8,20 @@ module orange.serialization.Serializable;
 
 import orange.serialization.archives.Archive;
 import orange.serialization.Events;
+import orange.serialization.Serializer;
 import orange.util.CTFE;
 
-template Serializable ()
+interface Serializable
 {
-	void toData (T) (T archive, T.DataType key)
-	{		
-		alias typeof(this) ThisType;
-		
-		foreach (i, dummy ; typeof(T.tupleof))
-		{
-			alias typeof(ThisType.tupleof[i]) FieldType;
-			
-			const field = nameOfFieldAt!(ThisType, i);			
-			auto value = getValueOfField!(ThisType, FieldType, field)(this);
-			
-			archive.archive(value, field);
-		}
-	}
-	
-	void fromData (T) (T archive, T.DataType key)
-	{
-		alias typeof(this) ThisType;
-		
-		foreach (i, dummy ; typeof(ThisType.tupleof))
-		{
-			alias typeof(ThisType.tupleof[i]) FieldType;
-			
-			const field = nameOfFieldAt!(ThisType, i);
-			auto value = archive.unarchive!(FieldType)(field);
-			
-			setValueOfField!(FieldType, ThisType, field)(this, value);
-		}
-	}
+	void toData (Serializer serializer, Serializer.Data key);
+	void fromData (Serializer serializer, Serializer.Data key);
+}
+
+template isSerializable (T)
+{
+	const isSerializable = is(T : Serializable) || (
+		is(typeof(T.toData(Serializer.init, Serializer.Data.init))) &&
+		is(typeof(T.fromData(Serializer.init, Serializer.Data.init))));
 }
 
 template NonSerialized (alias field)

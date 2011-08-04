@@ -197,16 +197,6 @@ template isArchive (T)
 	
 }
 
-template isSerializable (T, SerializerType)
-{
-	const isSerializable = is(typeof(T.toData(SerializerType.init, SerializerType.DataType.init))) && is(typeof(T.fromData(SerializerType.init, SerializerType.DataType.init)));
-}
-
-template isISerializable (T)
-{
-	const isISerializable = is(T : ISerializable);
-}
-
 template TypeOfDataType (T)
 {
 	alias T.DataType TypeOfDataType;

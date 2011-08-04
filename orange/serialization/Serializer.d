@@ -58,7 +58,7 @@ class Serializer
 		}
 		
 		ErrorCallback errorCallback_;		
-		Archive archive;
+		Archive archive_;
 		
 		size_t keyCounter;
 		Id idCounter;
@@ -87,12 +87,17 @@ class Serializer
 	
 	this (Archive archive)
 	{
-		this.archive = archive;
+		this.archive_ = archive;
 		
 		throwOnErrorCallback = (ArchiveException exception, string[] data) { throw exception; };
 		doNothingOnErrorCallback = (ArchiveException exception, string[] data) { /* do nothing */ };
 		
 		setThrowOnErrorCallback();
+	}
+	
+	Archive archive ()
+	{
+		return archive_;
 	}
 	
 	ErrorCallback errorCallback ()
@@ -220,7 +225,7 @@ class Serializer
 					wrapper(value, this, key);
 				}
 				
-				else static if (isSerializable!(T, Serializer))
+				else static if (isSerializable!(T))
 					value.toData(this, key);
 				
 				else
@@ -327,7 +332,7 @@ class Serializer
 				wrapper(value, this, key);
 			}
 			
-			else static if (isSerializable!(T, Serializer))
+			else static if (isSerializable!(T))
 				value.toData(this, key);
 			
 			else
@@ -364,15 +369,15 @@ class Serializer
 		});
 	}
 	
-	T deserialize (T) (Data data, string key = null)
-	{		
+	T deserialize (T) (Data data, string key = "")
+	{
 		if (hasBegunSerializing && !hasBegunDeserializing)
 			resetCounters();
 		
 		if (!hasBegunDeserializing)
 			hasBegunDeserializing = true;
 		
-		if (!key)
+		if (key.empty())
 			key = nextKey;
 
 		archive.beginUnarchiving(data);
@@ -380,6 +385,19 @@ class Serializer
 		deserializingPostProcess;
 		
 		return value;
+	}
+
+	T deserialize (T) (string key)
+	{
+		if (!hasBegunDeserializing)
+			throw new SerializationException("Cannot deserialize without any data, this method should only be called after deserialization has begun", __FILE__, __LINE__);
+		
+		return deserialize!(T)(archive.untypedData, key);
+	}
+
+	T deserialize (T) ()
+	{
+		return deserialize!(T)("");
 	}
 	
 	private T deserializeInternal (T, U) (U keyOrId)
@@ -445,7 +463,7 @@ class Serializer
 					wrapper(value, this, keyOrId);
 				}
 				
-				else static if (isSerializable!(T, Serializer))
+				else static if (isSerializable!(T))
 					value.fromData(this, keyOrId);
 				
 				else
