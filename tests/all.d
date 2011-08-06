@@ -7,7 +7,13 @@
 module tests.all;
 
 import orange.test.UnitTester;
-import tests.Serializer;
+import tests._;
+
+/*
+ * The tests that test for XML with attributes are not completely
+ * reliable, due to the XML module in Phobos saves the XML
+ * attributes in an associative array.
+ */
 
 void main ()
 {

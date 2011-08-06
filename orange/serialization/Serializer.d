@@ -253,7 +253,7 @@ class Serializer
 				
 				else
 				{
-					static if (isSerializable!(T, Serializer))
+					static if (isSerializable!(T))
 						value.toData(this, key);
 					
 					else
@@ -390,7 +390,7 @@ class Serializer
 	T deserialize (T) (string key)
 	{
 		if (!hasBegunDeserializing)
-			throw new SerializationException("Cannot deserialize without any data, this method should only be called after deserialization has begun", __FILE__, __LINE__);
+			throw new SerializationException("Cannot deserialize without any data, this method should only be called after deserialization has begun.", __FILE__, __LINE__);
 		
 		return deserialize!(T)(archive.untypedData, key);
 	}
@@ -498,7 +498,7 @@ class Serializer
 				
 				else
 				{
-					static if (isSerializable!(T, Serializer))
+					static if (isSerializable!(T))
 						value.fromData(this, key);
 					
 					else
@@ -637,7 +637,7 @@ class Serializer
 				wrapper(value, this, key);
 			}
 			
-			else static if (isSerializable!(T, Serializer))
+			else static if (isSerializable!(T))
 				value.fromData(this, key);
 			
 			else
