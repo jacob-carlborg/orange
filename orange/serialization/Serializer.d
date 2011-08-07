@@ -453,7 +453,7 @@ class Serializer
 		nextId;
 		
 		archive.unarchiveObject(keyOrId, id, val, {
-			triggerEvents(deserializing, value, {
+			triggerEvents(deserializing, cast(T) val, {
 				value = cast(T) val;
 				auto runtimeType = value.classinfo.name;
 				

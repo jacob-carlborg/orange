@@ -30,6 +30,7 @@ tests/Array.d \
 tests/AssociativeArray.d \
 tests/AssociativeArrayReference.d \
 tests/Enum.d \
+tests/Event.d \
 tests/Object.d \
 tests/Pointer.d \
 tests/Primitive.d \

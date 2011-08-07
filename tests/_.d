@@ -13,6 +13,7 @@ import tests.Array;
 import tests.AssociativeArray;
 import tests.AssociativeArrayReference;
 import tests.Enum;
+import tests.Event;
 import tests.Object;
 import tests.Pointer;
 import tests.Primitive;

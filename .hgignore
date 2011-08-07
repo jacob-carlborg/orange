@@ -18,3 +18,4 @@ kandil
 lib
 import
 unittest
+*.exe

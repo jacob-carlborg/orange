@@ -41,7 +41,9 @@ struct Event (alias m)
 	}
 }
 
-package const onDeserializedField = "__onDeserialized";
-package const onDeserializingField = "__onDeserializing";
-package const onSerializedField = "__onSerialized";
-package const onSerializingField = "__onSerializing";
+package:
+
+const onDeserializedField = "__onDeserialized";
+const onDeserializingField = "__onDeserializing";
+const onSerializedField = "__onSerialized";
+const onSerializingField = "__onSerializing";
