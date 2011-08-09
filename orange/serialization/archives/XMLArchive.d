@@ -280,12 +280,10 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	void archiveBaseClass (string type, string key, Id id)
 	{
-		restore(lastElement) in {
-			lastElement = lastElement.element(Tags.baseTag)
-			.attribute(Attributes.typeAttribute, toData(type))
-			.attribute(Attributes.keyAttribute, toData(key))
-			.attribute(Attributes.idAttribute, toData(id)); 
-		};
+		lastElement = lastElement.element(Tags.baseTag)
+		.attribute(Attributes.typeAttribute, toData(type))
+		.attribute(Attributes.keyAttribute, toData(key))
+		.attribute(Attributes.idAttribute, toData(id));
 	}
 	
 	void archiveNull (string type, string key)

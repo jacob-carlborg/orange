@@ -37,6 +37,7 @@ tests/Primitive.d \
 tests/Slice.d \
 tests/String.d \
 tests/Struct.d \
+tests/Subclass.d \
 tests/Typedef.d \
 tests/Util.d \
 tests/_.d
