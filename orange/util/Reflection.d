@@ -327,6 +327,8 @@ body
 		static if (f == field)
 			return t.tupleof[i];
 	}
+	
+	assert(0);
 }
 
 /**

@@ -30,7 +30,11 @@ template OnSerializing (alias method)
 
 struct Event (alias m)
 {
-	private const method = &m;
+	version (Tango)
+		private const method = &m;
+		
+	else
+		mixin("private enum method = &m;");
 	
 	void opCall (T) (T value)
 	{

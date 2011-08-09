@@ -11,7 +11,10 @@ version (Tango)
 
 else
 {
+	import std.array;
 	import std.conv;
+	import std.utf;
+
 	alias ConvException ConversionException;
 }
 
@@ -206,8 +209,14 @@ abstract class Base (U) : Archive
 	protected T fromData (T) (Data value)
 	{
 		try
-			return to!(T)(value);
-		
+		{
+			static if (is(T == wchar))
+				return toWchar(value);
+
+			else
+				return to!(T)(value);
+		}
+
 		catch (ConversionException e)
 			throw new ArchiveException(e);
 	}
@@ -223,5 +232,23 @@ abstract class Base (U) : Archive
 		void* bPtr = b.ptr;
 		
 		return aPtr >= bPtr && aPtr + a.length * T.sizeof <= bPtr + b.length * U.sizeof;
+	}
+	
+	private wchar toWchar (Data value)
+	{
+		version (Tango)
+			return to!(wchar)(value);
+		
+		else
+		{
+			auto c = value.front;
+
+			if (codeLength!(wchar)(c) > 2)
+				throw new ConversionException("Could not convert `" ~
+					to!(string)(value) ~ "` of type " ~
+					Data.stringof ~ " to type wchar.");
+
+			return cast(wchar) c;
+		}
 	}
 }

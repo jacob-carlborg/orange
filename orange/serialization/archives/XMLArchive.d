@@ -997,11 +997,7 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	wchar unarchiveWchar (string key)
 	{
-		version (Tango)
-			return unarchivePrimitive!(wchar)(key);
-			
-		else
-			return wchar.init;
+		return unarchivePrimitive!(wchar)(key);
 	}
 	
 	T unarchivePrimitive (T) (string key)

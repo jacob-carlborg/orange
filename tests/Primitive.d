@@ -39,15 +39,13 @@ class H
 	uint uint_;
 	ulong ulong_;
 	ushort ushort_;
-	
-	version (Tango)
-		wchar wchar_; // Phobos to!() function can't handle string -> wchar
+	wchar wchar_;
 	
 	equals_t opEquals (Object other)
 	{
 		if (auto o =  cast(H) other)
 		{
-			auto result = bool_ == o.bool_ &&
+			return bool_ == o.bool_ &&
 				   byte_ == o.byte_ &&
 				   //cdouble_ == o.cdouble_ && // currently not suppported by to!()
 				   //cent_ == o.cent_ && // currently not implemented but a reserved keyword
@@ -68,13 +66,8 @@ class H
 				   //ucent_ == o.ucent_ && // currently not implemented but a reserved keyword
 				   uint_ == o.uint_ &&
 				   ulong_ == o.ulong_ &&
-				   ushort_ == o.ushort_;
-				
-				   version (Tango)
-				   		return result && wchar_ == o.wchar_;
-
-				   else
-						return result;
+				   ushort_ == o.ushort_ &&
+				   wchar_ == o.wchar_;
 		}
 		
 		return false;
@@ -109,9 +102,7 @@ unittest
 	h.uint_ = 1U;
 	h.ulong_ = 1LU;
 	h.ushort_ = 1U;
-
-	version (Tango)
-		h.wchar_ = 'c';
+	h.wchar_ = 'c';
 
 	describe("serialize primitives") in {
 		it("should return serialized primitives") in {
@@ -134,9 +125,7 @@ unittest
 			assert(archive.data().containsXmlTag("uint", `key="uint_" id="12"`, "1"));
 			assert(archive.data().containsXmlTag("ulong", `key="ulong_" id="13"`, "1"));
 			assert(archive.data().containsXmlTag("ushort", `key="ushort_" id="14"`, "1"));
-			
-			version (Tango)
-				assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
+			assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
 		};
 	};
 	
