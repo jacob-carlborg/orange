@@ -688,11 +688,7 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	wchar unarchiveEnumWchar (string key)
 	{
-		version (Tango)
-			return unarchiveEnum!(wchar)(key);
-			
-		else
-			return wchar.init;
+		return unarchiveEnum!(wchar)(key);
 	}	
 	
 	private T unarchiveEnum (T) (string key)
