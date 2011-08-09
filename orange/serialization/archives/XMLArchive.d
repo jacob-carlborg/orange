@@ -773,7 +773,7 @@ final class XMLArchive (U = char) : Base!(U)
 			auto length = fromData!(size_t)(getValueOfAttribute(Attributes.lengthAttribute, element));
 			auto offset = fromData!(size_t)(getValueOfAttribute(Attributes.offsetAttribute, element));
 			auto id = toId(element.value);
-			
+
 			return Slice(length, offset, id);
 		}
 		
@@ -1051,7 +1051,7 @@ final class XMLArchive (U = char) : Base!(U)
 	}
 	
 	private doc.Node getElement (Data tag, string key, Data attribute = Attributes.keyAttribute, bool throwOnError = true)
-	{		
+	{
 		auto set = lastElement.query[tag].attribute((doc.Node node) {
 			if (node.name == attribute && node.value == key)
 				return true;
@@ -1059,22 +1059,29 @@ final class XMLArchive (U = char) : Base!(U)
 			return false;
 		});
 
-		if (set.nodes.length == 1)
-			return set.nodes[0].parent;
+		version (Tango)
+		{
+			if (set.nodes.length == 1)
+				return set.nodes[0].parent;
+		}
 		
 		else
-		{
-			if (throwOnError && errorCallback)
-			{
-				if (set.nodes.length == 0)					
-					errorCallback(new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
-				
-				else
-					errorCallback(new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
-			}
-
-			return doc.Node.invalid;
+		{	// Temporary fix, this is probably a problem in the Phobos
+			// implementation of the XML query function
+			if (set.nodes.length > 0)
+				return set.nodes[set.nodes.length - 1].parent;
 		}
+
+		if (throwOnError && errorCallback)
+		{
+			if (set.nodes.length == 0)
+				errorCallback(new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
+
+			else
+				errorCallback(new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
+		}
+
+		return doc.Node.invalid;
 	}
 	
 	private Data getValueOfAttribute (Data attribute, doc.Node element = doc.Node.invalid)

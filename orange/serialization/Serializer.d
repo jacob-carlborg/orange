@@ -551,7 +551,7 @@ class Serializer
 	private T deserializeArray (T) (string key)
 	{
 		auto slice = deserializeSlice(key);
-		
+
 		if (auto tmp = getDeserializedSlice!(T)(slice))
 			return *tmp;
 		
@@ -563,7 +563,7 @@ class Serializer
 			foreach (i, ref e ; value)
 				e = deserializeInternal!(typeof(e))(toData(i));
 		};
-		
+
 		if (slice.id != size_t.max)
 		{
 			archive.unarchiveArray(slice.id, dg);
@@ -578,7 +578,7 @@ class Serializer
 			
 			if (auto a = slice.id in deserializedSlices)
 				return cast(T) *a;
-			
+
 			addDeserializedSlice(value, slice.id);
 			
 			return value;
