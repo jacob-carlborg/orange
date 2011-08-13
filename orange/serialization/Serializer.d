@@ -56,12 +56,14 @@ class Serializer
 			Id id;
 			string key;
 		}
-		
+
 		ErrorCallback errorCallback_;		
 		Archive archive_;
 		
 		size_t keyCounter;
 		Id idCounter;
+		
+		void delegate (Object, Mode mode) [ClassInfo] registeredTypes;
 		
 		RegisterBase[string] serializers;
 		RegisterBase[string] deserializers;
@@ -95,6 +97,24 @@ class Serializer
 		setThrowOnErrorCallback();
 	}
 	
+	void register (T : Object) ()
+	{
+		registeredTypes[T.classinfo] = &downcastSerialize!(T);
+	}
+	
+	private void downcastSerialize (T : Object) (Object value, Mode mode)
+	{
+		auto casted = cast(T) value;
+		assert(casted);
+		assert(casted.classinfo is T.classinfo);
+		
+		if (mode == serializing)
+			objectStructSerializeHelper(casted);
+		
+		else
+			objectStructDeserializeHelper(casted);
+	}
+	
 	Archive archive ()
 	{
 		return archive_;
@@ -126,6 +146,7 @@ class Serializer
 		
 		serializers = null;
 		deserializers = null;
+		registeredTypes = null;
 		
 		serializedReferences = null;
 		deserializedReferences = null;
@@ -134,7 +155,10 @@ class Serializer
 		deserializedSlices = null;
 		
 		serializedValues = null;
+		deserializedValues = null;
+
 		serializedPointers = null;
+		deserializedPointers = null;
 		
 		hasBegunSerializing = false;
 		hasBegunDeserializing = false;
@@ -231,9 +255,20 @@ class Serializer
 				else
 				{				
 					if (isBaseClass(value))
-						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a serializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
-
-					objectStructSerializeHelper(value);
+					{
+						if (auto serializer = value.classinfo in registeredTypes)
+							(*serializer)(value, serializing);
+						
+						else
+							throw new SerializationException(
+								`The object of the static type "` ~ T.stringof ~
+								`" have a different runtime type (` ~ runtimeType ~
+								`) and therefore needs to either register its type or register a serializer for its type "`
+								~ runtimeType ~ `".`, __FILE__, __LINE__);
+					}
+					
+					else
+						objectStructSerializeHelper(value);
 				}
 			});
 		});
@@ -469,9 +504,20 @@ class Serializer
 				else
 				{
 					if (isBaseClass(value))
-						throw new SerializationException(`The object of the static type "` ~ T.stringof ~ `" have a different runtime type (` ~ runtimeType ~ `) and therefore needs to register a deserializer for its type "` ~ runtimeType ~ `".`, __FILE__, __LINE__);
+					{
+						if (auto deserializer = value.classinfo in registeredTypes)
+							(*deserializer)(value, deserializing);
 
-					objectStructDeserializeHelper(value);					
+						else
+							throw new SerializationException(
+								`The object of the static type "` ~ T.stringof ~
+								`" have a different runtime type (` ~ runtimeType ~
+								`) and therefore needs to either register its type or register a deserializer for its type "`
+								~ runtimeType ~ `".`, __FILE__, __LINE__);
+					}
+					
+					else
+						objectStructDeserializeHelper(value);					
 				}
 			});
 		});
@@ -995,10 +1041,7 @@ class Serializer
 	
 	private bool isBaseClass (T) (T value)
 	{
-		auto name = value.classinfo.name;		
-		auto index = name.lastIndexOf('.');
-		
-		return T.stringof != name[index + 1 .. $];
+		return value.classinfo !is T.classinfo;
 	}
 	
 	private Id nextId ()

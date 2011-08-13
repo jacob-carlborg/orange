@@ -29,6 +29,7 @@ tests/all.d \
 tests/Array.d \
 tests/AssociativeArray.d \
 tests/AssociativeArrayReference.d \
+tests/BaseClass.d \
 tests/Enum.d \
 tests/Event.d \
 tests/Object.d \
