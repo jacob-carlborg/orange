@@ -1011,11 +1011,6 @@ class Serializer
 		return toData(keyCounter++);
 	}
 	
-	private string prevKey ()
-	{
-		return toData(--keyCounter);
-	}
-	
 	private void resetCounters ()
 	{
 		keyCounter = 0;
