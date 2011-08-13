@@ -1,47 +1,14 @@
 #!/bin/sh
 
 dmd -unittest -ofunittest \
-orange/core/io.d \
-orange/core/string.d \
-orange/core/_.d \
-orange/serialization/Events.d \
-orange/serialization/RegisterWrapper.d \
-orange/serialization/Serializable.d \
-orange/serialization/SerializationException.d \
-orange/serialization/Serializer.d \
-orange/serialization/_.d \
-orange/serialization/archives/Archive.d \
-orange/serialization/archives/ArchiveException.d \
-orange/serialization/archives/XMLArchive.d \
-orange/serialization/archives/_.d \
-orange/test/UnitTester.d \
-orange/util/CTFE.d \
-orange/util/Reflection.d \
-orange/util/Traits.d \
-orange/util/Use.d \
-orange/util/_.d \
-orange/util/collection/Array.d \
-orange/util/collection/_.d \
-orange/xml/PhobosXML.d \
-orange/xml/XMLDocument.d \
-orange/xml/_.d \
-tests/all.d \
-tests/Array.d \
-tests/AssociativeArray.d \
-tests/AssociativeArrayReference.d \
-tests/BaseClass.d \
-tests/Enum.d \
-tests/Event.d \
-tests/Object.d \
-tests/Pointer.d \
-tests/Primitive.d \
-tests/Slice.d \
-tests/String.d \
-tests/Struct.d \
-tests/Subclass.d \
-tests/Typedef.d \
-tests/Util.d \
-tests/_.d
+orange/core/*.d \
+orange/serialization/*.d \
+orange/serialization/archives/*.d \
+orange/test/*.d \
+orange/util/*.d \
+orange/util/collection/*.d \
+orange/xml/*.d \
+tests/*.d
 
 if [ "$?" = 0 ] ; then
 	./unittest
