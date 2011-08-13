@@ -49,12 +49,12 @@ unittest
 		};
 	};
 	
-	// describe("deserialize class with a base class") in {
-	// 	it("should return a deserialized string equal to the original string") in {
-	// 		auto subDeserialized = serializer.deserialize!(Sub)(archive.untypedData);
-	// 
-	// 		assert(sub.a == subDeserialized.a);
-	// 		assert(sub.b == subDeserialized.b);
-	// 	};
-	// };
+	describe("deserialize class with a base class") in {
+		it("should return a deserialized string equal to the original string") in {
+			auto subDeserialized = serializer.deserialize!(Sub)(archive.untypedData);
+	
+			assert(sub.a == subDeserialized.a);
+			assert(sub.b == subDeserialized.b);
+		};
+	};
 }

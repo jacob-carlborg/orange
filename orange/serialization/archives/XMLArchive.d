@@ -701,6 +701,14 @@ final class XMLArchive (U = char) : Base!(U)
 		return fromData!(T)(element.value);
 	}
 	
+	void unarchiveBaseClass (string key)
+	{
+		auto element = getElement(Tags.baseTag, key);
+		
+		if (element.isValid)
+			lastElement = element;
+	}
+	
 	void unarchiveObject (string key, out Id id, out Object result, void delegate () dg)
 	{
 		restore(lastElement) in {

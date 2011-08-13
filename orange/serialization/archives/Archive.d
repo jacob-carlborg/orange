@@ -138,7 +138,7 @@ interface Archive
 	ushort unarchiveEnumUshort (string key);
 	wchar unarchiveEnumWchar (string key);
 	
-	// Object unarchiveBaseClass (string key);
+	void unarchiveBaseClass (string key);
 	// void unarchiveNull (string key);
 	void unarchiveObject (string key, out Id id, out Object result, void delegate () dg);
 	Id unarchivePointer (string key, void delegate () dg);

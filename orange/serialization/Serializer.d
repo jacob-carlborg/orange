@@ -792,7 +792,7 @@ class Serializer
 		
 		static if (!is(Base == Object))
 		{
-			archive.unarchiveBaseClass!(Base)(nextKey);
+			archive.unarchiveBaseClass(nextKey);
 			Base base = value;
 			objectStructDeserializeHelper(base);
 		}
