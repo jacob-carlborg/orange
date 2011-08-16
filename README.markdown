@@ -1,6 +1,11 @@
-### Description
+# Introduction
 
-Orange is a serialization library for the D programming language. It supports both D1/Tango and D2/Phobos.
+Orange is a serialization library for the D programming language.It supports D1/Tango and D2/Phobos.
+It can serialize most of the available types in D, including third party types and can serialize
+through base class references. It supports fully automatic serialization of all supported types
+and also supports several ways to customize the serialization. Orange has a separate front end
+(the serializer) and back end (the archive) making it possible for the user to create new archive
+types that can be used with the existing serializer. 
 
 ### Build Dependencies
 
