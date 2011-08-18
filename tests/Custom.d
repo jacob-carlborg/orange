@@ -22,16 +22,19 @@ class Foo
 	
 	void toData (Serializer serializer, Serializer.Data key)
 	{
+		i++;
 		serializer.serialize(a, "x");
 	}
 
 	void fromData (Serializer serializer, Serializer.Data key)
 	{
+		i++;
 		a = serializer.deserialize!(int)("x");
 	}
 }
 
 Foo foo;
+int i;
 
 unittest
 {
@@ -41,6 +44,7 @@ unittest
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
+	i = 3;
 
 	describe("serialize object using custom serialization methods") in {
 		it("should return a custom serialized object") in {
@@ -49,6 +53,8 @@ unittest
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Custom.Foo" type="Foo" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="x" id="1"`));
+			
+			assert(i == 4);
 		};
 	};
 	
@@ -57,6 +63,8 @@ unittest
 			auto f = serializer.deserialize!(Foo)(archive.untypedData);
 
 			assert(foo.a == f.a);
+			
+			assert(i == 5);
 		};
 	};
 }
