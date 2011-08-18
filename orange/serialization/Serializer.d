@@ -115,6 +115,26 @@ class Serializer
 			objectStructDeserializeHelper(casted);
 	}
 	
+	void registerSerializer (T) (string type, void delegate (T, Serializer, Data) dg)
+	{
+		serializers[type] = toSerializeRegisterWrapper(dg);
+	}
+
+	void registerSerializer (T) (string type, void function (T, Serializer, Data) func)
+	{
+		serializers[type] = toSerializeRegisterWrapper(func);
+	}
+
+	void registerDeserializer (T) (string type, void delegate (ref T, Serializer, Data) dg)
+	{
+		deserializers[type] = toDeserializeRegisterWrapper(dg);
+	}
+
+	void registerDeserializer (T) (string type, void function (ref T, Serializer, Data) func)
+	{
+		deserializers[type] = toDeserializeRegisterWrapper(func);
+	}
+	
 	Archive archive ()
 	{
 		return archive_;
@@ -928,9 +948,9 @@ class Serializer
 		return array[slice.offset .. slice.offset + slice.length];
 	}
 	
-	private SerializeRegisterWrapper!(T, Serializer) getSerializerWrapper (T) (string type)
+	private SerializeRegisterWrapper!(T) getSerializerWrapper (T) (string type)
 	{
-		auto wrapper = cast(SerializeRegisterWrapper!(T, Serializer)) serializers[type];
+		auto wrapper = cast(SerializeRegisterWrapper!(T)) serializers[type];
 		
 		if (wrapper)
 			return wrapper;
@@ -938,9 +958,9 @@ class Serializer
 		assert(false, "throw exception here");
 	}
 
-	private DeserializeRegisterWrapper!(T, Serializer) getDeserializerWrapper (T) (string type)
+	private DeserializeRegisterWrapper!(T) getDeserializerWrapper (T) (string type)
 	{
-		auto wrapper = cast(DeserializeRegisterWrapper!(T, Serializer)) deserializers[type];
+		auto wrapper = cast(DeserializeRegisterWrapper!(T)) deserializers[type];
 		
 		if (wrapper)
 			return wrapper;
@@ -948,24 +968,24 @@ class Serializer
 		assert(false, "throw exception here");
 	}
 	
-	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, string) dg)
+	private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, Data) dg)
 	{		
-		return new SerializeRegisterWrapper!(T, Serializer)(dg);
+		return new SerializeRegisterWrapper!(T)(dg);
 	}
 
-	private SerializeRegisterWrapper!(T, Serializer) toSerializeRegisterWrapper (T) (void function (T, Serializer, string) func)
+	private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void function (T, Serializer, Data) func)
 	{		
-		return new SerializeRegisterWrapper!(T, Serializer)(func);
+		return new SerializeRegisterWrapper!(T)(func);
 	}
 
-	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, string) dg)
+	private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, Data) dg)
 	{		
-		return new DeserializeRegisterWrapper!(T, Serializer)(dg);
+		return new DeserializeRegisterWrapper!(T)(dg);
 	}
 
-	private DeserializeRegisterWrapper!(T, Serializer) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, string) func)
+	private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, Data) func)
 	{		
-		return new DeserializeRegisterWrapper!(T, Serializer)(func);
+		return new DeserializeRegisterWrapper!(T)(func);
 	}
 	
 	private void addSerializedArray (Array array, Id id)
