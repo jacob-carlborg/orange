@@ -45,9 +45,11 @@ private
 
 class Serializer
 {
-	alias void delegate (ArchiveException exception, string[] data) ErrorCallback;
+	alias void delegate (SerializationException exception, string[] data) ErrorCallback;
 	alias Archive.UntypedData Data;
 	alias Archive.Id Id;
+	
+	ErrorCallback errorCallback;
 	
 	private
 	{
@@ -57,7 +59,6 @@ class Serializer
 			string key;
 		}
 
-		ErrorCallback errorCallback_;		
 		Archive archive_;
 		
 		size_t keyCounter;
@@ -83,16 +84,16 @@ class Serializer
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
 		
-		void delegate (ArchiveException exception, string[] data) throwOnErrorCallback;		
-		void delegate (ArchiveException exception, string[] data) doNothingOnErrorCallback;
+		void delegate (SerializationException exception, string[] data) throwOnErrorCallback;
+		void delegate (SerializationException exception, string[] data) doNothingOnErrorCallback;
 	}
 	
 	this (Archive archive)
 	{
 		this.archive_ = archive;
 		
-		throwOnErrorCallback = (ArchiveException exception, string[] data) { throw exception; };
-		doNothingOnErrorCallback = (ArchiveException exception, string[] data) { /* do nothing */ };
+		throwOnErrorCallback = (SerializationException exception, string[] data) { throw exception; };
+		doNothingOnErrorCallback = (SerializationException exception, string[] data) { /* do nothing */ };
 		
 		setThrowOnErrorCallback();
 	}
@@ -138,16 +139,6 @@ class Serializer
 	Archive archive ()
 	{
 		return archive_;
-	}
-	
-	ErrorCallback errorCallback ()
-	{
-		return errorCallback_;
-	}
-	
-	ErrorCallback errorCallback (ErrorCallback errorCallback)
-	{
-		return errorCallback_ = errorCallback;
 	}
 	
 	void setThrowOnErrorCallback ()
@@ -243,7 +234,7 @@ class Serializer
 		else
 		{
 			error:
-			throw new SerializationException(format!(`The type "`, T, `" cannot be serialized.`), __FILE__, __LINE__);
+			error(format!(`The type "`, T, `" cannot be serialized.`), __LINE__);
 		}
 	}
 
@@ -280,11 +271,11 @@ class Serializer
 							(*serializer)(value, serializing);
 						
 						else
-							throw new SerializationException(
-								`The object of the static type "` ~ T.stringof ~
-								`" have a different runtime type (` ~ runtimeType ~
+							error(format!(
+								`The object of the static type "`, T,
+								`" have a different runtime type (`, runtimeType,
 								`) and therefore needs to either register its type or register a serializer for its type "`
-								~ runtimeType ~ `".`, __FILE__, __LINE__);
+								, runtimeType, `".`), __LINE__);
 					}
 					
 					else
@@ -393,7 +384,10 @@ class Serializer
 			else
 			{
 				static if (isVoid!(BaseTypeOfPointer!(T)))
-					throw new SerializationException(`The value with the key "` ~ to!(string)(key) ~ `"` ~ format!(` of the type "`, T, `" cannot be serialized on its own, either implement orange.serialization.Serializable.isSerializable or register a serializer.`), __FILE__, __LINE__);
+					error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
+						format!(` of the type "`, T, `" cannot be serialized on `,
+						`its own, either implement orange.serialization.Serializable`,
+						`.isSerializable or register a serializer.`), __LINE__);
 				
 				else
 					serializeInternal(*value, nextKey);
@@ -445,7 +439,8 @@ class Serializer
 	T deserialize (T) (string key)
 	{
 		if (!hasBegunDeserializing)
-			throw new SerializationException("Cannot deserialize without any data, this method should only be called after deserialization has begun.", __FILE__, __LINE__);
+			error("Cannot deserialize without any data, this method should"
+				"only be called after deserialization has begun.", __LINE__);
 		
 		return deserialize!(T)(archive.untypedData, key);
 	}
@@ -492,7 +487,7 @@ class Serializer
 		else
 		{
 			error:
-			throw new SerializationException(format!(`The type "`, T, `" cannot be deserialized.`), __FILE__, __LINE__);
+			error(format!(`The type "`, T, `" cannot be deserialized.`), __LINE__);
 		}			
 	}
 	
@@ -529,11 +524,11 @@ class Serializer
 							(*deserializer)(value, deserializing);
 
 						else
-							throw new SerializationException(
-								`The object of the static type "` ~ T.stringof ~
-								`" have a different runtime type (` ~ runtimeType ~
+							error(format!(
+								`The object of the static type "`, T,
+								`" have a different runtime type (`, runtimeType,
 								`) and therefore needs to either register its type or register a deserializer for its type "`
-								~ runtimeType ~ `".`, __FILE__, __LINE__);
+								, runtimeType, `".`), __LINE__);
 					}
 					
 					else
@@ -709,7 +704,10 @@ class Serializer
 			else
 			{
 				static if (isVoid!(BaseTypeOfPointer!(T)))
-					throw new SerializationException(`The value with the key "` ~ to!(string)(key) ~ `"` ~ format!(` of the type "`, T, `" cannot be deserialized on its own, either implement orange.serialization.Serializable.isSerializable or register a deserializer.`), __FILE__, __LINE__);
+					error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
+						format!(` of the type "`, T, `" cannot be deserialized on `
+						`its own, either implement orange.serialization.Serializable`
+						`.isSerializable or register a deserializer.`), __LINE__);
 				
 				else
 				{
@@ -955,7 +953,7 @@ class Serializer
 		if (wrapper)
 			return wrapper;
 		
-		assert(false, "throw exception here");
+		assert(0, "this shouldn't happen");
 	}
 
 	private DeserializeRegisterWrapper!(T) getDeserializerWrapper (T) (string type)
@@ -965,7 +963,7 @@ class Serializer
 		if (wrapper)
 			return wrapper;
 		
-		assert(false, "throw exception here");
+		assert(0, "this shouldn't happen");
 	}
 	
 	private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, Data) dg)
@@ -1134,5 +1132,13 @@ class Serializer
 		}
 		
 		return annotations;
+	}
+	
+	private void error (string message, long line, string[] data = null)
+	{
+		auto exception = new SerializationException(message, __FILE__, line);
+		
+		if (errorCallback)
+			errorCallback(exception, data);
 	}
 }
