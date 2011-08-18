@@ -15,12 +15,7 @@ import tests.Util;
 Serializer serializer;
 XMLArchive!(char) archive;
 
-class Base
-{
-	int c;
-}
-
-class Foo : Base
+class Foo
 {
 	int a;
 	int b;
@@ -28,13 +23,11 @@ class Foo : Base
 	void toData (Serializer serializer, Serializer.Data key)
 	{
 		serializer.serialize(a, "x");
-		println(cast(string) key);
 	}
 
 	void fromData (Serializer serializer, Serializer.Data key)
 	{
 		a = serializer.deserialize!(int)("x");
-		println(cast(string) key);
 	}
 }
 
@@ -48,12 +41,11 @@ unittest
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
-	foo.c = 5;
 
 	describe("serialize object using custom serialization methods") in {
 		it("should return a custom serialized object") in {
 			serializer.serialize(foo);
-			println(archive.data);
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Custom.Foo" type="Foo" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="x" id="1"`));
