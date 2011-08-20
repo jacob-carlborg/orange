@@ -271,11 +271,10 @@ class Serializer
 							(*serializer)(value, serializing);
 						
 						else
-							error(format!(
-								`The object of the static type "`, T,
-								`" have a different runtime type (`, runtimeType,
+							error(`The object of the static type "` ~ T.stringof ~
+								`" have a different runtime type (` ~ runtimeType ~
 								`) and therefore needs to either register its type or register a serializer for its type "`
-								, runtimeType, `".`), __LINE__);
+								~ runtimeType ~ `".`, __LINE__);
 					}
 					
 					else
@@ -524,11 +523,10 @@ class Serializer
 							(*deserializer)(value, deserializing);
 
 						else
-							error(format!(
-								`The object of the static type "`, T,
-								`" have a different runtime type (`, runtimeType,
+							error(`The object of the static type "` ~ T.stringof ~
+								`" have a different runtime type (` ~ runtimeType ~
 								`) and therefore needs to either register its type or register a deserializer for its type "`
-								, runtimeType, `".`), __LINE__);
+								~ runtimeType ~ `".`, __LINE__);
 					}
 					
 					else
