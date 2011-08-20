@@ -7,7 +7,6 @@
 module tests.all;
 
 import orange.test.UnitTester;
-import tests._;
 
 /*
  * The tests that test for XML with attributes are not completely
