@@ -62,6 +62,13 @@ template isChar (T)
 	const bool isChar = is(T == char) || is(T == wchar) || is(T == dchar);
 }
 
+template isFloatingPoint (T)
+{
+	const bool isFloatingPoint = is(T == float) || is(T == double) || is(T == real) ||
+								 is(T == cfloat) || is(T == cdouble) || is(T == creal) ||
+						  		 is(T == ifloat) || is(T == idouble) || is(T == ireal);
+}
+
 template isClass (T)
 {
 	const bool isClass = is(T == class);

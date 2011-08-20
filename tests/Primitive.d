@@ -6,7 +6,7 @@
  */
 module tests.Primitive;
 
-import orange.core.string;
+import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XMLArchive;
 import orange.test.UnitTester;
@@ -104,22 +104,25 @@ unittest
 	h.ushort_ = 1U;
 	h.wchar_ = 'c';
 
+	version (Tango) const zero = "0";
+	else mixin(`enum zero = "0x0p+0";`);
+
 	describe("serialize primitives") in {
 		it("should return serialized primitives") in {
 			serializer.reset;
 			serializer.serialize(h);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Primitive.H" type="H" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("bool", `key="bool_" id="1"`, "true"));
 			assert(archive.data().containsXmlTag("byte", `key="byte_" id="2"`, "1"));
 			assert(archive.data().containsXmlTag("char", `key="char_" id="3"`, "a"));
 			assert(archive.data().containsXmlTag("dchar", `key="dchar_" id="4"`, "b"));
-			assert(archive.data().containsXmlTag("double", `key="double_" id="5"`, "0"));
-			assert(archive.data().containsXmlTag("float", `key="float_" id="6"`, "0"));
+			assert(archive.data().containsXmlTag("double", `key="double_" id="5"`, zero));
+			assert(archive.data().containsXmlTag("float", `key="float_" id="6"`, zero));
 			assert(archive.data().containsXmlTag("int", `key="int_" id="7"`, "1"));
 			assert(archive.data().containsXmlTag("long", `key="long_" id="8"`, "1"));
-			assert(archive.data().containsXmlTag("real", `key="real_" id="9"`, "0"));
+			assert(archive.data().containsXmlTag("real", `key="real_" id="9"`, zero));
 			assert(archive.data().containsXmlTag("short", `key="short_" id="10"`, "1"));
 			assert(archive.data().containsXmlTag("ubyte", `key="ubyte_" id="11"`, "1"));
 			assert(archive.data().containsXmlTag("uint", `key="uint_" id="12"`, "1"));

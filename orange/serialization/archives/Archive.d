@@ -14,12 +14,14 @@ else
 	import std.array;
 	import std.conv;
 	import std.utf;
+	static import std.string;
 
 	alias ConvException ConversionException;
 }
 
 import orange.serialization.archives.ArchiveException;
 import orange.core.string;
+import orange.util.Traits;
 
 private enum ArchiveMode
 {
@@ -200,7 +202,13 @@ abstract class Base (U) : Archive
 	protected Data toData (T) (T value)
 	{
 		try
-			return to!(Data)(value);
+		{
+			static if (isFloatingPoint!(T))
+				return floatingPointToData(value);
+
+			else
+				return to!(Data)(value);
+		}
 		
 		catch (ConversionException e)
 			throw new ArchiveException(e);
@@ -219,6 +227,18 @@ abstract class Base (U) : Archive
 
 		catch (ConversionException e)
 			throw new ArchiveException(e);
+	}
+	
+	protected Data floatingPointToData (T) (T value)
+	{
+		static assert(isFloatingPoint!(T), format!(`The given value of the type "`, T,
+			`" is not a valid type, the only valid types for this method are floating point types.`));
+		
+		version (Tango)
+			return to!(Data)(value);
+			
+		else
+			return to!(Data)(std.string.format("%a", value));
 	}
 	
 	protected Id toId (Data value)
