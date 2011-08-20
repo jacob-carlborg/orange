@@ -16,10 +16,18 @@ import tests.Util;
 Serializer serializer;
 XMLArchive!(char) archive;
 
+class Bar
+{
+	mixin NonSerialized;
+	
+	int c;
+}
+
 class Foo
 {
 	int a;
 	int b;
+	Bar bar;
 	
 	mixin NonSerialized!(a);
 }
@@ -34,6 +42,7 @@ unittest
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
+	foo.bar = new Bar;
 
 	describe("serialize object with a non-serialized field") in {
 		it("should return serialized object with only one serialized field") in {
@@ -42,6 +51,7 @@ unittest
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.NonSerialized.Foo" type="Foo" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
+			assert(!archive.data().containsXmlTag("object", `runtimeType="tests.NonSerialized.Bar" type="Bar" key="bar" id="2"`));
 		};
 	};
 	
@@ -50,6 +60,8 @@ unittest
 			auto f = serializer.deserialize!(Foo)(archive.untypedData);
 
 			assert(foo.b == f.b);
+			assert(f.a == foo.a.init);
+			assert(f.bar is foo.bar.init);
 		};
 	};
 }

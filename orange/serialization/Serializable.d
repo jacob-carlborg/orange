@@ -6,6 +6,7 @@
  */
 module orange.serialization.Serializable;
 
+import orange.core.string;
 import orange.serialization.archives.Archive;
 import orange.serialization.Events;
 import orange.serialization.Serializer;
@@ -26,12 +27,17 @@ template isSerializable (T)
 
 template NonSerialized (alias field)
 {
-	NonSerializedField!(field) __nonSerialized;
+	NonSerializedField!(field.stringof) __nonSerialized;
 }
 
-struct NonSerializedField (alias f)
+template NonSerialized ()
 {
-	const field = f.stringof;
+	NonSerializedField!("this") __nonSerialized;
+}
+
+struct NonSerializedField (string name)
+{
+	const field = name;
 }
 
 package:

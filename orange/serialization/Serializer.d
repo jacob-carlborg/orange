@@ -105,15 +105,18 @@ class Serializer
 	
 	private void downcastSerialize (T : Object) (Object value, Mode mode)
 	{
-		auto casted = cast(T) value;
-		assert(casted);
-		assert(casted.classinfo is T.classinfo);
-		
-		if (mode == serializing)
-			objectStructSerializeHelper(casted);
-		
-		else
-			objectStructDeserializeHelper(casted);
+		static if (!isNonSerialized!(T)())
+		{
+			auto casted = cast(T) value;
+			assert(casted);
+			assert(casted.classinfo is T.classinfo);
+
+			if (mode == serializing)
+				objectStructSerializeHelper(casted);
+
+			else
+				objectStructDeserializeHelper(casted);
+		}
 	}
 	
 	void registerSerializer (T) (string type, void delegate (T, Serializer, Data) dg)
@@ -240,72 +243,78 @@ class Serializer
 
 	private void serializeObject (T) (T value, string key, Id id)
 	{
-		if (!value)
-			return archive.archiveNull(T.stringof, key);
-		
-		auto reference = getSerializedReference(value);
-		
-		if (reference != Id.max)
-			return archive.archiveReference(key, reference);
-		
-		auto runtimeType = value.classinfo.name;
-		
-		addSerializedReference(value, id);
+		static if (!isNonSerialized!(T)())
+		{
+			if (!value)
+				return archive.archiveNull(T.stringof, key);
 
-		triggerEvents(serializing, value, {			
-			archive.archiveObject(runtimeType, T.stringof, key, id, {
-				if (runtimeType in serializers)
-				{
-					auto wrapper = getSerializerWrapper!(T)(runtimeType);
-					wrapper(value, this, key);
-				}
-				
-				else static if (isSerializable!(T))
-					value.toData(this, key);
-				
-				else
-				{				
-					if (isBaseClass(value))
+			auto reference = getSerializedReference(value);
+
+			if (reference != Id.max)
+				return archive.archiveReference(key, reference);
+
+			auto runtimeType = value.classinfo.name;
+
+			addSerializedReference(value, id);
+
+			triggerEvents(serializing, value, {
+				archive.archiveObject(runtimeType, T.stringof, key, id, {
+					if (runtimeType in serializers)
 					{
-						if (auto serializer = value.classinfo in registeredTypes)
-							(*serializer)(value, serializing);
-						
-						else
-							error(`The object of the static type "` ~ T.stringof ~
-								`" have a different runtime type (` ~ runtimeType ~
-								`) and therefore needs to either register its type or register a serializer for its type "`
-								~ runtimeType ~ `".`, __LINE__);
+						auto wrapper = getSerializerWrapper!(T)(runtimeType);
+						wrapper(value, this, key);
 					}
-					
+
+					else static if (isSerializable!(T))
+						value.toData(this, key);
+
 					else
-						objectStructSerializeHelper(value);
-				}
+					{
+						if (isBaseClass(value))
+						{
+							if (auto serializer = value.classinfo in registeredTypes)
+								(*serializer)(value, serializing);
+
+							else
+								error(`The object of the static type "` ~ T.stringof ~
+									`" have a different runtime type (` ~ runtimeType ~
+									`) and therefore needs to either register its type or register a serializer for its type "`
+									~ runtimeType ~ `".`, __LINE__);
+						}
+
+						else
+							objectStructSerializeHelper(value);
+					}
+				});
 			});
-		});
+		}
 	}
 	
 	private void serializeStruct (T) (T value, string key, Id id)
-	{			
-		string type = T.stringof;
-		
-		triggerEvents(serializing, value, {
-			archive.archiveStruct(type, key, id, {
-				if (type in serializers)
-				{
-					auto wrapper = getSerializerWrapper!(T)(type);
-					wrapper(value, this, key);
-				}
-				
-				else
-				{
-					static if (isSerializable!(T))
-						value.toData(this, key);
-					
+	{
+		static if (!isNonSerialized!(T)())
+		{
+			string type = T.stringof;
+
+			triggerEvents(serializing, value, {
+				archive.archiveStruct(type, key, id, {
+					if (type in serializers)
+					{
+						auto wrapper = getSerializerWrapper!(T)(type);
+						wrapper(value, this, key);
+					}
+
 					else
-						objectStructSerializeHelper(value);
-				}
+					{
+						static if (isSerializable!(T))
+							value.toData(this, key);
+
+						else
+							objectStructSerializeHelper(value);
+					}
+				});
 			});
-		});
+		}
 	}
 	
 	private void serializeString (T) (T value, string key, Id id)
@@ -492,79 +501,88 @@ class Serializer
 	
 	private T deserializeObject (T, U) (U keyOrId)
 	{
-		auto id = deserializeReference(keyOrId);
+		static if (!isNonSerialized!(T)())
+		{
+			auto id = deserializeReference(keyOrId);
 
-		if (auto reference = getDeserializedReference!(T)(id))
-			return *reference;
+			if (auto reference = getDeserializedReference!(T)(id))
+				return *reference;
 
-		T value;
-		Object val = value;
-		nextId;
-		
-		archive.unarchiveObject(keyOrId, id, val, {
-			triggerEvents(deserializing, cast(T) val, {
-				value = cast(T) val;
-				auto runtimeType = value.classinfo.name;
-				
-				if (runtimeType in deserializers)
-				{
-					auto wrapper = getDeserializerWrapper!(T)(runtimeType);
-					wrapper(value, this, keyOrId);
-				}
-				
-				else static if (isSerializable!(T))
-					value.fromData(this, keyOrId);
-				
-				else
-				{
-					if (isBaseClass(value))
+			T value;
+			Object val = value;
+			nextId;
+
+			archive.unarchiveObject(keyOrId, id, val, {
+				triggerEvents(deserializing, cast(T) val, {
+					value = cast(T) val;
+					auto runtimeType = value.classinfo.name;
+
+					if (runtimeType in deserializers)
 					{
-						if (auto deserializer = value.classinfo in registeredTypes)
-							(*deserializer)(value, deserializing);
+						auto wrapper = getDeserializerWrapper!(T)(runtimeType);
+						wrapper(value, this, keyOrId);
+					}
+
+					else static if (isSerializable!(T))
+						value.fromData(this, keyOrId);
+
+					else
+					{
+						if (isBaseClass(value))
+						{
+							if (auto deserializer = value.classinfo in registeredTypes)
+								(*deserializer)(value, deserializing);
+
+							else
+								error(`The object of the static type "` ~ T.stringof ~
+									`" have a different runtime type (` ~ runtimeType ~
+									`) and therefore needs to either register its type or register a deserializer for its type "`
+									~ runtimeType ~ `".`, __LINE__);
+						}
 
 						else
-							error(`The object of the static type "` ~ T.stringof ~
-								`" have a different runtime type (` ~ runtimeType ~
-								`) and therefore needs to either register its type or register a deserializer for its type "`
-								~ runtimeType ~ `".`, __LINE__);
+							objectStructDeserializeHelper(value);
 					}
-					
-					else
-						objectStructDeserializeHelper(value);					
-				}
+				});
 			});
-		});
+
+			addDeserializedReference(value, id);
+
+			return value;
+		}
 		
-		addDeserializedReference(value, id);
-		
-		return value;
+		return T.init;
 	}
 	
 	private T deserializeStruct (T) (string key)
 	{
 		T value;
-		nextId;
 		
-		archive.unarchiveStruct(key, {			
-			triggerEvents(deserializing, value, {
-				auto type = toData(T.stringof);
-				
-				if (type in deserializers)
-				{
-					auto wrapper = getDeserializerWrapper!(T)(type);
-					wrapper(value, this, key);
-				}
-				
-				else
-				{
-					static if (isSerializable!(T))
-						value.fromData(this, key);
-					
+		static if (!isNonSerialized!(T)())
+		{
+			nextId;
+
+			archive.unarchiveStruct(key, {
+				triggerEvents(deserializing, value, {
+					auto type = toData(T.stringof);
+
+					if (type in deserializers)
+					{
+						auto wrapper = getDeserializerWrapper!(T)(type);
+						wrapper(value, this, key);
+					}
+
 					else
-						objectStructDeserializeHelper(value);
-				}	
+					{
+						static if (isSerializable!(T))
+							value.fromData(this, key);
+
+						else
+							objectStructDeserializeHelper(value);
+					}
+				});
 			});
-		});
+		}
 		
 		return value;
 	}
@@ -1113,6 +1131,17 @@ class Serializer
 		
 		else
 			triggerEvent!(onDeserializedField)(value);
+	}
+	
+	private static bool isNonSerialized (T) ()
+	{
+		version (Tango)
+			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+
+		else
+			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
+
+		return ctfeContains(nonSerializedFields, "this");
 	}
 	
 	private static string[] collectAnnotations (string name, T) ()
