@@ -25,19 +25,40 @@ template isSerializable (T)
 		is(typeof(T.fromData(Serializer.init, Serializer.Data.init))));
 }
 
-template NonSerialized (alias field)
+template NonSerialized (Fields ...)
 {
-	NonSerializedField!(field.stringof) __nonSerialized;
-}
+	version (Tango)
+	{
+		static if (Fields.length == 0)
+			static const __nonSerialized = ["this"[]];
 
-template NonSerialized ()
-{
-	NonSerializedField!("this") __nonSerialized;
+		else
+			static const __nonSerialized = toArray!(Fields)();
+	}
+
+	else
+	{
+		mixin(`static if (Fields.length == 0)
+			static enum __nonSerialized = ["this"[]];
+
+		else
+			static enum __nonSerialized = toArray!(Fields)();`);
+	}
 }
 
 struct NonSerializedField (string name)
 {
 	const field = name;
+}
+
+static string[] toArray (Args ...) ()
+{
+	string[] args;
+	
+	foreach (i, _ ; typeof(Args))
+		args ~= Args[i].stringof;
+	
+	return args;
 }
 
 package:

@@ -795,10 +795,10 @@ class Serializer
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
 		version (Tango)
-			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+			const nonSerializedFields = collectAnnotations!(T);
 			
 		else
-			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
+			mixin(`enum nonSerializedFields = collectAnnotations!(T);`);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -828,10 +828,10 @@ class Serializer
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 				
 		version (Tango)
-			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+			const nonSerializedFields = collectAnnotations!(T);
 			
 		else
-			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
+			mixin(`enum nonSerializedFields = collectAnnotations!(T);`);
 		
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -1115,16 +1115,10 @@ class Serializer
 	{
 		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
-		foreach (i, dummy ; typeof(T.tupleof))
+		static if (hasAnnotation!(T, name))
 		{
-			const field = nameOfFieldAt!(T, i);
-			
-			static if (field == name)
-			{
-				alias TypeOfField!(T, field) Type;
-				auto event = getValueOfField!(T, Type, field)(value);
-				event(value);
-			}
+			mixin("auto event = T." ~ name ~ ";");
+			event(value);
 		}
 	}
 	
@@ -1148,29 +1142,28 @@ class Serializer
 	private static bool isNonSerialized (T) ()
 	{
 		version (Tango)
-			const nonSerializedFields = collectAnnotations!(nonSerializedField, T);
+			const nonSerializedFields = collectAnnotations!(T);
 
 		else
-			mixin(`enum nonSerializedFields = collectAnnotations!(nonSerializedField, T);`);
+			mixin(`enum nonSerializedFields = collectAnnotations!(T);`);
 
 		return ctfeContains(nonSerializedFields, "this");
 	}
 	
-	private static string[] collectAnnotations (string name, T) ()
+	private static template hasAnnotation (T, string annotation)
+	{
+		const hasAnnotation = is(typeof({ mixin("const a = T." ~ annotation ~ ";"); }));
+	}
+	
+	private static string[] collectAnnotations (T) ()
 	{
 		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
-		string[] annotations;
-		
-		foreach (i, type ; typeof(T.tupleof))
-		{
-			const field = nameOfFieldAt!(T, i);
-			
-			static if (field == name)
-				annotations ~= type.field;
-		}
-		
-		return annotations;
+		static if (hasAnnotation!(T, nonSerializedField))
+			return T.__nonSerialized;
+
+		else
+			return [];
 	}
 	
 	private void error (string message, long line, string[] data = null)

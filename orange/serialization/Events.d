@@ -10,22 +10,22 @@ import orange.util._;
 
 template OnDeserialized (alias method)
 {
-	orange.serialization.Events.Event!(method) __onDeserialized;
+	static orange.serialization.Events.Event!(method) __onDeserialized;
 }
 
 template OnDeserializing (alias method)
 {
-	orange.serialization.Events.Event!(method) __onDeserializing;
+	static orange.serialization.Events.Event!(method) __onDeserializing;
 }
 
 template OnSerialized (alias method)
 {
-	orange.serialization.Events.Event!(method) __onSerialized;
+	static orange.serialization.Events.Event!(method) __onSerialized;
 }
 
 template OnSerializing (alias method)
 {
-	orange.serialization.Events.Event!(method) __onSerializing;
+	static orange.serialization.Events.Event!(method) __onSerializing;
 }
 
 struct Event (alias m)
