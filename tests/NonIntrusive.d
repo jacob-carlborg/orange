@@ -15,7 +15,12 @@ import tests.Util;
 Serializer serializer;
 XMLArchive!(char) archive;
 
-class Foo
+class Base
+{
+	int x;
+}
+
+class Foo : Base
 {
 	private int a_;
 	private int b_;
@@ -34,6 +39,7 @@ void toData (Foo foo, Serializer serializer, Serializer.Data key)
 	i++;
 	serializer.serialize(foo.a, "a");
 	serializer.serialize(foo.b, "b");
+	serializer.serializeBase(foo);
 }
 
 void fromData (ref Foo foo, Serializer serializer, Serializer.Data key)
@@ -41,6 +47,7 @@ void fromData (ref Foo foo, Serializer serializer, Serializer.Data key)
 	i++;
 	foo.a = serializer.deserialize!(int)("a");
 	foo.b = serializer.deserialize!(int)("b");
+	serializer.deserializeBase(foo);
 }
 
 unittest
@@ -54,6 +61,7 @@ unittest
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
+	foo.x = 5;
 	i = 3;
 
 	describe("serialize object using a non-intrusive method") in {
@@ -65,6 +73,9 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="a" id="1"`, "3"));
 			assert(archive.data().containsXmlTag("int", `key="b" id="2"`, "4"));
 			
+			assert(archive.data().containsXmlTag("base", `type="Base" key="1" id="3"`));
+			assert(archive.data().containsXmlTag("int", `key="x" id="4"`, "5"));
+			
 			assert(i == 4);
 		};
 	};
@@ -75,7 +86,8 @@ unittest
 
 			assert(foo.a == f.a);
 			assert(foo.b == f.b);
-			
+			assert(foo.x == f.x);
+
 			assert(i == 5);
 		};
 	};

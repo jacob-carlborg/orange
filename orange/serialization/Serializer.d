@@ -191,6 +191,12 @@ class Serializer
 		return archive.untypedData;
 	}
 	
+	void serializeBase (T) (T value)
+	{
+		static if (isObject!(T) && !is(T == Object))
+			serializeBaseTypes(value);
+	}
+	
 	private void serializeInternal (T) (T value, string key = null, Id id = Id.max)
 	{
 		if (!key)
@@ -456,6 +462,12 @@ class Serializer
 	T deserialize (T) ()
 	{
 		return deserialize!(T)("");
+	}
+	
+	void deserializeBase (T) (T value)
+	{
+		static if (isObject!(T) && !is(T == Object))
+			deserializeBaseTypes(value);
 	}
 	
 	private T deserializeInternal (T, U) (U keyOrId)
