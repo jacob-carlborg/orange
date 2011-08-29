@@ -58,13 +58,13 @@ class Serializer
 			Id id;
 			string key;
 		}
+		
+		static void function (Serializer serializer, Object, Mode mode) [ClassInfo] registeredTypes;
 
 		Archive archive_;
 		
 		size_t keyCounter;
 		Id idCounter;
-		
-		void delegate (Object, Mode mode) [ClassInfo] registeredTypes;
 		
 		RegisterBase[string] serializers;
 		RegisterBase[string] deserializers;
@@ -98,12 +98,12 @@ class Serializer
 		setThrowOnErrorCallback();
 	}
 	
-	void register (T : Object) ()
+	static void register (T : Object) ()
 	{
 		registeredTypes[T.classinfo] = &downcastSerialize!(T);
 	}
 	
-	private void downcastSerialize (T : Object) (Object value, Mode mode)
+	private static void downcastSerialize (T : Object) (Serializer serializer, Object value, Mode mode)
 	{
 		static if (!isNonSerialized!(T)())
 		{
@@ -112,10 +112,10 @@ class Serializer
 			assert(casted.classinfo is T.classinfo);
 
 			if (mode == serializing)
-				objectStructSerializeHelper(casted);
+				serializer.objectStructSerializeHelper(casted);
 
 			else
-				objectStructDeserializeHelper(casted);
+				serializer.objectStructDeserializeHelper(casted);
 		}
 	}
 	
@@ -154,13 +154,17 @@ class Serializer
 		errorCallback = doNothingOnErrorCallback;
 	}
 	
+	static void resetRegisteredTypes ()
+	{
+		registeredTypes = null;
+	}
+	
 	void reset ()
 	{
 		resetCounters();
 		
 		serializers = null;
 		deserializers = null;
-		registeredTypes = null;
 		
 		serializedReferences = null;
 		deserializedReferences = null;
@@ -279,7 +283,7 @@ class Serializer
 						if (isBaseClass(value))
 						{
 							if (auto serializer = value.classinfo in registeredTypes)
-								(*serializer)(value, serializing);
+								(*serializer)(this, value, serializing);
 
 							else
 								error(`The object of the static type "` ~ T.stringof ~
@@ -543,7 +547,7 @@ class Serializer
 						if (isBaseClass(value))
 						{
 							if (auto deserializer = value.classinfo in registeredTypes)
-								(*deserializer)(value, deserializing);
+								(*deserializer)(this, value, deserializing);
 
 							else
 								error(`The object of the static type "` ~ T.stringof ~

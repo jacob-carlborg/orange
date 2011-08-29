@@ -45,6 +45,8 @@ Base base;
 
 unittest
 {
+	Serializer.register!(Sub);
+	
 	archive = new XMLArchive!(char);
 	serializer = new Serializer(archive);
 
@@ -55,8 +57,6 @@ unittest
 
 	describe("serialize subclass through a base class reference") in {
 		it("should return serialized subclass with the static type \"Base\" and the runtime type \"tests.BaseClass.Sub\"") in {
-			serializer.reset;
-			serializer.register!(Sub);
 			serializer.serialize(base);
 	
 			assert(archive.data().containsDefaultXmlContent());
@@ -73,6 +73,8 @@ unittest
 
 			assert(sub.a == subDeserialized.getA);
 			assert(sub.b == subDeserialized.getB);
+			
+			Serializer.resetRegisteredTypes;
 		};
 	};
 }
