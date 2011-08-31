@@ -9,8 +9,13 @@ module orange.serialization.Events;
 import orange.util._;
 
 /**
+ * each class defined in your source code: one for the class definition and one for the
  * 
- * Authors: doob
+ * This event is triggered after the struct/class, this template has been mixed into,
+ * has been completely deserialized, including all the fields.
+ * 
+ * Params:
+ *     method = the method to be invoked when the event is triggered
  */
 template OnDeserialized (alias method)
 {
@@ -18,8 +23,11 @@ template OnDeserialized (alias method)
 }
 
 /**
+ * This event is triggered after the struct/class (that this template has been mixed into)
+ * has been deserialized, but before any fields have been deserialized.
  * 
- * Authors: doob
+ * Params:
+ *     method = the method to be invoked when the event is triggered
  */
 template OnDeserializing (alias method)
 {
@@ -27,8 +35,11 @@ template OnDeserializing (alias method)
 }
 
 /**
+ * This event is triggered after the struct/class (that this template has been mixed into)
+ * has been completely serialized, including all the fields.
  * 
- * Authors: doob
+ * Params:
+ *     method = the method to be invoked when the event is triggered
  */
 template OnSerialized (alias method)
 {
@@ -36,8 +47,11 @@ template OnSerialized (alias method)
 }
 
 /**
+ * This event is triggered after the struct/class (that this template has been mixed into)
+ * has been serialized, but before any fields have been serialized.
  * 
- * Authors: doob
+ * Params:
+ *     method = the method to be invoked when the event is triggered
  */
 template OnSerializing (alias method)
 {
@@ -45,8 +59,10 @@ template OnSerializing (alias method)
 }
 
 /**
+ * This struct represents an event.
  * 
- * Authors: doob
+ * Params:
+ *     m = the method to be invoked when the event is triggered
  */
 struct Event (alias m)
 {
@@ -57,9 +73,10 @@ struct Event (alias m)
 		mixin("private enum method = &m;");
 	
 	/**
+	 * Triggers the event on the given value.
 	 * 
 	 * Params:
-	 *     value =
+	 *     value = the object to trigger the event on
 	 */
 	void opCall (T) (T value)
 	{
