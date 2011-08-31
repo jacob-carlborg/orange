@@ -12,12 +12,20 @@ import orange.serialization.Events;
 import orange.serialization.Serializer;
 import orange.util.CTFE;
 
+/**
+ * 
+ * Authors: doob
+ */
 interface Serializable
 {
 	void toData (Serializer serializer, Serializer.Data key);
 	void fromData (Serializer serializer, Serializer.Data key);
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template isSerializable (T)
 {
 	const isSerializable = is(T : Serializable) || (
@@ -25,6 +33,10 @@ template isSerializable (T)
 		is(typeof(T.fromData(Serializer.init, Serializer.Data.init))));
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template NonSerialized (Fields ...)
 {
 	version (Tango)
@@ -46,11 +58,19 @@ template NonSerialized (Fields ...)
 	}
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 struct NonSerializedField (string name)
 {
 	const field = name;
 }
 
+/**
+ * 
+ * Returns:
+ */
 static string[] toArray (Args ...) ()
 {
 	string[] args;

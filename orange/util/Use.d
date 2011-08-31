@@ -22,6 +22,10 @@ else
 	alias ParameterTypeTuple ParameterTupleOf;
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 struct Use (ARGS...)
 {
 	static assert (ARGS.length > 0);
@@ -57,6 +61,10 @@ struct Use (ARGS...)
 	}
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 struct RestoreStruct (U, T)
 {
 	U delegate(U delegate (), ref T) dg; 
@@ -68,6 +76,12 @@ struct RestoreStruct (U, T)
 	}
 }
 
+/**
+ * 
+ * Params:
+ *     val = 
+ * Returns:
+ */
 RestoreStruct!(U, T) restore (U = void, T) (ref T val)
 {
 	RestoreStruct!(U, T) restoreStruct;

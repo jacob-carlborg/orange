@@ -16,15 +16,28 @@ version (Tango)
 	import tango.text.convert.Utf;
 	import tango.text.Util;
 	
+	///
 	alias tango.stdc.stringz.toStringz toStringz;
+	
+	///
 	alias tango.stdc.stringz.toString16z toString16z;
+	
+	///
 	alias tango.stdc.stringz.toString32z toString32z;
 	
+	///
 	alias tango.stdc.stringz.fromStringz fromStringz;
+	
+	///
 	alias tango.stdc.stringz.fromString16z fromString16z;
+	
+	///
 	alias tango.stdc.stringz.fromString32z fromString32z;
 	
+	///
 	alias tango.text.convert.Utf.toString16 toString16;
+	
+	///
 	alias tango.text.convert.Utf.toString32 toString32;
 }
 
@@ -40,13 +53,22 @@ else
 	
 	private alias std.string.toLower toFold;
 	
+	///
 	alias std.utf.toUTF8 toString;
+	
+	///
 	alias std.utf.toUTF16 toString16;
+	
+	///
 	alias std.utf.toUTF32 toString32;
 	
+	///
 	alias std.string.toStringz toStringz;
+	
+	///
 	alias std.utf.toUTF16z toString16z;
 	
+	///
 	alias std.ascii.isHexDigit isHexDigit;
 }
 
@@ -901,6 +923,14 @@ version (Phobos)
 	}
 }
 
+/**
+ * 
+ * Params:
+ *     source = 
+ *     match = 
+ *     replacement = 
+ * Returns:
+ */
 T[] replace (T) (T[] source, dchar match, dchar replacement)
 {
 	static assert(isChar!(T), `The type "` ~ T.stringof ~ `" is not a valid type for this function only strings are accepted`);

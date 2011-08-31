@@ -18,6 +18,10 @@ import orange.serialization.Serializer;
 import orange.util._;
 import orange.xml.XMLDocument;
 
+/**
+ * 
+ * Authors: doob
+ */
 final class XMLArchive (U = char) : Base!(U)
 {
 	private alias Archive.Id Id;
@@ -82,12 +86,21 @@ final class XMLArchive (U = char) : Base!(U)
 		void[][Data] unarchivedSlices;
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     errorCallback =
+	 */
 	this (ErrorCallback errorCallback = null)
 	{
 		super(errorCallback);
 		doc = new XMLDocument!(U);
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	public void beginArchiving ()
 	{
 		if (!hasBegunArchiving)
@@ -102,6 +115,11 @@ final class XMLArchive (U = char) : Base!(U)
 		}		
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     untypedData =
+	 */
 	public void beginUnarchiving (UntypedData untypedData)
 	{
 		auto data = cast(Data) untypedData;
@@ -132,11 +150,19 @@ final class XMLArchive (U = char) : Base!(U)
 		}
 	}
 	
+	/**
+	 * 
+	 * Returns:
+	 */
 	UntypedData untypedData ()
 	{
 		return doc.toString();
 	}
 	
+	/**
+	 * 
+	 * Returns:
+	 */
 	Data data ()
 	{
 		return doc.toString;

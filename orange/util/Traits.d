@@ -13,16 +13,28 @@ import orange.util._;
 version (Tango)
 {
 	import Tango = tango.core.Traits;
+	
+	///
 	alias Tango.BaseTypeTupleOf BaseTypeTupleOf;
+	
+	///
 	alias Tango.ParameterTupleOf ParameterTupleOf;
+	
+	///
 	alias Tango.ReturnTypeOf ReturnTypeOf;
 }
 
 else
 {
 	import Phobos = std.traits;
+	
+	///
 	alias Phobos.BaseTypeTuple BaseTypeTupleOf;
+	
+	///
 	alias Phobos.ParameterTypeTuple ParameterTupleOf;
+	
+	///
 	alias Phobos.ReturnType ReturnTypeOf;
 	
 	version = Phobos;
@@ -30,6 +42,7 @@ else
 
 import orange.core.string;
 
+///
 template isPrimitive (T)
 {
 	const bool isPrimitive = is(T == bool) ||
@@ -57,11 +70,16 @@ template isPrimitive (T)
 						is(T == wchar);
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template isChar (T)
 {
 	const bool isChar = is(T == char) || is(T == wchar) || is(T == dchar);
 }
 
+///
 template isFloatingPoint (T)
 {
 	const bool isFloatingPoint = is(T == float) || is(T == double) || is(T == real) ||
@@ -69,26 +87,31 @@ template isFloatingPoint (T)
 						  		 is(T == ifloat) || is(T == idouble) || is(T == ireal);
 }
 
+///
 template isClass (T)
 {
 	const bool isClass = is(T == class);
 }
 
+///
 template isInterface (T)
 {
 	const bool isInterface = is(T == interface);
 }
 
+///
 template isObject (T)
 {
 	const bool isObject = isClass!(T) || isInterface!(T);
 }
 
+///
 template isStruct (T)
 {
 	const bool isStruct = is(T == struct);
 }
 
+///
 template isArray (T)
 {
 	static if (is(T U : U[]))
@@ -98,16 +121,19 @@ template isArray (T)
 		const bool isArray = false;
 }
 
+///
 template isString (T)
 {
 	const bool isString = is(T : string) || is(T : wstring) || is(T : dstring);
 }
 
+///
 template isAssociativeArray (T)
 {
 	const bool isAssociativeArray = is(typeof(T.init.values[0])[typeof(T.init.keys[0])] == T);
 }
 
+///
 template isPointer (T)
 {
 	static if (is(T U : U*))
@@ -117,36 +143,43 @@ template isPointer (T)
 		const bool isPointer = false;
 }
 
+///
 template isFunctionPointer (T)
 {
 	const bool isFunctionPointer = is(typeof(*T) == function);
 }
 
+///
 template isEnum (T)
 {
 	const bool isEnum = is(T == enum);
 }
 
+///
 template isReference (T)
 {
 	const bool isReference = isObject!(T) || isPointer!(T);
 }
 
+///
 template isTypedef (T)
 {
 	const bool isTypedef = is(T == typedef);
 }
 
+///
 template isVoid (T)
 {
 	const bool isVoid = is(T == void);
 }
 
+///
 template ElementTypeOfArray(T : T[])
 {
 	alias T ElementTypeOfArray;
 }
 
+///
 template BaseTypeOfPointer (T)
 {
 	static if (is(T U : U*))
@@ -156,6 +189,7 @@ template BaseTypeOfPointer (T)
 		alias T BaseTypeOfPointer;
 }
 
+///
 template BaseTypeOfTypedef (T)
 {
 	static if (is(T U == typedef))
@@ -165,6 +199,7 @@ template BaseTypeOfTypedef (T)
 		alias T BaseTypeOfTypedef;
 }
 
+///
 template BaseTypeOfEnum (T)
 {
 	static if (is(T U == enum))
@@ -174,18 +209,21 @@ template BaseTypeOfEnum (T)
 		alias T BaseTypeOfEnum;
 }
 
+///
 template KeyTypeOfAssociativeArray (T)
 {
 	static assert(isAssociativeArray!(T), "The type needs to be an associative array");
 	alias typeof(T.init.keys[0]) KeyTypeOfAssociativeArray;
 }
 
+///
 template ValueTypeOfAssociativeArray (T)
 {
 	static assert(isAssociativeArray!(T), "The type needs to be an associative array");
 	alias typeof(T.init.values[0]) ValueTypeOfAssociativeArray;
 }
 
+///
 template isArchive (T)
 {
 	const isArchive = is(typeof({
@@ -204,6 +242,7 @@ template isArchive (T)
 	
 }
 
+///
 template TypeOfDataType (T)
 {
 	alias T.DataType TypeOfDataType;

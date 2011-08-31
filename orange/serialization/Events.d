@@ -8,26 +8,46 @@ module orange.serialization.Events;
 
 import orange.util._;
 
+/**
+ * 
+ * Authors: doob
+ */
 template OnDeserialized (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onDeserialized;
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template OnDeserializing (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onDeserializing;
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template OnSerialized (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onSerialized;
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 template OnSerializing (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onSerializing;
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 struct Event (alias m)
 {
 	version (Tango)
@@ -36,6 +56,11 @@ struct Event (alias m)
 	else
 		mixin("private enum method = &m;");
 	
+	/**
+	 * 
+	 * Params:
+	 *     value =
+	 */
 	void opCall (T) (T value)
 	{
 		void delegate () dg;

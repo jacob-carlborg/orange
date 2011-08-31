@@ -26,7 +26,11 @@ else
 }
 
 import orange.core.io;
-	
+
+/**
+ * 
+ * Authors: doob
+ */
 template Char (T)
 {
 	version (Tango)
@@ -48,6 +52,10 @@ template Char (T)
 	}
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 class XMLException : Exception
 {
 	version (Tango) private alias long Line;		
@@ -59,26 +67,52 @@ class XMLException : Exception
 	}
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 final class XMLDocument (T = char)
 {
 	version (Tango)
 	{
+		///
 		alias Document!(T) Doc;
+		
+		///
 		alias Doc.Node InternalNode;
+
+		
+		///
 		alias XmlPath!(T).NodeSet QueryNode;
+		
+		///
 		alias T[] tstring;
+		
+		///
 		alias Doc.Visitor VisitorType;
 	}		
 		
 	else
 	{
 		alias Document Doc;
+		
+		///
 		alias Element InternalNode;
+		
+		///
 		alias Element QueryNode;
+		
+		///
 		alias string tstring;
+		
+		///
 		alias Element[] VisitorType;
 	}
 	
+	/**
+	 * 
+	 * Authors: doob
+	 */
 	struct VisitorProxy
 	{
 		private VisitorType nodes;
@@ -91,12 +125,22 @@ final class XMLDocument (T = char)
 			return vp;
 		}
 		
+		/**
+		 * 
+		 * Returns:
+		 */
 		bool exist ()
 		{
 			version (Tango) return nodes.exist;
 			else return nodes.length > 0;
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     dg = 
+		 * Returns:
+		 */
 		int opApply (int delegate (ref Node) dg)
 		{
 			int result;
@@ -114,6 +158,10 @@ final class XMLDocument (T = char)
 		}
 	}
 	
+	/**
+	 * 
+	 * Authors: doob
+	 */
 	struct Node
 	{
 	    private InternalNode node;
@@ -145,46 +193,64 @@ final class XMLDocument (T = char)
 	   		}
 	    }
 	    
+	    /**
+	     * 
+	     * Returns:
+	     */
 	    public static Node invalid ()
 	    {
 	    	return Node(null);
 	    }
 
+	    ///
 		tstring name ()
 		{
 			return node.name;
 		}
 		
+		///
 		tstring value ()
 		{
 			return node.value;
 		}
 		
+		///
 		Node parent ()
 		{
 			return Node(node.parent);
 		}
 		
+		///
 		bool isValid ()
 		{
 			return node !is null;
 		}
 		
+		///
 		VisitorProxy children ()
 		{
 			return VisitorProxy(node.children);
 		}
 		
+		///
 		VisitorProxy attributes ()
 		{
 			return VisitorProxy(node.attributes);
 		}
 		
+		///
 		QueryProxy query ()
 		{
 			return QueryProxy(node.query);
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     name = 
+		 *     value = 
+		 * Returns:
+		 */
 		Node element (tstring name, tstring value = null)
 		{
 			version (Tango) return Node(node.element(null, name, value));
@@ -217,6 +283,13 @@ final class XMLDocument (T = char)
 			}
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     name = 
+		 *     value = 
+		 * Returns:
+		 */
 		Node attribute (tstring name, tstring value)
 		{
 			node.attribute(null, name, value);
@@ -225,6 +298,11 @@ final class XMLDocument (T = char)
 			else return this;
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     node =
+		 */
 		void attach (Node node)
 		{
 			version (Tango) this.node.move(node.node);
@@ -232,6 +310,7 @@ final class XMLDocument (T = char)
 		}
 	}
 	
+	///
 	struct QueryProxy
 	{
 		version (Tango)
@@ -271,6 +350,12 @@ final class XMLDocument (T = char)
 			}
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     filter = 
+		 * Returns:
+		 */
 		QueryProxy attribute (bool delegate (Node) filter)
 		{
 			version (Tango)
@@ -298,6 +383,12 @@ final class XMLDocument (T = char)
 			}
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     name = 
+		 * Returns:
+		 */
 		QueryProxy attribute (tstring name = null)
 		{
 			version (Tango) return QueryProxy(node.attribute(name));
@@ -321,6 +412,7 @@ final class XMLDocument (T = char)
 			}
 		}
 
+		///
 		Node[] nodes ()
 		{
 			version (Tango)
@@ -336,6 +428,12 @@ final class XMLDocument (T = char)
 			else return nodes_;
 		}
 
+		/**
+		 * 
+		 * Params:
+		 *     query = 
+		 * Returns:
+		 */
 		QueryProxy opIndex (tstring query)
 		{
 			version (Tango) return QueryProxy(node[query]);
@@ -360,6 +458,12 @@ final class XMLDocument (T = char)
 			}
 		}
 		
+		/**
+		 * 
+		 * Params:
+		 *     dg = 
+		 * Returns:
+		 */
 		int opApply (int delegate (ref Node) dg)
 		{
 			version (Tango) auto visitor = node;
@@ -395,6 +499,11 @@ final class XMLDocument (T = char)
 	version (Tango) private DocPrinter!(T) printer;
 	else InternalNode currentNode;
 	
+	/**
+	 * 
+	 * Params:
+	 *     strictErrorChecking =
+	 */
 	this (bool strictErrorChecking = true)
 	{
 		version (Tango) doc = new Doc;
@@ -402,6 +511,12 @@ final class XMLDocument (T = char)
 		this.strictErrorChecking = strictErrorChecking;
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     encoding = 
+	 * Returns:
+	 */
 	XMLDocument header (tstring encoding = null)
 	{
 		version (Tango) doc.header(encoding);
@@ -416,6 +531,7 @@ final class XMLDocument (T = char)
 		return this;
 	}
 	
+	///
 	XMLDocument reset ()
 	{
 		version (Tango) doc.reset;
@@ -424,24 +540,32 @@ final class XMLDocument (T = char)
 		return this;
 	}
 	
+	///
 	Node tree ()
 	{
 		version (Tango) return Node(doc.tree);		
 		else return Node(doc, true, true);
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     xml =
+	 */
 	void parse (tstring xml)
 	{
 		version (Tango) doc.parse(xml);
 		else doc = new Doc(xml);
 	}
 	
+	///
 	QueryProxy query ()
 	{
 		version (Tango) return QueryProxy(doc.tree.query);
 		else return QueryProxy(doc);
 	}
 	
+	///
 	string toString ()
 	{
 		version (Tango)
@@ -457,6 +581,13 @@ final class XMLDocument (T = char)
 			return doc.prolog ~ "\n" ~ join(doc.pretty(indentation), "\n");
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     name = 
+	 *     value = 
+	 * Returns:
+	 */
 	Node createNode (tstring name, tstring value = null)
 	{
 		version (Tango) return Node(tree.element(name, value).node.detach);

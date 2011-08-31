@@ -29,36 +29,72 @@ else
 import orange.core._;
 import orange.util._;
 
+/**
+ * 
+ * Params:
+ *     message = 
+ * Returns:
+ */
 Use!(void delegate (), string) describe (string message)
 {
 	return UnitTester.instance.describe(message);
 }
 
+/**
+ * 
+ * Params:
+ *     message = 
+ * Returns:
+ */
 Use!(void delegate (), string) it (string message)
 {
 	return UnitTester.instance.test(message);
 }
 
+/**
+ * 
+ * Returns:
+ */
 void delegate () before ()
 {
 	return UnitTester.instance.before;
 }
 
+/**
+ * 
+ * Params:
+ *     before = 
+ * Returns:
+ */
 void delegate () before (void delegate () before)
 {
 	return UnitTester.instance.before = before;
 }
 
+/**
+ * 
+ * Returns:
+ */
 void delegate () after ()
 {
 	return UnitTester.instance.after;
 }
 
+/**
+ * 
+ * Params:
+ *     after = 
+ * Returns:
+ */
 void delegate () after (void delegate () after)
 {
 	return UnitTester.instance.after = after;
 }
 
+/**
+ * 
+ *
+ */
 void run ()
 {
 	UnitTester.instance.run;

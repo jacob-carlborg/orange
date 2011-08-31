@@ -43,12 +43,22 @@ private
 	}
 }
 
+/**
+ * 
+ * Authors: doob
+ */
 class Serializer
 {
+	///
 	alias void delegate (SerializationException exception, string[] data) ErrorCallback;
+	
+	///
 	alias Archive.UntypedData Data;
+	
+	///
 	alias Archive.Id Id;
 	
+	///
 	ErrorCallback errorCallback;
 	
 	private
@@ -88,6 +98,11 @@ class Serializer
 		void delegate (SerializationException exception, string[] data) doNothingOnErrorCallback;
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     archive =
+	 */
 	this (Archive archive)
 	{
 		this.archive_ = archive;
@@ -98,6 +113,10 @@ class Serializer
 		setThrowOnErrorCallback();
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	static void register (T : Object) ()
 	{
 		registeredTypes[T.classinfo] = &downcastSerialize!(T);
@@ -119,46 +138,90 @@ class Serializer
 		}
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     type = 
+	 *     dg =
+	 */
 	void registerSerializer (T) (string type, void delegate (T, Serializer, Data) dg)
 	{
 		serializers[type] = toSerializeRegisterWrapper(dg);
 	}
 
+	/**
+	 * 
+	 * Params:
+	 *     type = 
+	 *     func =
+	 */
 	void registerSerializer (T) (string type, void function (T, Serializer, Data) func)
 	{
 		serializers[type] = toSerializeRegisterWrapper(func);
 	}
 
+	/**
+	 * 
+	 * Params:
+	 *     type = 
+	 *     dg =
+	 */
 	void registerDeserializer (T) (string type, void delegate (ref T, Serializer, Data) dg)
 	{
 		deserializers[type] = toDeserializeRegisterWrapper(dg);
 	}
 
+	/**
+	 * 
+	 * Params:
+	 *     type = 
+	 *     func =
+	 */
 	void registerDeserializer (T) (string type, void function (ref T, Serializer, Data) func)
 	{
 		deserializers[type] = toDeserializeRegisterWrapper(func);
 	}
 	
+	/**
+	 * 
+	 * Returns:
+	 */
 	Archive archive ()
 	{
 		return archive_;
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	void setThrowOnErrorCallback ()
 	{
 		errorCallback = throwOnErrorCallback;
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	void setDoNothingOnErrorCallback ()
 	{
 		errorCallback = doNothingOnErrorCallback;
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	static void resetRegisteredTypes ()
 	{
 		registeredTypes = null;
 	}
 	
+	/**
+	 * 
+	 *
+	 */
 	void reset ()
 	{
 		resetCounters();
@@ -184,6 +247,13 @@ class Serializer
 		archive.reset;
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     value = 
+	 *     key = 
+	 * Returns:
+	 */
 	Data serialize (T) (T value, string key = null)
 	{
 		if (!hasBegunSerializing)
@@ -195,6 +265,11 @@ class Serializer
 		return archive.untypedData;
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     value =
+	 */
 	void serializeBase (T) (T value)
 	{
 		static if (isObject!(T) && !is(T == Object))
@@ -436,6 +511,14 @@ class Serializer
 		});
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     data = 
+	 *     key = 
+	 *     
+	 * Returns:
+	 */
 	T deserialize (T) (Data data, string key = "")
 	{
 		if (hasBegunSerializing && !hasBegunDeserializing)
@@ -454,6 +537,12 @@ class Serializer
 		return value;
 	}
 
+	/**
+	 * 
+	 * Params:
+	 *     key = 
+	 * Returns:
+	 */
 	T deserialize (T) (string key)
 	{
 		if (!hasBegunDeserializing)
@@ -463,11 +552,20 @@ class Serializer
 		return deserialize!(T)(archive.untypedData, key);
 	}
 
+	/**
+	 * 
+	 * Returns:
+	 */
 	T deserialize (T) ()
 	{
 		return deserialize!(T)("");
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     value =
+	 */
 	void deserializeBase (T) (T value)
 	{
 		static if (isObject!(T) && !is(T == Object))

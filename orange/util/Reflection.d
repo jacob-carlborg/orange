@@ -457,6 +457,12 @@ private
 		extern (C) Object _d_newclass(ClassInfo);
 }
 
+/**
+ * 
+ * Params:
+ *     classInfo = 
+ * Returns:
+ */
 Object newInstance (ClassInfo classInfo)
 {
 	version (LDC)
@@ -471,6 +477,12 @@ Object newInstance (ClassInfo classInfo)
 		return _d_newclass(classInfo);
 }
 
+/**
+ * 
+ * Params:
+ *     name = 
+ * Returns:
+ */
 Object newInstance (string name)
 {
 	auto classInfo = ClassInfo.find(name);

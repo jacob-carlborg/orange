@@ -14,13 +14,29 @@ version (Tango)
 else
 	alias Throwable ExceptionBase;
 
+/**
+ * 
+ * Authors: doob
+ */
 class SerializationException : ExceptionBase
 {	
+	/**
+	 * 
+	 * Params:
+	 *     message =
+	 */
 	this (string message)
 	{
 		super(message);
 	}
 	
+	/**
+	 * 
+	 * Params:
+	 *     message = 
+	 *     file = 
+	 *     line =
+	 */
 	this (string message, string file, long line)
 	{
 		version (Tango)
@@ -32,6 +48,11 @@ class SerializationException : ExceptionBase
 	
 	version (Tango)
 	{
+		/**
+		 * 
+		 * Params:
+		 *     exception =
+		 */
 		this (ExceptionBase exception)
 		{
 			super(exception.msg, exception.file, exception.line, exception.next, exception.info);
@@ -40,6 +61,11 @@ class SerializationException : ExceptionBase
 	
 	else
 	{
+		/**
+		 * 
+		 * Params:
+		 *     exception =
+		 */
 		this (ExceptionBase exception)
 		{
 			super(exception.msg, exception.file, exception.line);

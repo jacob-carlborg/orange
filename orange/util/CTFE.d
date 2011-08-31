@@ -9,6 +9,10 @@ module orange.util.CTFE;
 import orange.core.string;
 import orange.util.Traits;
 
+/**
+ * 
+ * Authors: doob
+ */
 template format (ARGS...)
 {
 	static if (ARGS.length == 0)
