@@ -19,7 +19,7 @@ class RegisterBase { }
  * This class wraps registered functions for serialization.
  * 
  * Params:
- *     T = the type of the class or struct which is (de)serialized
+ *     T = the type of the class or struct which is serialized
  */
 class SerializeRegisterWrapper (T) : RegisterBase
 {
@@ -71,7 +71,12 @@ class SerializeRegisterWrapper (T) : RegisterBase
 	}
 }
 
-/// This class wraps registered functions for deserialization.
+/**
+ * This class wraps registered functions for deserialization.
+ * 
+ * Params:
+ *     T = the type of the class or struct which is deserialized
+ */
 class DeserializeRegisterWrapper (T) : RegisterBase
 {
 	private void delegate (ref T, Serializer, Serializer.Data) dg;

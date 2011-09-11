@@ -9,8 +9,6 @@ module orange.serialization.Events;
 import orange.util._;
 
 /**
- * each class defined in your source code: one for the class definition and one for the
- * 
  * This event is triggered after the struct/class, this template has been mixed into,
  * has been completely deserialized, including all the fields.
  * 
