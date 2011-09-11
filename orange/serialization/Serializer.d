@@ -44,8 +44,37 @@ private
 }
 
 /**
+ * This interface represents a type that this is serializable. To implement this interface
+ * This class represents a serializer. It's the main interface to the (de)serialization
+ * process and it's this class that actually performs most of the (de)serialization that
+ * is archive independent.
  * 
- * Authors: doob
+ * Examples:
+ * ---
+ * import orange.serialization._;
+ * import orange.serialization.archives._;
+ * import orange.core._;
+ * 
+ * class Foo
+ * {
+ * 	int a;
+ * }
+ * 
+ * void main ()
+ * {
+ * 	auto archive = new XMLArchive!();
+ * 	auto serializer = new Serializer;
+ * 
+ * 	auto foo = new Foo;
+ * 	foo.a = 3;
+ * 
+ * 	serializer.serialize(foo);
+ * 	auto foo2 = serializer.deserialize!(Foo)(archive.untypedData);
+ * 
+ * 	println(foo2.a); // prints "3"
+ * 	assert(foo.a == foo2.a);
+ * }
+ * ---
  */
 class Serializer
 {
