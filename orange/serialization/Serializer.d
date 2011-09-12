@@ -54,7 +54,16 @@ private
  * (de)serialized once.
  * 
  * The serializer is also responsible for breaking up types that the underlying archive
- * cannot handle, into primitive types that archive know how to (de)serialize. 
+ * cannot handle, into primitive types that archive know how to (de)serialize.
+ * 
+ * Keys are used by the serializer to associate a name with a value. It's used to
+ * deserialize values independently of the order of the fields of a class or struct.
+ * They can also be used by the user to give a name to a value. Keys are unique within
+ * it's scope.
+ * 
+ * ID's are an unique identifier associated with each serializeed value. The serializer
+ * uses the ID's to track values when (de)serializing reference types. An ID is unique
+ * across the whole serialized data.
  * 
  * Examples:
  * ---
@@ -83,7 +92,7 @@ private
  * }
  * ---
  */
-class Serializer
+class Serialize
 {
 	/**
 	 * This is the type of an error callback which is called when an unexpected event occurs.
@@ -94,7 +103,7 @@ class Serializer
 	 */
 	alias void delegate (SerializationException exception, string[] data) ErrorCallback;
 	
-	/// The type of the serialized data.
+	/// The type of the serialized data. This is an untyped format.
 	alias Archive.UntypedData Data;
 	
 	/// The type of an ID.
