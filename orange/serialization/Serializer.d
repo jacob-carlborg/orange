@@ -44,10 +44,17 @@ private
 }
 
 /**
- * This interface represents a type that this is serializable. To implement this interface
  * This class represents a serializer. It's the main interface to the (de)serialization
- * process and it's this class that actually performs most of the (de)serialization that
- * is archive independent.
+ * process and it's this class that actually performs most of the (de)serialization.
+ * 
+ * The serializer is the frontend in the serialization process, it's independent of the
+ * underlying archive type. It's responsible for collecting and tracking all values that
+ * should be (de)serialized. It's the serializer that adds keys and ID's to all values,
+ * keeps track of references to make sure that a given value (of reference type) is only
+ * (de)serialized once.
+ * 
+ * The serializer is also responsible for breaking up types that the underlying archive
+ * cannot handle, into primitive types that archive know how to (de)serialize. 
  * 
  * Examples:
  * ---
@@ -78,16 +85,35 @@ private
  */
 class Serializer
 {
-	///
+	/**
+	 * This is the type of an error callback which is called when an unexpected event occurs.
+	 * 
+	 * Params:
+	 *     exception = the exception indicating what error occurred
+	 *     data = arbitrary data pass along, deprecated 
+	 */
 	alias void delegate (SerializationException exception, string[] data) ErrorCallback;
 	
-	///
+	/// The type of the serialized data.
 	alias Archive.UntypedData Data;
 	
-	///
+	/// The type of an ID.
 	alias Archive.Id Id;
 	
-	///
+	/**
+	 * This callback will be called when an unexpected event occurs, i.e. an expected element
+	 * is missing in the deserialization process.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * 	println(exception);
+	 * 	throw exception;
+	 * } 
+	 * ---
+	 */
 	ErrorCallback errorCallback;
 	
 	private
@@ -128,9 +154,20 @@ class Serializer
 	}
 	
 	/**
+	 * Creates a new serializer using the given archive.
+	 * 
+	 * The archive is the backend of the (de)serialization process, it performs the low
+	 * level (de)serialization of primitive values and it decides the final format of the
+	 * serialized data.
 	 * 
 	 * Params:
-	 *     archive =
+	 *     archive = the archive that should be used for this serializer
+	 *     
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * ---
 	 */
 	this (Archive archive)
 	{
@@ -143,8 +180,32 @@ class Serializer
 	}
 	
 	/**
+	 * Registers the given type for (de)serialization.
 	 * 
-	 *
+	 * This method is used for register classes that will be (de)serialized through base
+	 * class references, no other types need to be registered. If the the user tries to
+	 * (de)serialize an instance through a base class reference which runtime type is not
+	 * registered an exception will be thrown. 
+	 * 
+	 * Params:
+	 *     T = the type to register, must be a class
+	 *  
+	 * Examples:
+	 * ---
+	 * class Base {} 
+	 * class Sub : Base {}
+	 * 
+	 * Serializer.register!(Sub);
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * Base b = new Sub;
+	 * serializer.serialize(b);
+	 * ---
+	 * 
+	 * See_Also: registerSerializer
+	 * See_Also: registerDeserializer
 	 */
 	static void register (T : Object) ()
 	{
@@ -168,21 +229,82 @@ class Serializer
 	}
 	
 	/**
+	 * Registers a serializer for the given type.
+	 * 
+	 * The given callback will be called when a value of the given type is about to
+	 * be serialized. This method can be used as an alternative to $(I register). This
+	 * method can also be used as an alternative to Serializable.toData.
+	 * 
+	 * This is method should also be used to perform custom serialization of third party
+	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = 
-	 *     dg =
+	 *     type = the runtime type to register. For all types except classes the runtime type and the
+	 *     		  static (compile time) type is the same. For classes use
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     
+	 *     dg = the callback that will be called when value of the given type is about to be serialized
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (Base value, Serializer serializer, Data key) {
+	 * 	// perform serialization
+	 * };
+	 * 
+	 * serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * ---
+	 * 
+	 * See_Also: register
+	 * See_Also: registerDeserializer
+	 * See_Also: Serializable.toData
 	 */
 	void registerSerializer (T) (string type, void delegate (T, Serializer, Data) dg)
 	{
 		serializers[type] = toSerializeRegisterWrapper(dg);
 	}
 
+
 	/**
+	 * Registers a serializer for the given type.
+	 * 
+	 * The given callback will be called when a value of the given type is about to
+	 * be serialized. This method can be used as an alternative to $(I register). This
+	 * method can also be used as an alternative to Serializable.toData.
+	 * 
+	 * This is method should also be used to perform custom serialization of third party
+	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = 
-	 *     func =
+	 *     type = the runtime type to register. For all types except classes the runtime type and the
+	 *     		  static (compile time) type is the same. For classes use
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     
+	 *     dg = the callback that will be called when value of the given type is about to be serialized
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (Base value, Serializer serializer, Data key) {
+	 * 	// perform serialization
+	 * };
+	 * 
+	 * serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * ---
+	 * 
+	 * See_Also: register
+	 * See_Also: registerDeserializer
+	 * See_Also: Serializable.toData
 	 */
 	void registerSerializer (T) (string type, void function (T, Serializer, Data) func)
 	{
@@ -190,39 +312,97 @@ class Serializer
 	}
 
 	/**
+	 * Registers a deserializer for the given type.
+	 * 
+	 * The given callback will be called when a value of the given type is about to
+	 * be deserialized. This method can be used as an alternative to $(I register). This
+	 * method can also be used as an alternative to Serializable.fromData.
+	 * 
+	 * This is method should also be used to perform custom deserialization of third party
+	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = 
-	 *     dg =
+	 *     type = the runtime type to register. For all types except classes the runtime type and the
+	 *     		  static (compile time) type is the same. For classes use
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     
+	 *     dg = the callback that will be called when value of the given type is about to be deserialized
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (ref Base value, Serializer serializer, Data key) {
+	 * 	// perform deserialization
+	 * };
+	 * 
+	 * serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * ---
+	 * 
+	 * See_Also: register
+	 * See_Also: registerSerializer
+	 * See_Also: Serializable.fromData
 	 */
 	void registerDeserializer (T) (string type, void delegate (ref T, Serializer, Data) dg)
 	{
 		deserializers[type] = toDeserializeRegisterWrapper(dg);
 	}
-
+	
 	/**
+	 * Registers a deserializer for the given type.
+	 * 
+	 * The given callback will be called when a value of the given type is about to
+	 * be deserialized. This method can be used as an alternative to $(I register). This
+	 * method can also be used as an alternative to Serializable.fromData.
+	 * 
+	 * This is method should also be used to perform custom deserialization of third party
+	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = 
-	 *     func =
+	 *     type = the runtime type to register. For all types except classes the runtime type and the
+	 *     		  static (compile time) type is the same. For classes use
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     
+	 *     dg = the callback that will be called when value of the given type is about to be deserialized
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (ref Base value, Serializer serializer, Data key) {
+	 * 	// perform deserialization
+	 * };
+	 * 
+	 * serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * ---
+	 * 
+	 * See_Also: register
+	 * See_Also: registerSerializer
+	 * See_Also: Serializable.fromData
 	 */
 	void registerDeserializer (T) (string type, void function (ref T, Serializer, Data) func)
 	{
 		deserializers[type] = toDeserializeRegisterWrapper(func);
 	}
 	
-	/**
-	 * 
-	 * Returns:
-	 */
+	/// Returns the receivers archive
 	Archive archive ()
 	{
 		return archive_;
 	}
 	
 	/**
+	 * Set the error callback to throw when an error occurs
 	 * 
-	 *
+	 * See_Also: setDoNothingOnErrorCallback
 	 */
 	void setThrowOnErrorCallback ()
 	{
@@ -230,8 +410,9 @@ class Serializer
 	}
 	
 	/**
+	 * Set the error callback do nothing when an error occurs
 	 * 
-	 *
+	 * See_Also: setThrowOnErrorCallback
 	 */
 	void setDoNothingOnErrorCallback ()
 	{
@@ -239,8 +420,9 @@ class Serializer
 	}
 	
 	/**
-	 * 
+	 * Resets all registered types registered via the "register" method
 	 *
+	 * See_Also: register
 	 */
 	static void resetRegisteredTypes ()
 	{
@@ -248,8 +430,10 @@ class Serializer
 	}
 	
 	/**
+	 * Resets the serializer.
 	 * 
-	 *
+	 * All internal data is reset, including the archive. After calling this method the
+	 * serializer can be used to start a completely new (de)serialization process.
 	 */
 	void reset ()
 	{
@@ -277,11 +461,25 @@ class Serializer
 	}
 	
 	/**
+	 * Serializes the given value.
 	 * 
 	 * Params:
-	 *     value = 
-	 *     key = 
-	 * Returns:
+	 *     value = the value to serialize 
+	 *     key = associates the value with the given key. This key can later be used to 
+	 *     		 deserialize the value
+	 *     
+ 	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * serializer.serialize(1);
+	 * serializer.serialize(2, "b");
+	 * ---     
+	 *    
+	 * Returns: return the serialized data, in an untyped format. 
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	Data serialize (T) (T value, string key = null)
 	{
@@ -295,9 +493,29 @@ class Serializer
 	}
 	
 	/**
+	 * Serializes the base class(es) of an instance.
+	 * 
+	 * This method is used when performing custom serialization of a given type. If this
+	 * method is not called when performing custom serialization none of the instance's
+	 * base classes will be serialized.
 	 * 
 	 * Params:
-	 *     value =
+	 *     value = the instance which base class(es) should be serialized, usually $(D_CODE this)
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Sub : Base
+	 * {
+	 * 	void toData (Serializer serializer, Serializer.Data key)
+	 * 	{
+	 * 		// perform serialization
+	 * 		serializer.serializeBase(this);
+	 * 	}
+	 * }
+	 * ---
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	void serializeBase (T) (T value)
 	{
@@ -539,14 +757,33 @@ class Serializer
 			serializeInternal!(BaseTypeOfTypedef!(T))(value, nextKey);
 		});
 	}
-	
+
 	/**
+	 * Deserializes the given data to value of the given type.
+	 * 
+	 * This is the main method used for deserializing data.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto data = serializer.serialize(1);
+	 * auto i = serializer.deserialize!(int)(data);
+	 * 
+	 * assert(i == 1);
+	 * ---
 	 * 
 	 * Params:
-	 *     data = 
-	 *     key = 
+	 * 	   T = the type to deserialize the data into
+	 *     data = the serialized untyped data to deserialize
+	 *     key = the key associate with the value that was used during serialization.
+	 *     		 Do not specify a key if no key was used during serialization.
 	 *     
-	 * Returns:
+	 * Returns: the deserialized value. A different runtime type can be returned
+	 * 			if the given type is a base class.
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	T deserialize (T) (Data data, string key = "")
 	{
@@ -567,10 +804,36 @@ class Serializer
 	}
 
 	/**
+	 * Deserializes the value with the given associated key.
+	 * 
+	 * This method should only be called when performing custom an deserializing a value
+	 * that is part of an class or struct. If this method is called before that actual
+	 * deserialization process has begun an SerializationException will be thrown.
+	 * Use this method if a key was specfied during the serialization process.
+	 * 
+	 * Examples:
+	 * ---
+	 * class Foo
+	 * {
+	 * 	int a;
+	 * 
+	 * 	void fromData (Serializer serializer, Serializer.Data key)
+	 * 	{
+	 * 		a = serializer!(int)("a");
+	 * 	}
+	 * }
+	 * ---
 	 * 
 	 * Params:
-	 *     key = 
-	 * Returns:
+	 *     key = the key associate with the value that was used during serialization.
+	 *     
+	 * Returns: the deserialized value. A different runtime type can be returned
+	 * 			if the given type is a base class.
+	 * 
+	 * Throws: SerializationException if this method is called before
+	 * 		   the actuall deserialization process has begun.
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	T deserialize (T) (string key)
 	{
@@ -582,8 +845,36 @@ class Serializer
 	}
 
 	/**
+	 * Deserializes the value with the given associated key.
 	 * 
-	 * Returns:
+	 * This method should only be called when performing custom an deserializing a value
+	 * that is part of an class or struct. If this method is called before that actual
+	 * deserialization process has begun an SerializationException will be thrown.
+	 * Use this method if no key was specfied during the serialization process.
+	 * 
+	 * Examples:
+	 * ---
+	 * class Foo
+	 * {
+	 * 	int a;
+	 * 
+	 * 	void fromData (Serializer serializer, Serializer.Data key)
+	 * 	{
+	 * 		a = serializer!(int)();
+	 * 	}
+	 * }
+	 * ---
+	 * 
+	 * Params:
+	 *     key = the key associate with the value that was used during serialization.
+	 *     
+	 * Returns: the deserialized value. A different runtime type can be returned
+	 * 			if the given type is a base class.
+	 * 
+	 * Throws: SerializationException if this method is called before
+	 * 		   the actuall deserialization process has begun.
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	T deserialize (T) ()
 	{
@@ -591,9 +882,30 @@ class Serializer
 	}
 	
 	/**
+	 * Deserializes the base class(es) of an instance.
+	 * 
+	 * This method is used when performing custom deserialization of a given type. If this
+	 * method is not called when performing custom deserialization none of the instance's
+	 * base classes will be serialized.
 	 * 
 	 * Params:
-	 *     value =
+	 *     value = the instance which base class(es) should be deserialized,
+	 *     		   usually $(D_CODE this)
+	 *     
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Sub : Base
+	 * {
+	 * 	void fromData (Serializer serializer, Serializer.Data key)
+	 * 	{
+	 * 		// perform deserialization
+	 * 		serializer.deserializeBase(this);
+	 * 	}
+	 * }
+	 * ---
+	 * 
+	 * Throws: SerializationException if an error occures
 	 */
 	void deserializeBase (T) (T value)
 	{
