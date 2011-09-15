@@ -16,7 +16,7 @@ else
 	import std.utf;
 	static import std.string;
 
-	alias ConvException ConversionException;
+	private alias ConvException ConversionException;
 }
 
 import orange.serialization.archives.ArchiveException;
@@ -30,27 +30,32 @@ private enum ArchiveMode
 }
 
 /**
- * 
+ * This struct is a type independent representation of an array. This struct is used
+ * when sending an array for archiving from the serializer to the archive.
  */
 struct Array
 {
 	version (Tango)
+		/// The start address of the array.
 		void* ptr;
 		
 	else
+		/// The start address of the array.
 		mixin(`const(void)* ptr;`);
 
-	///
+	/// The length of the array
 	size_t length;
 	
-	///
+	/// The size of an individual element stored in the array, in bytes.
 	size_t elementSize;
 	
 	/**
+	 * Returns true if the given array is a slice of the receiver.
 	 * 
 	 * Params:
-	 *     b = 
-	 * Returns:
+	 *     b = the array to check if it's a slice 
+	 *     
+	 * Returns: true if the given array is a slice of the receiver.
 	 */
 	bool isSliceOf (Array b)
 	{
@@ -59,199 +64,407 @@ struct Array
 }
 
 /**
- * 
- * Authors: doob
+ * This struct is a type independent representation of a slice. This struct is used
+ * when sending a slice for archiving from the serializer to the archive.
  */
 struct Slice
 {
+	/// The length of the slice.
 	size_t length;
+	
+	/// The offset of the slice, i.e. where the slice begins in the array.
 	size_t offset;
+	
+	/// The id of the slice.
 	size_t id = size_t.max;
 }
 
 /**
+ * This interface represents an archive. This is the interface all archive
+ * implementations need to implement to be able to be used as an archive with the
+ * serializer.
  * 
- * Authors: doob
+ * The archive is the backend in the serialization process. It's independent of the
+ * serializer and any archive implementation. Although there are a couple of
+ * limitations of what archive types can be implemented (see below).
+ * 
+ * The archive is responsible for archiving primitive types in the format chosen by
+ * the archive implementation. The archive ensures that all types are properly
+ * archived in a format that can be later unarchived.
+ * 
+ * The archive can only handle primitive types, like strings, integers, floating
+ * point numbers and so on. It can not handle more complex types like objects or
+ * arrays; the serializer is responsible for breaking the complex types into
+ * primitive types that the archive can handle.
+ * 
+ * Implementing an Archive Type:
+ * 
+ * There are a couple of limitations when implementing a new archive, this is due
+ * to how the serializer and the archive interface is built. Except for what this
+ * interface says explicitly an archive needs to be able to handle the following:
+ * 
+ * $(UL
+ * 	$(LI unarchive a value based on a key or id, regardless of where in the archive
+ * 		the value is located)
+ * $(LI most likely be able to modify already archived data)
+ * $(LI structured formats like JSON, XML and YAML works best)
+ * )
+ * 
+ * If a method takes a delegate as one of its parameters that delegate should be
+ * considered as a callback to the serializer. The archive need to make sure that
+ * any archiving that is performed in the callback be a part of the type that is
+ * currently being archived. This is easiest explained by an example:
+ * 
+ * ---
+ * void archiveArray (Array array, string type, string key, Id id, void delegate () dg)
+ * {
+ * 	markBegningOfNewType("array");
+ * 	storeMetadata(type, key, id);
+ * 
+ * 	beginNewScope();
+ * 	dg();
+ * 	endScope();
+ * 
+ * 	markEndOfType();
+ * }
+ * ---
+ * 
+ * In the above example the archive have to make sure that any values archived by
+ * the callback (the delegate) get archived as an element of the array. The same
+ * principle applies to objects, structs, associative arrays and other
+ * non-primitive that accepts an delegate as a parameter.
+ * 
+ * When implementing a new archive type, if any of these methods do not make sense
+ * for that particular implementation just implement an empty method and return
+ * T.init, if the method returns a value.
  */
 interface Archive
 {
-	///
+	/// The type of an ID.
 	alias size_t Id;
 	
-	///
-	version (Tango) alias void[] UntypedData;
-	else mixin ("alias immutable(void)[] UntypedData;");
+	version (Tango)
+		/// The typed used to represent the archived data in an untyped form.
+		alias void[] UntypedData;
 	
-	/**
-	 * 
-	 *
-	 */
+	else
+		/// The typed used to represent the archived data in an untyped form.
+		mixin ("alias immutable(void)[] UntypedData;");
+	
+	/// Starts the archiving process. Call this method before archiving any values.
 	void beginArchiving ();
 	
 	/**
+	 * There are a couple of limitations when implementing a new archive, this is due
+	 * Begins the unarchiving process. Call this method before unarchiving any values.
 	 * 
 	 * Params:
-	 *     data =
+	 *     data = the data to unarchive
 	 */
 	void beginUnarchiving (UntypedData data);
 	
-	/**
-	 * 
-	 * Returns:
-	 */
+	/// Returns the data stored in the archive in an untyped form.
 	UntypedData untypedData ();
 	
 	/**
-	 * 
-	 *
-	 */
+	 * Resets the archive. This resets the archive in a state making it ready to start
+	 * a new archiving process.
+	 */	
 	void reset ();
 	
 	/**
+	 * Archives an array.
+	 * 
+	 * Examples:
+	 * ---
+	 * int[] arr = [1, 2, 3];
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * 
+	 * auto a = Array(arr.ptr, arr.length, typeof(a[0]).sizeof);
+	 * 
+	 * archive.archive(a, typeof(a[0]).string, "arr", 0, {
+	 * 	// archive the individual elements
+	 * });
+	 * ---
 	 * 
 	 * Params:
-	 *     array = 
-	 *     type = 
-	 *     key = 
-	 *     id = 
-	 *     dg =
+	 *     array = the array to archive
+	 *     type = the runtime type of an element of the array
+	 *     key = the key associated with the array
+	 *     id = the id associated with the array
+	 *     dg = a callback that performs the archiving of the individual elements
 	 */
 	void archiveArray (Array array, string type, string key, Id id, void delegate () dg);
 	
 	/**
+	 * Archives an associative array.
+	 * 
+	 * Examples:
+	 * ---
+	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * 
+	 * archive.archive(string.stringof, int.stringof, arr.length, "arr", 0, {
+	 * 	// archive the individual keys and values
+	 * });
+	 * ---
+	 * 
 	 * 
 	 * Params:
-	 *     keyType = 
-	 *     valueType = 
-	 *     length = 
-	 *     key = 
-	 *     id = 
-	 *     dg =
+	 *     keyType = the runtime type of the keys 
+	 *     valueType = the runtime type of the values
+	 *     length = the length of the associative array
+	 *     key = the key associated with the associative array
+	 *     id = the id associated with the associative array
+	 *     dg = a callback that performs the archiving of the individual keys and values
+	 *     
+	 * See_Also: archiveAssociativeArrayValue
+	 * See_Also: archiveAssociativeArrayKey
 	 */
 	void archiveAssociativeArray (string keyType, string valueType, size_t length, string key, Id id, void delegate () dg);
 	
 	/**
+	 * Archives an associative array key.
+	 * 
+	 * There are separate methods for archiving associative array keys and values
+	 * because both the key and the value can be of arbitrary type and needs to be
+	 * archive on its own.
+	 * 
+	 * Examples:
+	 * ---
+	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * 
+	 * foreach(k, v ; arr)
+	 * {
+	 * 	archive.archiveAssociativeArrayKey(to!(string)(i), {
+	 * 		// archive the key
+	 * 	});
+	 * }
+	 * ---
+	 * 
+	 * The foreach statement in the above example would most likely be executed in the
+	 * callback passed to the archiveAssociativeArray method.
 	 * 
 	 * Params:
-	 *     key = 
-	 *     dg =
+	 *     key = the key associated with the key
+	 *     dg = a callback that performs the actual archiving of the key
+	 *     
+	 * See_Also: archiveAssociativeArray
+	 * See_Also: archiveAssociativeArrayValue
 	 */
 	void archiveAssociativeArrayKey (string key, void delegate () dg);
 	
 	/**
+	 * Archives an associative array value.
+	 * 
+	 * There are separate methods for archiving associative array keys and values
+	 * because both the key and the value can be of arbitrary type and needs to be
+	 * archive on its own.
+	 *
+	 * Examples:
+	 * ---
+	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * size_t i;
+	 * 
+	 * foreach(k, v ; arr)
+	 * {
+	 * 	archive.archiveAssociativeArrayValue(to!(string)(i), {
+	 * 		// archive the value
+	 * 	});
+	 * 	
+	 * 	i++;
+	 * }
+	 * ---
+	 * 
+	 * The foreach statement in the above example would most likely be executed in the
+	 * callback passed to the archiveAssociativeArray method.
 	 * 
 	 * Params:
-	 *     key = 
-	 *     dg =
+	 *     key = the key associated with the value
+	 *     dg = a callback that performs the actual archiving of the value
+	 *     
+	 * See_Also: archiveAssociativeArray
+	 * See_Also: archiveAssociativeArrayKey
 	 */
 	void archiveAssociativeArrayValue (string key, void delegate () dg);
 	
 	/**
+	 * Archives the given value.
+	 * 
+	 * Example:
+	 * ---
+	 * enum Foo : bool
+	 * {
+	 * 	bar
+	 * }
+	 * 
+	 * auto foo = Foo.bar;
+	 * auto archive = new XMLArchive!();
+	 * archive.archive(foo, "bool", "foo", 0);
+	 * ---
 	 * 
 	 * Params:
-	 *     value = 
-	 *     baseType = 
-	 *     key = 
-	 *     id =
+	 *     value = the value to archive
+	 *     baseType = the base type of the enum 
+	 *     key = the key associated with the value
+	 *     id = the id associated with the value
 	 */
 	void archiveEnum (bool value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (bool value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (byte value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (char value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (dchar value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (int value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (long value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (short value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (ubyte value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (uint value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (ulong value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (ushort value, string baseType, string key, Id id);
 	
-	///
+	/// Ditto
 	void archiveEnum (wchar value, string baseType, string key, Id id);
 	
 	/**
+	 * Archives a base class.
+	 * 
+	 * This method is used to indicate that the all following calls to archive a value
+	 * should be part of the base class. This method is usually called within the
+	 * callback passed to archiveObject. The archiveObject method can the mark the end
+	 * of the class.
+	 * 
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * archive.archiveBaseClass("Base", "base", "0");
+	 * ---
 	 * 
 	 * Params:
-	 *     type = 
-	 *     key = 
-	 *     id =
+	 *     type = the type of the base class to archive
+	 *     key = the key associated with the base class
+	 *     id = the id associated with the base class
 	 */
 	void archiveBaseClass (string type, string key, Id id);
 	
 	/**
+	 * Archives a null pointer or reference.
+	 * 
+	 * Examples:
+	 * ---
+	 * int* ptr;
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * archive.archiveNull(typeof(ptr).stringof, "ptr");
+	 * ---
 	 * 
 	 * Params:
-	 *     type = 
-	 *     key =
+	 *     type = the runtime type of the pointer or reference to archive 
+	 *     key = the key associated with the null pointer
 	 */
 	void archiveNull (string type, string key);
 	
 	/**
+	 * Archives an object, either a class or an interface.
+	 * 
+	 * Examples:
+	 * ---
+	 * class Foo
+	 * {
+	 * 	int a;
+	 * }
+	 * 
+	 * auto foo = new Foo;
+	 * 
+	 * auto archive = new XMLArchive!();
+	 * archive.archiveObject(Foo.classinfo.name, "Foo", "foo", "0", {
+	 * 	// archive the fields of Foo
+	 * });
+	 * ---
 	 * 
 	 * Params:
-	 *     runtimeType = 
-	 *     type = 
-	 *     key = 
-	 *     id = 
-	 *     dg =
+	 *     runtimeType = the runtime type of the object
+	 *     type = the static type of the object
+	 *     key = the key associated with the object
+	 *     id = the id associated with the object
+	 *     dg = a callback that performs the archiving of the individual fields
 	 */
 	void archiveObject (string runtimeType, string type, string key, Id id, void delegate () dg);
 	
 	/**
+	 * Archives a pointer.
+	 * 
+	 * 
 	 * 
 	 * Params:
-	 *     key = 
-	 *     id = 
-	 *     dg =
+	 *     key = the key associated with the pointer
+	 *     id = the id associated with the pointer
+	 *     dg = a callback that performs the archiving of value pointed to by the pointer
 	 */
 	void archivePointer (string key, Id id, void delegate () dg);
 	
 	/**
+	 * Archives a pointer.
 	 * 
 	 * Params:
-	 *     pointeeId = 
-	 *     key = 
-	 *     id =
+	 *     pointeeId = the id associated with the value the pointer points to
+	 *     key = the key associated with the pointer
+	 *     id = the id associated with the pointer
 	 */
 	void archivePointer (Id pointeeId, string key, Id id);
 	
 	/**
+	 * Archives a reference.
+	 * 
+	 * A reference is reference to another value. For example, if an object is archived
+	 * more than once, the first time it's archived it will actual archive the object.
+	 * The second time the object will be archived a reference will be archived instead
+	 * of the actual object.
 	 * 
 	 * Params:
-	 *     key = 
-	 *     id =
+	 *     key = the key associated with the reference
+	 *     id = the id of the value this reference refers to
 	 */
 	void archiveReference (string key, Id id);
 	
 	/**
+	 * Archives a slice.
+	 * 
 	 * 
 	 * Params:
-	 *     slice = 
-	 *     sliceId = 
-	 *     arrayId =
+	 *     slice = the slice to be archived 
+	 *     sliceId = the id associated with the slice
+	 *     arrayId = the id associated with the array this slice is a slice of
 	 */
 	void archiveSlice (Slice slice, Id sliceId, Id arrayId);
 	
@@ -731,4 +944,4 @@ abstract class Base (U) : Archive
 			return cast(wchar) c;
 		}
 	}
-}
+}]

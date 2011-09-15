@@ -92,7 +92,7 @@ private
  * }
  * ---
  */
-class Serialize
+class Serializer
 {
 	/**
 	 * This is the type of an error callback which is called when an unexpected event occurs.
@@ -120,7 +120,7 @@ class Serialize
 	 * serializer.errorCallback = (SerializationException exception, string[] data) {
 	 * 	println(exception);
 	 * 	throw exception;
-	 * } 
+	 * };
 	 * ---
 	 */
 	ErrorCallback errorCallback;
