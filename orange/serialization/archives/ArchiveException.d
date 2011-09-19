@@ -10,15 +10,16 @@ import orange.serialization.SerializationException;
 import orange.core.string;
 
 /**
- * 
- * Authors: doob
+ * This class represents an exception, it's the base class of all exceptions thrown
+ * by an archive implementation. 
  */
 class ArchiveException : SerializationException
 {	
 	/**
+	 * Creates a new exception with the given message.
 	 * 
 	 * Params:
-	 *     message =
+	 *     message = the message of the exception
 	 */
 	this (string message)
 	{
@@ -26,11 +27,12 @@ class ArchiveException : SerializationException
 	}
 	
 	/**
+	 * Creates a new exception with the given message, file and line info.
 	 * 
 	 * Params:
-	 *     message = 
-	 *     file = 
-	 *     line =
+	 *     message = the message of the exception
+	 *     file = the file where the exception occurred
+	 *     line = the line in the file where the exception occurred
 	 */
 	this (string message, string file, long line)
 	{
@@ -38,9 +40,12 @@ class ArchiveException : SerializationException
 	}
 	
 	/**
+	 * Creates a new exception out of the given exception. Used for wrapping already existing
+	 * exceptions as ArchiveExceptions.
+	 * 
 	 * 
 	 * Params:
-	 *     exception =
+	 *     exception = the exception exception to wrap
 	 */
 	this (ExceptionBase exception)
 	{
