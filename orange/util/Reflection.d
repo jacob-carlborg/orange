@@ -458,10 +458,12 @@ private
 }
 
 /**
+ * Returns a new instnace of the class associated with the given class info.
  * 
  * Params:
- *     classInfo = 
- * Returns:
+ *     classInfo = the class info associated with the class
+ *     
+ * Returns: a new instnace of the class associated with the given class info.
  */
 Object newInstance (ClassInfo classInfo)
 {
@@ -478,10 +480,12 @@ Object newInstance (ClassInfo classInfo)
 }
 
 /**
+ * Return a new instance of the class with the given name.
  * 
  * Params:
- *     name = 
- * Returns:
+ *     name = the fully qualified name of the class
+ *     
+ * Returns: a new instance or null if the class name could not be found
  */
 Object newInstance (string name)
 {

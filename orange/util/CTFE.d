@@ -9,10 +9,7 @@ module orange.util.CTFE;
 import orange.core.string;
 import orange.util.Traits;
 
-/**
- * 
- * Authors: doob
- */
+/// Compile time string converter. Converts the given arguments to a string.
 template format (ARGS...)
 {
 	static if (ARGS.length == 0)

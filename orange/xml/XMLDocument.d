@@ -27,9 +27,11 @@ else
 
 import orange.core.io;
 
+/// Evaluates to $(D_PARAM T) if $(D_PARAM T) is a character type.
+
 /**
- * 
- * Authors: doob
+ * Evaluates to $(D_PARAM T) if $(D_PARAM T) is a character type. Otherwise this
+ * template will not compile.
  */
 template Char (T)
 {
@@ -52,10 +54,7 @@ template Char (T)
 	}
 }
 
-/**
- * 
- * Authors: doob
- */
+/// This class represents an exception thrown by XMLDocument.
 class XMLException : Exception
 {
 	version (Tango) private alias long Line;		
@@ -68,51 +67,49 @@ class XMLException : Exception
 }
 
 /**
- * 
- * Authors: doob
+ * This class represents an XML DOM document. It provides a common interface to the XML
+ * document implementations available in Phobos and Tango.
  */
 final class XMLDocument (T = char)
 {
 	version (Tango)
 	{
-		///
+		/// The type of the document implementation.
 		alias Document!(T) Doc;
 		
-		///
+		/// The type of the node implementation.
 		alias Doc.Node InternalNode;
 
 		
-		///
+		/// The type of the query node implementation.
 		alias XmlPath!(T).NodeSet QueryNode;
 		
 		///
 		alias T[] tstring;
 		
-		///
+		/// The type of the visitor type implementation.
 		alias Doc.Visitor VisitorType;
 	}		
 		
 	else
 	{
+		/// The type of the document implementation.
 		alias Document Doc;
 		
-		///
+		/// The type of the node implementation.
 		alias Element InternalNode;
 		
-		///
+		/// The type of the query node implementation.
 		alias Element QueryNode;
 		
 		///
 		alias string tstring;
 		
-		///
+		/// The type of the visitor type implementation.
 		alias Element[] VisitorType;
 	}
 	
-	/**
-	 * 
-	 * Authors: doob
-	 */
+	/// foreach support for visiting a set of nodes.
 	struct VisitorProxy
 	{
 		private VisitorType nodes;
@@ -126,8 +123,15 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Returns true if this proxy contains any nodes.
 		 * 
-		 * Returns:
+		 * Examples:
+		 * ---
+		 * VisitorProxy proxy;
+		 * assert(proxy.exist == false);
+		 * ---
+		 * 
+		 * Returns: true if this proxy contains any nodes.
 		 */
 		bool exist ()
 		{
@@ -136,11 +140,14 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Allows to iterate over the set of nodes.
 		 * 
-		 * Params:
-		 *     dg = 
-		 * Returns:
-		 */
+		 * Examples:
+		 * ---
+		 * VisitorProxy proxy
+		 * foreach (node ; proxy) {}
+		 * ---
+		 */ 
 		int opApply (int delegate (ref Node) dg)
 		{
 			int result;
@@ -158,10 +165,7 @@ final class XMLDocument (T = char)
 		}
 	}
 	
-	/**
-	 * 
-	 * Authors: doob
-	 */
+	/// A generic document node
 	struct Node
 	{
 	    private InternalNode node;
@@ -194,62 +198,80 @@ final class XMLDocument (T = char)
 	    }
 	    
 	    /**
+	     * Returns an invalid node.
 	     * 
-	     * Returns:
+	     * Examples:
+	     * ---
+	     * auto node = Node.invalid;
+	     * assert(node.isValid == false);
+	     * ---
+	     * 
+	     * Returns: an invalid node
 	     */
 	    public static Node invalid ()
 	    {
 	    	return Node(null);
 	    }
 
-	    ///
+	    /// Returns the name of the node.
 		tstring name ()
 		{
 			return node.name;
 		}
 		
-		///
+		/// Returns the value of the node.
 		tstring value ()
 		{
 			return node.value;
 		}
 		
-		///
+		/// Returns the parent node.
 		Node parent ()
 		{
 			return Node(node.parent);
 		}
 		
-		///
+		/**
+		 * Returns true if the receiver is valid.
+		 * 
+		 * auto node = Node.invalid;
+		 * assert(node.isValid == false);
+		 * 
+		 * Returns: true if the receiver is valid.
+		 * 
+		 * See_Also: invalid
+		 */
 		bool isValid ()
 		{
 			return node !is null;
 		}
 		
-		///
+		/// Returns a foreach iterator for node children.
 		VisitorProxy children ()
 		{
 			return VisitorProxy(node.children);
 		}
 		
-		///
+		/// Returns a foreach iterator for node attributes.
 		VisitorProxy attributes ()
 		{
 			return VisitorProxy(node.attributes);
 		}
 		
-		///
+		/// Return an XPath handle to query the receiver.
 		QueryProxy query ()
 		{
 			return QueryProxy(node.query);
 		}
 		
 		/**
+		 * Creates a new element and attaches it to the receiver.
 		 * 
 		 * Params:
-		 *     name = 
-		 *     value = 
-		 * Returns:
+		 *     name = the name of the element
+		 *     value = the value of the element
+		 *     
+		 * Returns: the newly create element.
 		 */
 		Node element (tstring name, tstring value = null)
 		{
@@ -284,11 +306,13 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Creates a new attribute and attaches it to the receiver.
 		 * 
 		 * Params:
-		 *     name = 
-		 *     value = 
-		 * Returns:
+		 *     name = the name of the attribute
+		 *     value = the value of the attribute
+		 *     
+		 * Returns: the newly created attribute
 		 */
 		Node attribute (tstring name, tstring value)
 		{
@@ -299,9 +323,10 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Attach an already existing node to the receiver.
 		 * 
 		 * Params:
-		 *     node =
+		 *     node = the node to attach.
 		 */
 		void attach (Node node)
 		{
@@ -310,7 +335,7 @@ final class XMLDocument (T = char)
 		}
 	}
 	
-	///
+	/// This an XPath query handle used to perform queries on a set of elements.
 	struct QueryProxy
 	{
 		version (Tango)
@@ -351,10 +376,14 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Returns a set containing all attribute nodes of the nodes within this set which pass
+		 * the given filtering test.
 		 * 
 		 * Params:
-		 *     filter = 
-		 * Returns:
+		 *     filter = the filter to be applied on the attributes. Should return true when there
+		 *     			is a match for an attribute.
+		 *     
+		 * Returns: the set of nodes that passed the filter test
 		 */
 		QueryProxy attribute (bool delegate (Node) filter)
 		{
@@ -384,10 +413,13 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Return a set containing all attributes of the nodes within this set, which match
+		 * the given name.
 		 * 
 		 * Params:
-		 *     name = 
-		 * Returns:
+		 *     name = the name of the attribute to filter on
+		 *     
+		 * Returns: a set of elements that passed the filter test
 		 */
 		QueryProxy attribute (tstring name = null)
 		{
@@ -412,7 +444,7 @@ final class XMLDocument (T = char)
 			}
 		}
 
-		///
+		/// Returns an array of all the nodes stored in the receiver.
 		Node[] nodes ()
 		{
 			version (Tango)
@@ -429,14 +461,17 @@ final class XMLDocument (T = char)
 		}
 
 		/**
+		 * Returns a set containing all child elements of the nodes within this set, which
+		 * match the given name.
 		 * 
 		 * Params:
-		 *     query = 
-		 * Returns:
+		 *     name = the name to filter on.
+		 *      
+		 * Returns: a set of elements that passed the filter test
 		 */
-		QueryProxy opIndex (tstring query)
+		QueryProxy opIndex (tstring name)
 		{
-			version (Tango) return QueryProxy(node[query]);
+			version (Tango) return QueryProxy(node[name]);
 
 			else
 			{
@@ -444,12 +479,12 @@ final class XMLDocument (T = char)
 				
 				foreach (parent ; nodes_)
 				{
-					if (parent.name == query)
+					if (parent.name == name)
 						proxies ~= parent;
 					
 					foreach (e ; parent.node.elements)
 					{
-						if (e.tag.name == query)
+						if (e.tag.name == name)
 							proxies ~= Node(e);
 					}
 				}
@@ -459,10 +494,12 @@ final class XMLDocument (T = char)
 		}
 		
 		/**
+		 * Iterates over the set of nodes. 
 		 * 
-		 * Params:
-		 *     dg = 
-		 * Returns:
+		 * Examples:
+		 * ---
+		 * foreach (node ; nodes) {}
+		 * ---
 		 */
 		int opApply (int delegate (ref Node) dg)
 		{
@@ -489,10 +526,10 @@ final class XMLDocument (T = char)
 		}
 	}
 	
-	///
+	/// Set this to true if there should be strict errro checking.
 	bool strictErrorChecking;
 	
-	///
+	/// The number of spaces used for indentation used when printing the document.
 	uint indentation = 4;
 	
 	private Doc doc;	
@@ -500,9 +537,15 @@ final class XMLDocument (T = char)
 	else InternalNode currentNode;
 	
 	/**
+	 * Creates a new instance of this class
+	 * 
+	 * Examples:
+	 * ---
+	 * auto doc = new XMLDocument!();
+	 * ---
 	 * 
 	 * Params:
-	 *     strictErrorChecking =
+	 *     strictErrorChecking = true if strict errro checking should be enabled
 	 */
 	this (bool strictErrorChecking = true)
 	{
@@ -512,10 +555,19 @@ final class XMLDocument (T = char)
 	}
 	
 	/**
+	 * Attaches a header to the document.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto doc = new XMLDocument!();
+	 * doc.header("UTF-8");
+	 * // <?xml version="1.0" encoding="UTF-8"?>
+	 * ---
 	 * 
 	 * Params:
-	 *     encoding = 
-	 * Returns:
+	 *     encoding = the encoding that should be put in the header
+	 *      
+	 * Returns: the receiver
 	 */
 	XMLDocument header (tstring encoding = null)
 	{
@@ -531,7 +583,7 @@ final class XMLDocument (T = char)
 		return this;
 	}
 	
-	///
+	/// Rests the reciver. Allows to parse new content.
 	XMLDocument reset ()
 	{
 		version (Tango) doc.reset;
@@ -540,7 +592,7 @@ final class XMLDocument (T = char)
 		return this;
 	}
 	
-	///
+	/// Return the root document node, from which all other nodes are descended.
 	Node tree ()
 	{
 		version (Tango) return Node(doc.tree);		
@@ -548,9 +600,10 @@ final class XMLDocument (T = char)
 	}
 	
 	/**
+	 * Parses the given string of XML.
 	 * 
 	 * Params:
-	 *     xml =
+	 *     xml = the XML to parse
 	 */
 	void parse (tstring xml)
 	{
@@ -558,14 +611,14 @@ final class XMLDocument (T = char)
 		else doc = new Doc(xml);
 	}
 	
-	///
+	/// Return an xpath handle to query this document. This starts at the document root.
 	QueryProxy query ()
 	{
 		version (Tango) return QueryProxy(doc.tree.query);
 		else return QueryProxy(doc);
 	}
 	
-	///
+	/// Pretty prints the document.
 	string toString ()
 	{
 		version (Tango)
@@ -582,11 +635,13 @@ final class XMLDocument (T = char)
 	}
 	
 	/**
+	 * Attaches a new node to the docuement.
 	 * 
 	 * Params:
-	 *     name = 
-	 *     value = 
-	 * Returns:
+	 *     name = the name of the node
+	 *     value = the vale of the node
+	 *     
+	 * Returns: returns the newly created node
 	 */
 	Node createNode (tstring name, tstring value = null)
 	{

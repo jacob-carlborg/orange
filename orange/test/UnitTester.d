@@ -3,6 +3,70 @@
  * Authors: Jacob Carlborg
  * Version: Initial created: Oct 17, 2010
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost Software License 1.0)
+ * 
+ * This is a simple unit test framework inspired by rspec. This framework is used for
+ * collecting unit test failures (assert exceptions) and presents them to the user in a
+ * nice format.
+ * 
+ * The following are features of how a test report is printed:
+ * 
+ * $(UL
+ * 	$(LI print the filename and line number of the failing test)
+ * 	$(LI print the description of a failing or pending test)
+ * 	$(LI print a snippet of the file around a failing test)
+ * 	$(LI print the stack trace of a failing test)
+ * 	$(LI print the number of failing, pending and passed test.
+ * 		As well as the total number of tests)
+ * 	$(LI minimal output then all tests pass)
+ * )
+ * 
+ * If an assertion fails in a "it" block, that block will end. No other block is affected
+ * by the failed assertion. 
+ * 
+ * Examples:
+ * ---
+ * import orange.test.UnitTester;
+ * 
+ * int sum (int x, int y)
+ * {
+ * 	return x * y;
+ * }
+ * 
+ * unittest ()
+ * {
+ * 	describe("sum") in {
+ * 		it("should return the sum of the two given arguments") in {
+ * 			assert(sum(1, 2) == 3);
+ * 		}
+ * 	}
+ * 	assert(a == 4);
+ * }
+ * 
+ * void main ()
+ * {
+ * 	run;
+ * }
+ * ---
+ * When the code above is run, it would print, since the test is failing, something similar:
+ * ---
+ * sum
+ *   - should return the sum of the given arguments
+ *
+ * Failures:
+ *     1) sum should return the sum of the given arguments
+ *        # main.d:44
+ *        Stack trace:
+ *        tango.core.Exception.AssertException@main(44): Assertion failure
+ * 
+ * 	
+ * describe("sum") in {
+ * 	it("should return the sum of the given arguments") in {
+ * 		assert(sum(1, 2) == 3);
+ * 	};
+ * };
+ * 	
+ * 1 test, 1 failure
+ * --
  */
 module orange.test.UnitTester;
 
@@ -30,10 +94,22 @@ import orange.core._;
 import orange.util._;
 
 /**
+ * Describes a test or a set of tests.
+ * 
+ * Examples:
+ * ---
+ * unittest ()
+ * {
+ * 	describe("the description of the tests") in {
+ * 
+ * 	};
+ * }
+ * ---
  * 
  * Params:
- *     message = 
- * Returns:
+ *     message = the message to describe the test
+ *     
+ * Returns: a context in which the tests will be run
  */
 Use!(void delegate (), string) describe (string message)
 {
@@ -41,60 +117,59 @@ Use!(void delegate (), string) describe (string message)
 }
 
 /**
+ * Describes what a test should do.
+ * 
+ * Examples:
+ * ---
+ * unittest ()
+ * {
+ * 	describe("the description of the tests") in {
+ * 		it("should do something") in {
+ * 			// put your assert here
+ * 		};
+ * 
+ * 		it("should do something else") in {
+ * 			// put another assert here
+ * 		}
+ * 	};
+ * }
+ * ---
  * 
  * Params:
- *     message = 
- * Returns:
+ *     message = what the test should do
+ *     
+ * Returns: a context in which the test will be run 
  */
 Use!(void delegate (), string) it (string message)
 {
 	return UnitTester.instance.test(message);
 }
 
-/**
- * 
- * Returns:
- */
+/// A delegate that will be called before each test.
 void delegate () before ()
 {
 	return UnitTester.instance.before;
 }
 
-/**
- * 
- * Params:
- *     before = 
- * Returns:
- */
+/// A delegate that will be called before each test.
 void delegate () before (void delegate () before)
 {
 	return UnitTester.instance.before = before;
 }
 
-/**
- * 
- * Returns:
- */
+/// A delegate that will be called after each test.
 void delegate () after ()
 {
 	return UnitTester.instance.after;
 }
 
-/**
- * 
- * Params:
- *     after = 
- * Returns:
- */
+/// A delegate that will be called after each test.
 void delegate () after (void delegate () after)
 {
 	return UnitTester.instance.after = after;
 }
 
-/**
- * 
- *
- */
+/// Runs all tests.
 void run ()
 {
 	UnitTester.instance.run;
