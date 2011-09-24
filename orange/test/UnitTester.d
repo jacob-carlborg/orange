@@ -39,7 +39,6 @@
  * 			assert(sum(1, 2) == 3);
  * 		}
  * 	}
- * 	assert(a == 4);
  * }
  * 
  * void main ()
