@@ -134,6 +134,12 @@ struct Slice
  * principle applies to objects, structs, associative arrays and other
  * non-primitive that accepts an delegate as a parameter.
  * 
+ * An archive implementation needs to be able to handle errors, like missing values
+ * in the serialized data, without throwing exceptions. This is because the
+ * interface of the serializer and an archive allows the user to set an error
+ * callback that is called when an error occurs; and the callback can choose to
+ * ignore the exceptions.
+ * 
  * In all the examples below "XMLArchive" is used as an example of an archive
  * implementation. "data" is assumed to be the serialized data.
  * 
