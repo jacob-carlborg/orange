@@ -19,7 +19,7 @@ SRC			=	\
 	util/_.d \
 	util/collection/Array.d \
 	util/collection/_.d \
-	xml/PhobosXML.d \
+	xml/PhobosXml.d \
 	xml/XmlDocument.d \
 	xml/_.d \
 

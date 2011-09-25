@@ -8,5 +8,5 @@ module orange.xml._;
 
 public:
 	
-import orange.xml.PhobosXML;
+import orange.xml.PhobosXml;
 import orange.xml.XmlDocument;

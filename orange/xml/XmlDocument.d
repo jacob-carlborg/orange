@@ -20,7 +20,7 @@ else
 	import std.string;
 	import std.stdio;
 	
-	import orange.xml.PhobosXML;
+	import orange.xml.PhobosXml;
 	
 	version = Phobos;
 }
