@@ -154,6 +154,46 @@ interface Archive
 		/// The typed used to represent the archived data in an untyped form.
 		mixin ("alias immutable(void)[] UntypedData;");
 	
+	
+	/**
+	 * This is the type of an error callback which is called when an unexpected event occurs.
+	 * 
+	 * Params:
+	 *     exception = the exception indicating what error occurred
+	 *     data = arbitrary data pass along, deprecated 
+	 */
+	alias void delegate (SerializationException exception) ErrorCallback;
+	
+	/**
+	 * This callback will be called when an unexpected event occurs, i.e. an expected element
+	 * is missing in the unarchiving process.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * 	println(exception);
+	 * 	throw exception;
+	 * };
+	 * ---
+	 */
+	ErrorCallback errorCallback;
+	
+	/**
+	 * This callback will be called when an unexpected event occurs, i.e. an expected element
+	 * is missing in the unarchiving process.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * 	println(exception);
+	 * 	throw exception;
+	 * };
+	 * ---
+	 */
+	ErrorCallback errorCallback (ErrorCallback errorCallback);
+	
 	/// Starts the archiving process. Call this method before archiving any values.
 	void beginArchiving ();
 	
@@ -1215,14 +1255,7 @@ abstract class Base (U) : Archive
 	version (Tango) alias U[] Data;
 	else mixin ("alias immutable(U)[] Data;");
 	
-	/**
-	 * This is the type of an error callback which is called when an unexpected event occurs.
-	 * 
-	 * Params:
-	 *     exception = the exception indicating what error occurred
-	 *     data = arbitrary data pass along, deprecated 
-	 */
-	alias void delegate (ArchiveException exception, string[] data) ErrorCallback;
+	private ErrorCallback errorCallback_;
 	
 	/**
 	 * This callback will be called when an unexpected event occurs, i.e. an expected element
@@ -1237,7 +1270,28 @@ abstract class Base (U) : Archive
 	 * };
 	 * ---
 	 */
-	protected ErrorCallback errorCallback;
+	ErrorCallback errorCallback ()
+	{
+		return errorCallback_;
+	}
+	
+	/**
+	 * This callback will be called when an unexpected event occurs, i.e. an expected element
+	 * is missing in the unarchiving process.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * 	println(exception);
+	 * 	throw exception;
+	 * };
+	 * ---
+	 */
+	ErrorCallback errorCallback (ErrorCallback errorCallback)
+	{
+		return errorCallback_ = errorCallback;
+	}
 	
 	/**
 	 * Creates a new instance of this class with an error callback
@@ -1389,6 +1443,22 @@ abstract class Base (U) : Archive
 		void* bPtr = b.ptr;
 		
 		return aPtr >= bPtr && aPtr + a.length * T.sizeof <= bPtr + b.length * U.sizeof;
+	}
+	
+	/**
+	 * Calls the errorCallback with an exception.
+	 * 
+	 * Call this method when some type of error occurred, like a field cannot be found.
+	 * 
+	 * Params:
+	 *     message = the message for the exception
+	 *     file = the file where the error occurred
+	 *     line = the line where the error occurred
+	 */
+	protected void error (string message, string file, long line)
+	{	
+		if (errorCallback)
+			errorCallback(new SerializationException(message, file, line));
 	}
 	
 	private wchar toWchar (Data value)

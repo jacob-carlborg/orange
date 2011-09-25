@@ -117,13 +117,35 @@ class Serializer
 	 * ---
 	 * auto archive = new XMLArchive!();
 	 * auto serializer = new Serializer(archive);
-	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
 	 * 	throw exception;
 	 * };
 	 * ---
 	 */
-	ErrorCallback errorCallback;
+	ErrorCallback errorCallback ()
+	{
+		return archive.errorCallback;
+	}
+	
+	/**
+	 * This callback will be called when an unexpected event occurs, i.e. an expected element
+	 * is missing in the deserialization process.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XMLArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * serializer.errorCallback = (SerializationException exception) {
+	 * 	println(exception);
+	 * 	throw exception;
+	 * };
+	 * ---
+	 */
+	ErrorCallback errorCallback (ErrorCallback errorCallback)
+	{
+		return archive.errorCallback = errorCallback;
+	}
 	
 	private
 	{
@@ -1618,11 +1640,9 @@ class Serializer
 			return [];
 	}
 	
-	private void error (string message, long line, string[] data = null)
+	private void error (string message, long line)
 	{
-		auto exception = new SerializationException(message, __FILE__, line);
-		
 		if (errorCallback)
-			errorCallback(exception, data);
+			errorCallback(new SerializationException(message, __FILE__, line));
 	}
 }
