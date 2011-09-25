@@ -10,7 +10,6 @@ SRC			=	\
 	serialization/Serializer.d \
 	serialization/_.d \
 	serialization/archives/Archive.d \
-	serialization/archives/ArchiveException.d \
 	serialization/archives/XMLArchive.d \
 	serialization/archives/_.d \
 	util/CTFE.d \
