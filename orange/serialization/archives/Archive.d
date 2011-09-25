@@ -19,7 +19,7 @@ else
 	private alias ConvException ConversionException;
 }
 
-import orange.serialization.archives.ArchiveException;
+import orange.serialization.SerializationException;
 import orange.core.string;
 import orange.util.Traits;
 
@@ -177,7 +177,7 @@ interface Archive
 	 * };
 	 * ---
 	 */
-	ErrorCallback errorCallback;
+	ErrorCallback errorCallback ();
 	
 	/**
 	 * This callback will be called when an unexpected event occurs, i.e. an expected element
@@ -1334,7 +1334,9 @@ abstract class Base (U) : Archive
 		}
 		
 		catch (ConversionException e)
-			throw new ArchiveException(e);
+			error(e);
+		
+		return Data.init;
 	}
 	
 	/**
@@ -1367,7 +1369,9 @@ abstract class Base (U) : Archive
 		}
 
 		catch (ConversionException e)
-			throw new ArchiveException(e);
+			error(e);
+		
+		return T.init;
 	}
 	
 	/**
@@ -1455,10 +1459,24 @@ abstract class Base (U) : Archive
 	 *     file = the file where the error occurred
 	 *     line = the line where the error occurred
 	 */
-	protected void error (string message, string file, long line)
+	protected void error (string message, string file, long line, string[] data = null)
 	{	
 		if (errorCallback)
-			errorCallback(new SerializationException(message, file, line));
+			errorCallback()(new SerializationException(message, file, line));
+	}
+	
+	/**
+	 * Calls the errorCallback with an exception.
+	 * 
+	 * Call this method when some type of error occurred, like a field cannot be found.
+	 * 
+	 * Params:
+	 *     exception = the exception to pass to the errorCallback
+	 */
+	protected void error (ExceptionBase exception)
+	{	
+		if (errorCallback)
+			errorCallback()(new SerializationException(exception));
 	}
 	
 	private wchar toWchar (Data value)

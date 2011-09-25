@@ -9,5 +9,4 @@ module orange.serialization.archives._;
 public:
 
 import orange.serialization.archives.Archive;
-import orange.serialization.archives.ArchiveException;
 import orange.serialization.archives.XMLArchive;

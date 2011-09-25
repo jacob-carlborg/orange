@@ -18,7 +18,6 @@ else
 import orange.core._;
 import orange.serialization._;
 import orange.serialization.archives.Archive;
-import orange.serialization.archives.ArchiveException;
 import orange.util._;
 
 private
@@ -94,14 +93,8 @@ private
  */
 class Serializer
 {
-	/**
-	 * This is the type of an error callback which is called when an unexpected event occurs.
-	 * 
-	 * Params:
-	 *     exception = the exception indicating what error occurred
-	 *     data = arbitrary data pass along, deprecated 
-	 */
-	alias void delegate (SerializationException exception, string[] data) ErrorCallback;
+	/// The type of error callback.
+	alias Archive.ErrorCallback ErrorCallback;
 	
 	/// The type of the serialized data. This is an untyped format.
 	alias Archive.UntypedData Data;
@@ -180,8 +173,8 @@ class Serializer
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
 		
-		void delegate (SerializationException exception, string[] data) throwOnErrorCallback;
-		void delegate (SerializationException exception, string[] data) doNothingOnErrorCallback;
+		void delegate (SerializationException exception) throwOnErrorCallback;
+		void delegate (SerializationException exception) doNothingOnErrorCallback;
 	}
 	
 	/**
@@ -204,8 +197,8 @@ class Serializer
 	{
 		this.archive_ = archive;
 		
-		throwOnErrorCallback = (SerializationException exception, string[] data) { throw exception; };
-		doNothingOnErrorCallback = (SerializationException exception, string[] data) { /* do nothing */ };
+		throwOnErrorCallback = (SerializationException exception) { throw exception; };
+		doNothingOnErrorCallback = (SerializationException exception) { /* do nothing */ };
 		
 		setThrowOnErrorCallback();
 	}
@@ -1643,6 +1636,6 @@ class Serializer
 	private void error (string message, long line)
 	{
 		if (errorCallback)
-			errorCallback(new SerializationException(message, __FILE__, line));
+			errorCallback()(new SerializationException(message, __FILE__, line));
 	}
 }

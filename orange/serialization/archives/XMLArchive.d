@@ -136,16 +136,13 @@ final class XMLArchive (U = char) : Base!(U)
 			
 			else
 			{
-				if (errorCallback)
-				{
-					auto dataTag = to!(string)(Tags.dataTag);
-					
-					if (set.nodes.length == 0)
-						errorCallback(new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `The "` ~ to!(string)(Tags.dataTag) ~ `" tag could not be found.`, __FILE__, __LINE__), [dataTag]);
-					
-					else
-						errorCallback(new ArchiveException(errorMessage!(ArchiveMode.unarchiving) ~ `There were more than one "` ~ to!(string)(Tags.dataTag) ~ `" tag.`, __FILE__, __LINE__), [dataTag]);
-				}	
+				auto dataTag = to!(string)(Tags.dataTag);
+				
+				if (set.nodes.length == 0)
+					error(errorMessage!(ArchiveMode.unarchiving) ~ `The "` ~ to!(string)(Tags.dataTag) ~ `" tag could not be found.`, __FILE__, __LINE__, [dataTag]);
+				
+				else
+					error(errorMessage!(ArchiveMode.unarchiving) ~ `There were more than one "` ~ to!(string)(Tags.dataTag) ~ `" tag.`, __FILE__, __LINE__, [dataTag]);
 			}
 		}
 	}
@@ -1062,8 +1059,7 @@ final class XMLArchive (U = char) : Base!(U)
 		if (auto array = id in archivedArrays)
 			return array;
 
-		if (errorCallback)
-			errorCallback(new ArchiveException(`Could not continue archiving due to no array with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__), [to!(string)(id)]);
+		error(`Could not continue archiving due to no array with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__, [to!(string)(id)]);
 		
 		return null;
 	}
@@ -1078,8 +1074,7 @@ final class XMLArchive (U = char) : Base!(U)
 		if (auto pointer = id in archivedPointers)
 			return pointer;
 
-		if (errorCallback)
-			errorCallback(new ArchiveException(`Could not continue archiving due to no pointer with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__), [to!(string)(id)]);
+		error(`Could not continue archiving due to no pointer with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__, [to!(string)(id)]);
 		
 		return null;
 	}
@@ -1106,13 +1101,13 @@ final class XMLArchive (U = char) : Base!(U)
 				return set.nodes[set.nodes.length - 1].parent;
 		}
 
-		if (throwOnError && errorCallback)
+		if (throwOnError)
 		{
 			if (set.nodes.length == 0)
-				errorCallback(new ArchiveException(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
+				error(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__, [tag, Attributes.keyAttribute, key]);
 
 			else
-				errorCallback(new ArchiveException(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__), [tag, Attributes.keyAttribute, key]);
+				error(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__, [tag, Attributes.keyAttribute, key]);
 		}
 
 		return doc.Node.invalid;
@@ -1130,14 +1125,11 @@ final class XMLArchive (U = char) : Base!(U)
 		
 		else
 		{
-			if (errorCallback)
-			{
-				if (set.nodes.length == 0)
-					errorCallback(new ArchiveException(`Could not find the attribute "` ~ to!(string)(attribute) ~ `".`, __FILE__, __LINE__), [attribute]);
-				
-				else
-					errorCallback(new ArchiveException(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__), [attribute]);
-			}
+			if (set.nodes.length == 0)
+				error(`Could not find the attribute "` ~ to!(string)(attribute) ~ `".`, __FILE__, __LINE__, [attribute]);
+			
+			else
+				error(`Could not unarchive the value of the attribute "` ~ to!(string)(attribute) ~ `" due to malformed data.`, __FILE__, __LINE__, [attribute]);
 		}
 
 		return null;
