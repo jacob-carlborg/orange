@@ -9,4 +9,4 @@ module orange.xml._;
 public:
 	
 import orange.xml.PhobosXML;
-import orange.xml.XMLDocument;
+import orange.xml.XmlDocument;

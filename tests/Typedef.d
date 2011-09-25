@@ -8,12 +8,12 @@ module tests.Typedef;
 
 import orange.core.string;
 import orange.serialization.Serializer;
-import orange.serialization.archives.XMLArchive;
+import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
 import tests.Util;
 
 Serializer serializer;
-XMLArchive!(char) archive;
+XmlArchive!(char) archive;
 
 typedef int Int;
 
@@ -26,7 +26,7 @@ I i;
 
 unittest
 {
-	archive = new XMLArchive!(char);
+	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 
 	i = new I;

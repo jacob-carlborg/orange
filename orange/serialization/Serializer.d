@@ -77,7 +77,7 @@ private
  * 
  * void main ()
  * {
- * 	auto archive = new XMLArchive!();
+ * 	auto archive = new XmlArchive!();
  * 	auto serializer = new Serializer;
  * 
  * 	auto foo = new Foo;
@@ -108,7 +108,7 @@ class Serializer
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
@@ -127,7 +127,7 @@ class Serializer
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
@@ -189,7 +189,7 @@ class Serializer
 	 *     
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * ---
 	 */
@@ -221,7 +221,7 @@ class Serializer
 	 * 
 	 * Serializer.register!(Sub);
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * Base b = new Sub;
@@ -274,7 +274,7 @@ class Serializer
 	 * class Base {}
 	 * class Foo : Base {}
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * auto dg = (Base value, Serializer serializer, Data key) {
@@ -316,7 +316,7 @@ class Serializer
 	 * class Base {}
 	 * class Foo : Base {}
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * auto dg = (Base value, Serializer serializer, Data key) {
@@ -357,7 +357,7 @@ class Serializer
 	 * class Base {}
 	 * class Foo : Base {}
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * auto dg = (ref Base value, Serializer serializer, Data key) {
@@ -398,7 +398,7 @@ class Serializer
 	 * class Base {}
 	 * class Foo : Base {}
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * auto dg = (ref Base value, Serializer serializer, Data key) {
@@ -494,7 +494,7 @@ class Serializer
 	 *     
  	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * serializer.serialize(1);
@@ -789,7 +789,7 @@ class Serializer
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
 	 * auto data = serializer.serialize(1);

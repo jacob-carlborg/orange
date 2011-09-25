@@ -4,7 +4,7 @@
  * Version: Initial created: Jun 26, 2010
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost Software License 1.0)
  */
-module orange.xml.XMLDocument;
+module orange.xml.XmlDocument;
 
 version (Tango)
 {
@@ -54,7 +54,7 @@ template Char (T)
 	}
 }
 
-/// This class represents an exception thrown by XMLDocument.
+/// This class represents an exception thrown by XmlDocument.
 class XMLException : Exception
 {
 	version (Tango) private alias long Line;		
@@ -70,7 +70,7 @@ class XMLException : Exception
  * This class represents an XML DOM document. It provides a common interface to the XML
  * document implementations available in Phobos and Tango.
  */
-final class XMLDocument (T = char)
+final class XmlDocument (T = char)
 {
 	version (Tango)
 	{
@@ -541,7 +541,7 @@ final class XMLDocument (T = char)
 	 * 
 	 * Examples:
 	 * ---
-	 * auto doc = new XMLDocument!();
+	 * auto doc = new XmlDocument!();
 	 * ---
 	 * 
 	 * Params:
@@ -559,7 +559,7 @@ final class XMLDocument (T = char)
 	 * 
 	 * Examples:
 	 * ---
-	 * auto doc = new XMLDocument!();
+	 * auto doc = new XmlDocument!();
 	 * doc.header("UTF-8");
 	 * // <?xml version="1.0" encoding="UTF-8"?>
 	 * ---
@@ -569,7 +569,7 @@ final class XMLDocument (T = char)
 	 *      
 	 * Returns: the receiver
 	 */
-	XMLDocument header (tstring encoding = null)
+	XmlDocument header (tstring encoding = null)
 	{
 		version (Tango) doc.header(encoding);
 		
@@ -584,7 +584,7 @@ final class XMLDocument (T = char)
 	}
 	
 	/// Rests the reciver. Allows to parse new content.
-	XMLDocument reset ()
+	XmlDocument reset ()
 	{
 		version (Tango) doc.reset;
 		else doc = new Doc(new Tag("root"));

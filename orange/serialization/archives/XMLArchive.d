@@ -4,7 +4,7 @@
  * Version: Initial created: Jan 26, 2010
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost Software License 1.0)
  */
-module orange.serialization.archives.XMLArchive;
+module orange.serialization.archives.XmlArchive;
 
 version (Tango)
 	import tango.util.Convert : to;
@@ -16,13 +16,13 @@ import orange.core._;
 import orange.serialization.archives._;
 import orange.serialization.Serializer;
 import orange.util._;
-import orange.xml.XMLDocument;
+import orange.xml.XmlDocument;
 
 /**
  * 
  * Authors: doob
  */
-final class XMLArchive (U = char) : Base!(U)
+final class XmlArchive (U = char) : Base!(U)
 {
 	private alias Archive.Id Id;
 	
@@ -64,8 +64,8 @@ final class XMLArchive (U = char) : Base!(U)
 	
 	private struct Node
 	{
-		XMLDocument!(U).Node parent;
-		XMLDocument!(U).Node node;
+		XmlDocument!(U).Node parent;
+		XmlDocument!(U).Node node;
 		Id id;
 		string key;
 	}
@@ -75,7 +75,7 @@ final class XMLArchive (U = char) : Base!(U)
 		Data archiveType = "org.dsource.orange.xml";
 		Data archiveVersion = "1.0.0";
 		
-		XMLDocument!(U) doc;
+		XmlDocument!(U) doc;
 		doc.Node lastElement;
 		
 		bool hasBegunArchiving;
@@ -94,7 +94,7 @@ final class XMLArchive (U = char) : Base!(U)
 	this (ErrorCallback errorCallback = null)
 	{
 		super(errorCallback);
-		doc = new XMLDocument!(U);
+		doc = new XmlDocument!(U);
 	}
 	
 	/**

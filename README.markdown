@@ -43,7 +43,7 @@ To run the unit test run the shell script "unittest.sh":
 		auto foo = new Foo; // create something to serialize
 		foo.a = 3; // change the default value of "a"
 	
-		auto archive = new XMLArchive!(char); // create an XML archive
+		auto archive = new XmlArchive!(char); // create an XML archive
 		auto serializer = new Serializer(archive); // create the serializer
 	
 		serializer.serialize(foo); // serialize "foo"

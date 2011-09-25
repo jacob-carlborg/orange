@@ -10,7 +10,7 @@ SRC			=	\
 	serialization/Serializer.d \
 	serialization/_.d \
 	serialization/archives/Archive.d \
-	serialization/archives/XMLArchive.d \
+	serialization/archives/XmlArchive.d \
 	serialization/archives/_.d \
 	util/CTFE.d \
 	util/Reflection.d \
@@ -20,7 +20,7 @@ SRC			=	\
 	util/collection/Array.d \
 	util/collection/_.d \
 	xml/PhobosXML.d \
-	xml/XMLDocument.d \
+	xml/XmlDocument.d \
 	xml/_.d \
 
 DC			=	dmd

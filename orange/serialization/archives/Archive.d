@@ -140,7 +140,7 @@ struct Slice
  * callback that is called when an error occurs; and the callback can choose to
  * ignore the exceptions.
  * 
- * In all the examples below "XMLArchive" is used as an example of an archive
+ * In all the examples below "XmlArchive" is used as an example of an archive
  * implementation. "data" is assumed to be the serialized data.
  * 
  * When implementing a new archive type, if any of these methods do not make sense
@@ -176,7 +176,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * serializer.errorCallback = (SerializationException exception, string[] data) {
 	 * 	println(exception);
 	 * 	throw exception;
@@ -191,7 +191,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * serializer.errorCallback = (SerializationException exception, string[] data) {
 	 * 	println(exception);
 	 * 	throw exception;
@@ -228,7 +228,7 @@ interface Archive
 	 * ---
 	 * int[] arr = [1, 2, 3];
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * 
 	 * auto a = Array(arr.ptr, arr.length, typeof(a[0]).sizeof);
 	 * 
@@ -253,7 +253,7 @@ interface Archive
 	 * ---
 	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * 
 	 * archive.archive(string.stringof, int.stringof, arr.length, "arr", 0, {
 	 * 	// archive the individual keys and values
@@ -285,7 +285,7 @@ interface Archive
 	 * ---
 	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * 
 	 * foreach(k, v ; arr)
 	 * {
@@ -318,7 +318,7 @@ interface Archive
 	 * ---
 	 * int[string] arr = ["a"[] : 1, "b" : 2, "c" : 3];
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * size_t i;
 	 * 
 	 * foreach(k, v ; arr)
@@ -354,7 +354,7 @@ interface Archive
 	 * }
 	 * 
 	 * auto foo = Foo.bar;
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archive(foo, "bool", "foo", 0);
 	 * ---
 	 * 
@@ -415,7 +415,7 @@ interface Archive
 	 * class Base {}
 	 * class Foo : Base {}
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archiveBaseClass("Base", "base", 0);
 	 * ---
 	 * 
@@ -433,7 +433,7 @@ interface Archive
 	 * ---
 	 * int* ptr;
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archiveNull(typeof(ptr).stringof, "ptr");
 	 * ---
 	 * 
@@ -455,7 +455,7 @@ interface Archive
 	 * 
 	 * auto foo = new Foo;
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archiveObject(Foo.classinfo.name, "Foo", "foo", 0, {
 	 * 	// archive the fields of Foo
 	 * });
@@ -489,7 +489,7 @@ interface Archive
 	 * foo.a = 3;
 	 * foo.b = &foo.a;
 	 * 
-	 * archive = new XMLArchive!();
+	 * archive = new XmlArchive!();
 	 * archive.archivePointer("b", 0, {
 	 * 	// archive "foo.b" as a reference
 	 * });
@@ -506,7 +506,7 @@ interface Archive
 	 * auto foo = new Foo;
 	 * foo.b = &a;
 	 * 
-	 * archive = new XMLArchive!();
+	 * archive = new XmlArchive!();
 	 * archive.archivePointer("b", 0, {
 	 * 	// archive "foo.b" as a regular value
 	 * });
@@ -538,7 +538,7 @@ interface Archive
 	 * foo.a = 3;
 	 * foo.b = &foo.a;
 	 * 
-	 * archive = new XMLArchive!();
+	 * archive = new XmlArchive!();
 	 * archive.archive(foo.a, "a", 0);
 	 * archive.archivePointer(0, "b", 1);
 	 * ---
@@ -575,7 +575,7 @@ interface Archive
 	 * bar.f = new Foo;
 	 * bar.f2 = bar.f;
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * 
 	 * // when achiving "bar" 
 	 * archive.archiveObject(Foo.classinfo.name, "Foo", "f", 0, {});
@@ -599,7 +599,7 @@ interface Archive
 	 * auto arr = [1, 2, 3, 4];
 	 * auto slice = arr[1 .. 3];
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * // archive "arr" with id 0
 	 * 
 	 * auto s = Slice(slice.length, 1);
@@ -625,7 +625,7 @@ interface Archive
 	 * 
 	 * auto foo = Foo(3);
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archiveStruct(Foo.stringof, "foo", 0, {
 	 * 	// archive the fields of Foo
 	 * });
@@ -647,7 +647,7 @@ interface Archive
 	 * typedef int Foo;
 	 * Foo a = 3;
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.archiveTypedef(Foo.stringof, "a", 0, {
 	 * 	// archive "a" as the base type of Foo, i.e. int
 	 * });
@@ -748,7 +748,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto id = archive.unarchiveArray("arr", (size_t length) {
 	 * 	auto arr = new int[length]; // pre-allocate the array
@@ -772,7 +772,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * archive.unarchiveArray(0, (size_t length) {
 	 * 	auto arr = new int[length]; // pre-allocate the array
@@ -794,7 +794,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * 
 	 * auto id = archive.unarchiveAssociativeArray("aa", (size_t length) {
@@ -823,7 +823,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * 
 	 * for (size_t i = 0; i < length; i++)
@@ -855,7 +855,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * 
 	 * for (size_t i = 0; i < length; i++)
@@ -933,7 +933,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * archive.unarchiveBaseClass("base");
 	 * ---
@@ -962,7 +962,7 @@ interface Archive
 	 * 	int a;
 	 * }
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * 
 	 * Id id;
@@ -988,7 +988,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto id = unarchivePointer("ptr", {
 	 * 	// unarchive the value pointed to by the pointer
@@ -1016,7 +1016,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto id = unarchiveReference("foo");
 	 * 
@@ -1038,7 +1038,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto slice = unarchiveSlice("slice");
 	 * 
@@ -1062,7 +1062,7 @@ interface Archive
 	 * 	int a;
 	 * }
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * archive.unarchiveStruct("foo", {
 	 * 	// unarchive the fields of Foo
@@ -1083,7 +1083,7 @@ interface Archive
 	 * typedef int Foo;
 	 * Foo foo = 3;
 	 * 
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * archive.unarchiveTypedef("foo", {
 	 * 	// unarchive "foo" as the base type of Foo, i.e. int
@@ -1102,7 +1102,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto str = archive.unarchiveString(0);
 	 * ---
@@ -1125,7 +1125,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * 
 	 * Id id;
@@ -1150,7 +1150,7 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * archive.beginUnarchiving(data);
 	 * auto foo = unarchiveBool("foo");
 	 * ---
@@ -1269,7 +1269,7 @@ abstract class Base (U) : Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * serializer.errorCallback = (SerializationException exception, string[] data) {
 	 * 	println(exception);
 	 * 	throw exception;
@@ -1287,7 +1287,7 @@ abstract class Base (U) : Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * auto archive = new XMLArchive!();
+	 * auto archive = new XmlArchive!();
 	 * serializer.errorCallback = (SerializationException exception, string[] data) {
 	 * 	println(exception);
 	 * 	throw exception;

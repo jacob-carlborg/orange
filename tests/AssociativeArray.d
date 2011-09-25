@@ -8,12 +8,12 @@ module tests.AssociativeArray;
 
 import orange.core.string;
 import orange.serialization.Serializer;
-import orange.serialization.archives.XMLArchive;
+import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
 import tests.Util;
 
 Serializer serializer;
-XMLArchive!(char) archive;
+XmlArchive!(char) archive;
 
 class E
 {
@@ -24,7 +24,7 @@ E e;
 
 unittest
 {
-	archive = new XMLArchive!(char);
+	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 
 	e = new E;

@@ -8,12 +8,12 @@ module tests.Custom;
 
 import orange.core._;
 import orange.serialization.Serializer;
-import orange.serialization.archives.XMLArchive;
+import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
 import tests.Util;
 
 Serializer serializer;
-XMLArchive!(char) archive;
+XmlArchive!(char) archive;
 
 class Foo
 {
@@ -38,7 +38,7 @@ int i;
 
 unittest
 {
-	archive = new XMLArchive!(char);
+	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 	
 	foo = new Foo;

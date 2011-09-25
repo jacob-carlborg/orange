@@ -9,12 +9,12 @@ module tests.Events;
 import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.Events;
-import orange.serialization.archives.XMLArchive;
+import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
 import tests.Util;
 
 Serializer serializer;
-XMLArchive!(char) archive;
+XmlArchive!(char) archive;
 
 int b;
 int c;
@@ -57,7 +57,7 @@ Events events;
 
 unittest
 {
-	archive = new XMLArchive!(char);
+	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 	
 	events = new Events;

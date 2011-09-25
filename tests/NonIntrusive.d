@@ -8,12 +8,12 @@ module tests.NonIntrusive;
 
 import orange.core._;
 import orange.serialization.Serializer;
-import orange.serialization.archives.XMLArchive;
+import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
 import tests.Util;
 
 Serializer serializer;
-XMLArchive!(char) archive;
+XmlArchive!(char) archive;
 
 class Base
 {
@@ -52,7 +52,7 @@ void fromData (ref Foo foo, Serializer serializer, Serializer.Data key)
 
 unittest
 {
-	archive = new XMLArchive!(char);
+	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 	
 	serializer.registerSerializer(Foo.classinfo.name, &toData);
