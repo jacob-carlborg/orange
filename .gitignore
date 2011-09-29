@@ -5,7 +5,6 @@ dsss_docs
 dsss_imports
 dsss.last
 *.orig
-*.sh
 *.a
 *.rf
 *.dylib
