@@ -1270,7 +1270,7 @@ abstract class Base (U) : Archive
 	 * Examples:
 	 * ---
 	 * auto archive = new XmlArchive!();
-	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
 	 * 	throw exception;
 	 * };
@@ -1288,7 +1288,7 @@ abstract class Base (U) : Archive
 	 * Examples:
 	 * ---
 	 * auto archive = new XmlArchive!();
-	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
 	 * 	throw exception;
 	 * };
