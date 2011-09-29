@@ -65,7 +65,7 @@
  * };
  * 	
  * 1 test, 1 failure
- * --
+ * ---
  */
 module orange.test.UnitTester;
 

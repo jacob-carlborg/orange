@@ -177,7 +177,7 @@ interface Archive
 	 * Examples:
 	 * ---
 	 * auto archive = new XmlArchive!();
-	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
 	 * 	throw exception;
 	 * };
@@ -192,7 +192,7 @@ interface Archive
 	 * Examples:
 	 * ---
 	 * auto archive = new XmlArchive!();
-	 * serializer.errorCallback = (SerializationException exception, string[] data) {
+	 * serializer.errorCallback = (SerializationException exception) {
 	 * 	println(exception);
 	 * 	throw exception;
 	 * };
@@ -1324,7 +1324,7 @@ abstract class Base (U) : Archive
 	 *     
 	 * Returns: the converted value
 	 * 
-	 * Throws: ArchiveException if the conversion failed
+	 * Throws: SerializationException if the conversion failed
 	 * See_Also: fromData
 	 * See_Also: floatingPointToData
 	 */
@@ -1360,7 +1360,7 @@ abstract class Base (U) : Archive
 	 *      
 	 * Returns: the converted value
 	 * 
-	 * Throws: ArchiveException if the conversion failed
+	 * Throws: SerializationException if the conversion failed
 	 * See_Also: toData
 	 */
 	protected T fromData (T) (Data value)
@@ -1398,7 +1398,7 @@ abstract class Base (U) : Archive
 	 *     
 	 * Returns: the conveted value
 	 * 
-	 * Throws: ArchiveException if the conversion failed
+	 * Throws: SerializationException if the conversion failed
 	 */
 	protected Data floatingPointToData (T) (T value)
 	{
@@ -1423,7 +1423,7 @@ abstract class Base (U) : Archive
 	 *     
 	 * Returns: the converted id
 	 * 
-	 * Throws: ArchiveException if the converted failed
+	 * Throws: SerializationException if the converted failed
 	 * See_Also: fromData
 	 */
 	protected Id toId (Data value)
