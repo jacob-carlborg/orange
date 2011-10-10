@@ -1500,6 +1500,9 @@ class Serializer
 		{
 			foreach (arrayKey, array ; serializedArrays)
 			{
+				if (slice.length == 0 || array.length == 0)
+					continue;
+				
 				if (slice.isSliceOf(array) && slice != array)
 				{
 					auto s = Slice(slice.length, (slice.ptr - array.ptr) / slice.elementSize);

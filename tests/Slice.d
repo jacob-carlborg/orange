@@ -22,11 +22,16 @@ class J
 	
 	int[] secondSlice;
 	int[] secondSource;
+	
+	int[] firstEmpty;
+	int[] secondEmpty;
+	
+	int[][] thirdEmpty;
 }
 
 J j;
 J jDeserialized;
-
+import orange.core.io;
 unittest
 {
 	archive = new XmlArchive!(char);
@@ -35,14 +40,16 @@ unittest
 	j = new J;
 	j.firstSource = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].dup;
 	j.firstSlice = j.firstSource[3 .. 7];
+	
 	j.secondSource = [10, 11, 12, 13, 14, 15].dup;
 	j.secondSlice = j.secondSource[1 .. 4];
 
 	describe("serialize slices") in {
+		serializer.reset();
+		serializer.serialize(j);
+		
 		it("should return serialized slices") in {
-			serializer.reset();
-			serializer.serialize(j);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Slice.J" type="J" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("array", `type="int" length="10" key="firstSource" id="1"`));
@@ -72,6 +79,16 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="3" id="25"`, "13"));
 			assert(archive.data().containsXmlTag("int", `key="4" id="26"`, "14"));
 			assert(archive.data().containsXmlTag("int", `key="5" id="27"`, "15"));
+			
+			assert(archive.data().containsXmlTag("array", `type="int" length="0" key="firstEmpty" id="28"`, true));
+			assert(archive.data().containsXmlTag("array", `type="int" length="0" key="secondEmpty" id="29"`, true));
+			assert(archive.data().containsXmlTag("array", `type="int[]" length="0" key="thirdEmpty" id="30"`, true));
+		};
+		
+		it("should not contain slices to empty arrays") in {
+			assert(!archive.data().containsXmlTag("slice", `key="firstEmpty" offset="0" length="0"`, "30"));
+			assert(!archive.data().containsXmlTag("slice", `key="secondEmpty" offset="0" length="0"`, "30"));
+			assert(!archive.data().containsXmlTag("slice", `key="thirdEmpty" offset="0" length="0"`, "28"));
 		};
 	};
 	
