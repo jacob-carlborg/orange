@@ -677,8 +677,10 @@ class Serializer
 	{
 		auto array = Array(cast(void*) value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
 		
-		archive.archive(value, key, id);			
-		addSerializedArray(array, id);
+		archive.archive(value, key, id);
+		
+		if (value.length > 0)
+			addSerializedArray(array, id);
 	}
 	
 	private void serializeArray (T) (T value, string key, Id id)
@@ -690,7 +692,8 @@ class Serializer
 				serializeInternal(e, toData(i));
 		});
 
-		addSerializedArray(array, id);
+		if (value.length > 0)
+			addSerializedArray(array, id);
 	}
 	
 	private void serializeAssociativeArray (T) (T value, string key, Id id)
@@ -1500,9 +1503,6 @@ class Serializer
 		{
 			foreach (arrayKey, array ; serializedArrays)
 			{
-				if (slice.length == 0 || array.length == 0)
-					continue;
-				
 				if (slice.isSliceOf(array) && slice != array)
 				{
 					auto s = Slice(slice.length, (slice.ptr - array.ptr) / slice.elementSize);
