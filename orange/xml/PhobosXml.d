@@ -485,7 +485,7 @@ string decode(string s, DecodeMode mode=DecodeMode.LOOSE)
 	if (mode == DecodeMode.NONE) return s;
 
 	char[] buffer;
-	for (int i=0; i<s.length; ++i)
+	for (size_t i=0; i<s.length; ++i)
 	{
 		char c = s[i];
 		if (c != '&')
@@ -624,71 +624,68 @@ class Document : Element
 		super(tag);
 	}
 
-	const
+	/**
+	 * Compares two Documents for equality
+	 *
+	 * Examples:
+	 * --------------
+	 * Document d1,d2;
+	 * if (d1 == d2) { }
+	 * --------------
+	 */
+	override bool opEquals(Object o)
 	{
-		/**
-		 * Compares two Documents for equality
-		 *
-		 * Examples:
-		 * --------------
-		 * Document d1,d2;
-		 * if (d1 == d2) { }
-		 * --------------
-		 */
-		override bool opEquals(Object o)
-		{
-			const doc = toType!(const Document)(o);
-			return
-				(prolog != doc.prolog			) ? false : (
-				(super  != cast(const Element)doc) ? false : (
-				(epilog != doc.epilog			) ? false : (
-			true )));
-		}
+		const doc = toType!(const Document)(o);
+		return
+			(prolog != doc.prolog			) ? false : (
+			(super  != cast(const Element)doc) ? false : (
+			(epilog != doc.epilog			) ? false : (
+		true )));
+	}
 
-		/**
-		 * Compares two Documents
-		 *
-		 * You should rarely need to call this function. It exists so that
-		 * Documents can be used as associative array keys.
-		 *
-		 * Examples:
-		 * --------------
-		 * Document d1,d2;
-		 * if (d1 < d2) { }
-		 * --------------
-		 */
-		override int opCmp(Object o)
-		{
-			const doc = toType!(const Document)(o);
-			return
-				((prolog != doc.prolog			)
-					? ( prolog < doc.prolog			 ? -1 : 1 ) :
-				((super  != cast(const Element)doc)
-					? ( super  < cast(const Element)doc ? -1 : 1 ) :
-				((epilog != doc.epilog			)
-					? ( epilog < doc.epilog			 ? -1 : 1 ) :
-			0 )));
-		}
+	/**
+	 * Compares two Documents
+	 *
+	 * You should rarely need to call this function. It exists so that
+	 * Documents can be used as associative array keys.
+	 *
+	 * Examples:
+	 * --------------
+	 * Document d1,d2;
+	 * if (d1 < d2) { }
+	 * --------------
+	 */
+	override int opCmp(Object o)
+	{
+		const doc = toType!(const Document)(o);
+		return
+			((prolog != doc.prolog			)
+				? ( prolog < doc.prolog			 ? -1 : 1 ) :
+			((super  != cast(const Element)doc)
+				? ( super  < cast(const Element)doc ? -1 : 1 ) :
+			((epilog != doc.epilog			)
+				? ( epilog < doc.epilog			 ? -1 : 1 ) :
+		0 )));
+	}
 
-		/**
-		 * Returns the hash of a Document
-		 *
-		 * You should rarely need to call this function. It exists so that
-		 * Documents can be used as associative array keys.
-		 */
-		override hash_t toHash()
-		{
-			return hash(prolog,hash(epilog,super.toHash));
-		}
+	/**
+	 * Returns the hash of a Document
+	 *
+	 * You should rarely need to call this function. It exists so that
+	 * Documents can be used as associative array keys.
+	 */
+	override hash_t toHash()
+	{
+		return hash(prolog,hash(epilog,super.toHash));
+	}
 
-		/**
-		 * Returns the string representation of a Document. (That is, the
-		 * complete XML of a document).
-		 */
-		override string toString()
-		{
-			return prolog ~ super.toString ~ epilog;
-		}
+	/**
+	 * Returns the string representation of a Document. (That is, the
+	 * complete XML of a document).
+	 */
+	override string toString() const
+	{
+		return prolog ~ super.toString ~ epilog;
 	}
 }
 
@@ -915,7 +912,7 @@ class Element : Item
 	override bool opEquals(Object o)
 	{
 		const element = toType!(const Element)(o);
-		uint len = items.length;
+		size_t len = items.length;
 		if (len != element.items.length) return false;
 		for (uint i=0; i<len; ++i)
 		{
@@ -2046,28 +2043,28 @@ class ElementParser
 			if (startsWith(*s,"<!--"))
 			{
 				chop(*s,4);
-				t = chop(*s,indexOf(*s,"-->"));
+				t = chop(*s,cast(int)indexOf(*s,"-->"));
 				if (commentHandler.funcptr !is null) commentHandler(t);
 				chop(*s,3);
 			}
 			else if (startsWith(*s,"<![CDATA["))
 			{
 				chop(*s,9);
-				t = chop(*s,indexOf(*s,"]]>"));
+				t = chop(*s,cast(int)indexOf(*s,"]]>"));
 				if (cdataHandler.funcptr !is null) cdataHandler(t);
 				chop(*s,3);
 			}
 			else if (startsWith(*s,"<!"))
 			{
 				chop(*s,2);
-				t = chop(*s,indexOf(*s,">"));
+				t = chop(*s,cast(int)indexOf(*s,">"));
 				if (xiHandler.funcptr !is null) xiHandler(t);
 				chop(*s,1);
 			}
 			else if (startsWith(*s,"<?"))
 			{
 				chop(*s,2);
-				t = chop(*s,indexOf(*s,"?>"));
+				t = chop(*s,cast(int)indexOf(*s,"?>"));
 				if (piHandler.funcptr !is null) piHandler(t);
 				chop(*s,2);
 			}
@@ -2148,7 +2145,7 @@ class ElementParser
 			}
 			else
 			{
-				t = chop(*s,indexOf(*s,"<"));
+				t = chop(*s,cast(int)indexOf(*s,"<"));
 				if (rawTextHandler.funcptr !is null)
 					rawTextHandler(t);
 				else if (textHandler.funcptr !is null)
@@ -2162,7 +2159,7 @@ class ElementParser
 	 */
 	const override string toString()
 	{
-		int n = elementStart.length - s.length;
+		size_t n = elementStart.length - s.length;
 		return elementStart[0..n];
 	}
 
@@ -2306,7 +2303,7 @@ private
 		mixin Check!("Comment");
 
 		try { checkLiteral("<!--",s); } catch(Err e) { fail(e); }
-		int n = s.indexOf("--");
+		sizediff_t n = s.indexOf("--");
 		if (n == -1) fail("unterminated comment");
 		s = s[n..$];
 		try { checkLiteral("-->",s); } catch(Err e) { fail(e); }
@@ -2646,7 +2643,7 @@ private
 	{
 		// Deliberately no mixin Check here.
 
-		int n = s.indexOf(end);
+		sizediff_t n = s.indexOf(end);
 		if (n == -1) throw new Err(s,"Unable to find terminating \""~end~"\"");
 		s = s[n..$];
 		checkLiteral(end,s);
@@ -2876,11 +2873,11 @@ class CheckException : XMLException
 	private void complete(string entire)
 	{
 		string head = entire[0..$-tail.length];
-		int n = head.lastIndexOf('\n') + 1;
-		line = head.count("\n") + 1;
+		sizediff_t n = head.lastIndexOf('\n') + 1;
+		line = cast(uint) head.count("\n") + 1;
 		dstring t;
 		transcode(head[n..$],t);
-		column = t.length + 1;
+		column = cast(uint) t.length + 1;
 		if (err !is null) err.complete(entire);
 	}
 
@@ -2914,7 +2911,7 @@ private
 
 	string chop(ref string s, int n)
 	{
-		if (n == -1) n = s.length;
+		if (n == -1) n = cast(int) s.length;
 		string t = s[0..n];
 		s = s[n..$];
 		return t;
@@ -3016,7 +3013,7 @@ private
 	{
 		while (table.length != 0)
 		{
-			int m = (table.length >> 1) & ~1;
+			size_t m = (table.length >> 1) & ~1;
 			if (c < table[m])
 			{
 				table = table[0..m];
