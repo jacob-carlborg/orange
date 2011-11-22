@@ -43,8 +43,8 @@ unittest
 			serializer.serialize(g);
 	
 			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Enum.G" type="G" key="0" id="0"`));
-			assert(archive.data().containsXmlTag("enum", `type="Foo" baseType="int" key="foo" id="1"`, "1"));
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Enum.G" type="tests.Enum.G" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("enum", `type="tests.Enum.Foo" baseType="int" key="foo" id="1"`, "1"));
 		};
 	};
 	

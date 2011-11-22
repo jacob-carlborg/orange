@@ -43,7 +43,7 @@ unittest
 			serializer.serialize(f);
 	
 			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.F" type="F" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.F" type="tests.Pointer.F" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("pointer", `key="ptr" id="2"`));
 			assert(archive.data().containsXmlTag("reference", `key="1"`, "1"));
 			assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));

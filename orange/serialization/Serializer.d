@@ -265,7 +265,7 @@ class Serializer
 	 * Params:
 	 *     type = the runtime type to register. For all types except classes the runtime type and the
 	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
 	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be serialized
 	 *     
@@ -307,7 +307,7 @@ class Serializer
 	 * Params:
 	 *     type = the runtime type to register. For all types except classes the runtime type and the
 	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
 	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be serialized
 	 *     
@@ -348,7 +348,7 @@ class Serializer
 	 * Params:
 	 *     type = the runtime type to register. For all types except classes the runtime type and the
 	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
 	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be deserialized
 	 *     
@@ -389,7 +389,7 @@ class Serializer
 	 * Params:
 	 *     type = the runtime type to register. For all types except classes the runtime type and the
 	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE Type.stringof) can be used.
+	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
 	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be deserialized
 	 *     
@@ -599,10 +599,12 @@ class Serializer
 
 	private void serializeObject (T) (T value, string key, Id id)
 	{
+		auto typeName = typeid(T).toString;
+		
 		static if (!isNonSerialized!(T)())
 		{
 			if (!value)
-				return archive.archiveNull(T.stringof, key);
+				return archive.archiveNull(typeName, key);
 
 			auto reference = getSerializedReference(value);
 
@@ -614,7 +616,7 @@ class Serializer
 			addSerializedReference(value, id);
 
 			triggerEvents(serializing, value, {
-				archive.archiveObject(runtimeType, T.stringof, key, id, {
+				archive.archiveObject(runtimeType, typeName, key, id, {
 					if (runtimeType in serializers)
 					{
 						auto wrapper = getSerializerWrapper!(T)(runtimeType);
@@ -632,7 +634,7 @@ class Serializer
 								(*serializer)(this, value, serializing);
 
 							else
-								error(`The object of the static type "` ~ T.stringof ~
+								error(`The object of the static type "` ~ typeName ~
 									`" have a different runtime type (` ~ runtimeType ~
 									`) and therefore needs to either register its type or register a serializer for its type "`
 									~ runtimeType ~ `".`, __LINE__);
@@ -650,7 +652,7 @@ class Serializer
 	{
 		static if (!isNonSerialized!(T)())
 		{
-			string type = T.stringof;
+			string type = typeid(T).toString;
 
 			triggerEvents(serializing, value, {
 				archive.archiveStruct(type, key, id, {
@@ -705,8 +707,8 @@ class Serializer
 
 		addSerializedReference(value, id);
 		
-		string keyType = KeyTypeOfAssociativeArray!(T).stringof;
-		string valueType = ValueTypeOfAssociativeArray!(T).stringof;
+		string keyType = typeid(KeyTypeOfAssociativeArray!(T)).toString;
+		string valueType = typeid(ValueTypeOfAssociativeArray!(T)).toString;
 		
 		archive.archiveAssociativeArray(keyType, valueType, value.length, key, id, {
 			size_t i;
@@ -727,9 +729,9 @@ class Serializer
 	}
 	
 	private void serializePointer (T) (T value, string key, Id id)
-	{
+	{	
 		if (!value)
-			return archive.archiveNull(T.stringof, key);
+			return archive.archiveNull(typeid(T).toString, key);
 		
 		auto reference = getSerializedReference(value);
 		
@@ -768,7 +770,7 @@ class Serializer
 	{
 		alias BaseTypeOfEnum!(T) EnumBaseType;
 		auto val = cast(EnumBaseType) value;
-		string type = T.stringof;
+		string type = typeid(T).toString;
 		
 		archive.archiveEnum(val, type, key, id);
 	}
@@ -780,7 +782,7 @@ class Serializer
 	
 	private void serializeTypedef (T) (T value, string key, Id id)
 	{
-		archive.archiveTypedef(T.stringof, key, nextId, {
+		archive.archiveTypedef(typeid(T).toString, key, nextId, {
 			serializeInternal!(BaseTypeOfTypedef!(T))(value, nextKey);
 		});
 	}
@@ -1016,7 +1018,7 @@ class Serializer
 								(*deserializer)(this, value, deserializing);
 
 							else
-								error(`The object of the static type "` ~ T.stringof ~
+								error(`The object of the static type "` ~ typeid(T).toString ~
 									`" have a different runtime type (` ~ runtimeType ~
 									`) and therefore needs to either register its type or register a deserializer for its type "`
 									~ runtimeType ~ `".`, __LINE__);
@@ -1046,7 +1048,7 @@ class Serializer
 
 			archive.unarchiveStruct(key, {
 				triggerEvents(deserializing, value, {
-					auto type = toData(T.stringof);
+					auto type = toData(typeid(T).toString);
 
 					if (type in deserializers)
 					{
@@ -1342,7 +1344,7 @@ class Serializer
 
 		static if (!is(Base == Object))
 		{
-			archive.archiveBaseClass(Base.stringof, nextKey, nextId);
+			archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
 			Base base = value;
 			objectStructSerializeHelper(base);
 		}
@@ -1546,13 +1548,9 @@ class Serializer
 		}
 	}
 	
-	private template arrayToString (T)
+	private string arrayToString (T) ()
 	{
-		version (Tango)
-			const arrayToString = ElementTypeOfArray!(T).stringof;
-			
-		else
-			mixin(`enum arrayToString = ElementTypeOfArray!(T).stringof;`);
+		return typeid(ElementTypeOfArray!(T)).toString;
 	}
 	
 	private bool isBaseClass (T) (T value)

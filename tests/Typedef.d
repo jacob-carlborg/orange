@@ -37,8 +37,8 @@ unittest
 			serializer.reset();
 			serializer.serialize(i);
 			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Typedef.I" type="I" key="0" id="0"`));
-			assert(archive.data().containsXmlTag("typedef", `type="Int" key="a" id="2"`));
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Typedef.I" type="tests.Typedef.I" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("typedef", `type="tests.Typedef.Int" key="a" id="2"`));
 			assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "1"));
 		};
 	};

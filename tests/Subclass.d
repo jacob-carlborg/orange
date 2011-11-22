@@ -42,9 +42,9 @@ unittest
 			serializer.serialize(sub);
 
 			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Subclass.Sub" type="Sub" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Subclass.Sub" type="tests.Subclass.Sub" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
-			assert(archive.data().containsXmlTag("base", `type="Base" key="1" id="2"`));
+			assert(archive.data().containsXmlTag("base", `type="tests.Subclass.Base" key="1" id="2"`));
 			assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
 		};
 	};

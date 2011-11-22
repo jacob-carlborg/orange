@@ -113,7 +113,7 @@ unittest
 			serializer.serialize(h);
 
 			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Primitive.H" type="H" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Primitive.H" type="tests.Primitive.H" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("bool", `key="bool_" id="1"`, "true"));
 			assert(archive.data().containsXmlTag("byte", `key="byte_" id="2"`, "1"));
 			assert(archive.data().containsXmlTag("char", `key="char_" id="3"`, "a"));
