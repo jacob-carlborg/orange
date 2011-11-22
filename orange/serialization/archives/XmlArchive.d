@@ -22,7 +22,7 @@ import orange.xml.XmlDocument;
  * 
  * Authors: doob
  */
-final class XmlArchive (U = char) : Base!(U)
+final class XmlArchive (U = char) : ArchiveBase!(U)
 {
 	private alias Archive.Id Id;
 	

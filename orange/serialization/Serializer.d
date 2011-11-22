@@ -1642,3 +1642,53 @@ class Serializer
 			errorCallback()(new SerializationException(message, __FILE__, line));
 	}
 }
+
+/**
+ * This struct is a type independent representation of an array. This struct is used
+ * when sending an array for archiving from the serializer to the archive.
+ */
+struct Array
+{
+	version (Tango)
+		/// The start address of the array.
+		void* ptr;
+		
+	else
+		/// The start address of the array.
+		mixin(`const(void)* ptr;`);
+
+	/// The length of the array
+	size_t length;
+	
+	/// The size of an individual element stored in the array, in bytes.
+	size_t elementSize;
+	
+	/**
+	 * Returns true if the given array is a slice of the receiver.
+	 * 
+	 * Params:
+	 *     b = the array to check if it's a slice 
+	 *     
+	 * Returns: true if the given array is a slice of the receiver.
+	 */
+	bool isSliceOf (Array b)
+	{
+		return ptr >= b.ptr && ptr + length * elementSize <= b.ptr + b.length * b.elementSize;
+	}
+}
+
+/**
+ * This struct is a type independent representation of a slice. This struct is used
+ * when sending a slice for archiving from the serializer to the archive.
+ */
+struct Slice
+{
+	/// The length of the slice.
+	size_t length;
+	
+	/// The offset of the slice, i.e. where the slice begins in the array.
+	size_t offset;
+	
+	/// The id of the slice. (Only used during unarchiving).
+	size_t id = size_t.max;
+}

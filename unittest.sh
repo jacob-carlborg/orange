@@ -11,5 +11,5 @@ orange/xml/*.d \
 tests/*.d
 
 if [ "$?" = 0 ] ; then
-	./unittest
+  ./unittest
 fi

@@ -19,64 +19,15 @@ else
 	private alias ConvException ConversionException;
 }
 
-import orange.serialization.SerializationException;
 import orange.core.string;
+import orange.serialization.SerializationException;
+import orange.serialization.Serializer;
 import orange.util.Traits;
 
 private enum ArchiveMode
 {
 	archiving,
 	unarchiving
-}
-
-/**
- * This struct is a type independent representation of an array. This struct is used
- * when sending an array for archiving from the serializer to the archive.
- */
-struct Array
-{
-	version (Tango)
-		/// The start address of the array.
-		void* ptr;
-		
-	else
-		/// The start address of the array.
-		mixin(`const(void)* ptr;`);
-
-	/// The length of the array
-	size_t length;
-	
-	/// The size of an individual element stored in the array, in bytes.
-	size_t elementSize;
-	
-	/**
-	 * Returns true if the given array is a slice of the receiver.
-	 * 
-	 * Params:
-	 *     b = the array to check if it's a slice 
-	 *     
-	 * Returns: true if the given array is a slice of the receiver.
-	 */
-	bool isSliceOf (Array b)
-	{
-		return ptr >= b.ptr && ptr + length * elementSize <= b.ptr + b.length * b.elementSize;
-	}
-}
-
-/**
- * This struct is a type independent representation of a slice. This struct is used
- * when sending a slice for archiving from the serializer to the archive.
- */
-struct Slice
-{
-	/// The length of the slice.
-	size_t length;
-	
-	/// The offset of the slice, i.e. where the slice begins in the array.
-	size_t offset;
-	
-	/// The id of the slice. (Only used during unarchiving).
-	size_t id = size_t.max;
 }
 
 /**
@@ -412,11 +363,11 @@ interface Archive
 	 * 
 	 * Examples:
 	 * ---
-	 * class Base {}
-	 * class Foo : Base {}
+	 * class ArchiveBase {}
+	 * class Foo : ArchiveBase {}
 	 * 
 	 * auto archive = new XmlArchive!();
-	 * archive.archiveBaseClass("Base", "base", 0);
+	 * archive.archiveBaseClass("ArchiveBase", "base", 0);
 	 * ---
 	 * 
 	 * Params:
@@ -1255,7 +1206,7 @@ interface Archive
  * Most of the examples below are assumed to be in a sub class to this class and
  * with $(I string) as the data type.
  */
-abstract class Base (U) : Archive
+abstract class ArchiveBase (U) : Archive
 {
 	/// The typed used to represent the archived data in a typed form.
 	version (Tango) alias U[] Data;
@@ -1429,30 +1380,6 @@ abstract class Base (U) : Archive
 	protected Id toId (Data value)
 	{
 		return fromData!(Id)(value);
-	}
-	
-	/**
-	 * Returns true if $(I b) is a slice of $(I a).
-	 * 
-	 * Examples:
-	 * ---
-	 * auto arr = [1, 2, 3, 4];
-	 * auto slice = arr[1 .. 3];
-	 * assert(slice.isSliceOf(arr));
-	 * ---
-	 * 
-	 * Params:
-	 *     a = the first array
-	 *     b = the second array
-	 *      
-	 * Returns: true if $(I a) is a slice of $(I b)
-	 */
-	protected bool isSliceOf (T, U = T) (T[] a, U[] b)
-	{
-		void* aPtr = a.ptr;
-		void* bPtr = b.ptr;
-		
-		return aPtr >= bPtr && aPtr + a.length * T.sizeof <= bPtr + b.length * U.sizeof;
 	}
 	
 	/**
