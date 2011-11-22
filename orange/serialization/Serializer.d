@@ -288,9 +288,9 @@ class Serializer
 	 * See_Also: registerDeserializer
 	 * See_Also: Serializable.toData
 	 */
-	void registerSerializer (T) (string type, void delegate (T, Serializer, Data) dg)
+	void registerSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
 	{
-		serializers[type] = toSerializeRegisterWrapper(dg);
+		serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
 	}
 
 
@@ -330,9 +330,9 @@ class Serializer
 	 * See_Also: registerDeserializer
 	 * See_Also: Serializable.toData
 	 */
-	void registerSerializer (T) (string type, void function (T, Serializer, Data) func)
+	void registerSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
 	{
-		serializers[type] = toSerializeRegisterWrapper(func);
+		serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
 	}
 
 	/**
@@ -371,9 +371,9 @@ class Serializer
 	 * See_Also: registerSerializer
 	 * See_Also: Serializable.fromData
 	 */
-	void registerDeserializer (T) (string type, void delegate (ref T, Serializer, Data) dg)
+	void registerDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
 	{
-		deserializers[type] = toDeserializeRegisterWrapper(dg);
+		deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
 	}
 	
 	/**
@@ -412,9 +412,9 @@ class Serializer
 	 * See_Also: registerSerializer
 	 * See_Also: Serializable.fromData
 	 */
-	void registerDeserializer (T) (string type, void function (ref T, Serializer, Data) func)
+	void registerDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
 	{
-		deserializers[type] = toDeserializeRegisterWrapper(func);
+		deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
 	}
 	
 	/// Returns the receivers archive

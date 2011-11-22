@@ -55,8 +55,8 @@ unittest
 	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 	
-	serializer.registerSerializer(Foo.classinfo.name, &toData);
-	serializer.registerDeserializer(Foo.classinfo.name, &fromData);
+	serializer.registerSerializer!(Foo)(&toData);
+	serializer.registerDeserializer!(Foo)(&fromData);
 	
 	foo = new Foo;
 	foo.a = 3;
