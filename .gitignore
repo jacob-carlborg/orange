@@ -17,3 +17,4 @@ lib
 import
 unittest
 *.exe
+*.orb
