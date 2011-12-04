@@ -4,4 +4,3 @@ version "1.0.0"
 files Dir["**"/"*.{d,conf,png,markdown,sh}"] << "Makefile"
 libraries %w[orange]
 build "dsss"
-orb "orange"
