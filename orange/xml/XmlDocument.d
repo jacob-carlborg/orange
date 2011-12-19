@@ -255,7 +255,11 @@ final class XmlDocument (T = char)
 		/// Returns a foreach iterator for node attributes.
 		VisitorProxy attributes ()
 		{
-			return VisitorProxy(node.attributes);
+			version (Tango)
+				return VisitorProxy(node.attributes);
+
+			else
+				return VisitorProxy(cast(VisitorType) node.attributes);
 		}
 		
 		/// Return an XPath handle to query the receiver.

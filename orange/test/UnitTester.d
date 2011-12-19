@@ -667,7 +667,7 @@ class UnitTester
 		return str;
 	}
 	
-	string pluralize (string str, int value)
+	string pluralize (string str, size_t value)
 	{
 		if (value == 1)
 			return str;
