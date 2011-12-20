@@ -288,7 +288,7 @@ class Serializer
 	 * 	// perform serialization
 	 * };
 	 * 
-	 * serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * Serializer.registerSerializer(Foo.classinfo.name, dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -330,7 +330,7 @@ class Serializer
 	 * 	// perform serialization
 	 * };
 	 * 
-	 * serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * Serializer.registerSerializer(Foo.classinfo.name, dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -371,7 +371,7 @@ class Serializer
 	 * 	// perform deserialization
 	 * };
 	 * 
-	 * serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * Serializer.registerDeserializer(Foo.classinfo.name, dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -412,7 +412,7 @@ class Serializer
 	 * 	// perform deserialization
 	 * };
 	 * 
-	 * serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * Serializer.registerDeserializer(Foo.classinfo.name, dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -424,21 +424,133 @@ class Serializer
 		Serializer.deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
 	}
 	
+	/**
+	 * Overrides a globally registered serializer for the given type with a serializer
+	 * local to the receiver.
+	 * 
+	 * The receiver will first check if a local serializer is registered, otherwise a global
+	 * serializer will be used (if available).
+	 * 
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (Base value, Serializer serializer, Data key) {
+	 * 	// perform serialization
+	 * };
+	 * 
+	 * Serializer.registerSerializer!(Foo)(dg);
+	 * 
+	 * auto o = (Base value, Serializer serializer, Data key) {
+	 * 	// this will override the above serializer
+	 * }
+	 * 
+	 * serializer.overrideSerializer!(Foo)(o);
+	 * ---
+	 */
 	void overrideSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
 	{
 		overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
 	}
 	
+	/**
+	 * Overrides a globally registered serializer for the given type with a serializer
+	 * local to the receiver.
+	 * 
+	 * The receiver will first check if a local serializer is registered, otherwise a global
+	 * serializer will be used (if available).
+	 * 
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * void func (Base value, Serializer serializer, Data key) {
+	 * 	// perform serialization
+	 * };
+	 * 
+	 * Serializer.registerSerializer!(Foo)(&func);
+	 * 
+	 * void o (Base value, Serializer serializer, Data key) {
+	 * 	// this will override the above serializer
+	 * }
+	 * 
+	 * serializer.overrideSerializer!(Foo)(&o);
+	 * ---
+	 */
 	void overrideSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
 	{
 		overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
 	}
 	
+	/**
+	 * Overrides a globally registered deserializer for the given type with a deserializer
+	 * local to the receiver.
+	 * 
+	 * The receiver will first check if a local deserializer is registered, otherwise a global
+	 * deserializer will be used (if available).
+	 * 
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * auto dg = (ref Base value, Serializer serializer, Data key) {
+	 * 	// perform deserialization
+	 * };
+	 * 
+	 * Serializer.registerSerializer!(Foo)(dg);
+	 * 
+	 * auto o = (ref Base value, Serializer serializer, Data key) {
+	 * 	// this will override the above deserializer
+	 * }
+	 * 
+	 * serializer.overrideSerializer!(Foo)(o);
+	 * ---
+	 */
 	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
 	{
 		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
 	}
 
+	/**
+	 * Overrides a globally registered deserializer for the given type with a deserializer
+	 * local to the receiver.
+	 * 
+	 * The receiver will first check if a local deserializer is registered, otherwise a global
+	 * deserializer will be used (if available).
+	 * 
+	 * Examples:
+	 * ---
+	 * class Base {}
+	 * class Foo : Base {}
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * auto serializer = new Serializer(archive);
+	 * 
+	 * void func (ref Base value, Serializer serializer, Data key) {
+	 * 	// perform deserialization
+	 * };
+	 * 
+	 * Serializer.registerSerializer!(Foo)(&func);
+	 * 
+	 * void overrideFunc (ref Base value, Serializer serializer, Data key) {
+	 * 	// this will override the above deserializer
+	 * }
+	 * 
+	 * serializer.overrideSerializer!(Foo)(&overrideFunc);
+	 * ---
+	 */
 	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
 	{
 		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
