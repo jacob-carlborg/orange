@@ -45,8 +45,6 @@ Base base;
 
 unittest
 {
-	Serializer.register!(Sub);
-	
 	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 
@@ -57,6 +55,7 @@ unittest
 
 	describe("serialize subclass through a base class reference") in {
 		it("should return serialized subclass with the static type \"Base\" and the runtime type \"tests.BaseClass.Sub\"") in {
+			Serializer.register!(Sub);
 			serializer.serialize(base);
 	
 			assert(archive.data().containsDefaultXmlContent());

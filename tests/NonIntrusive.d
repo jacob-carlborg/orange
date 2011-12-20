@@ -55,9 +55,6 @@ unittest
 	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 	
-	serializer.registerSerializer!(Foo)(&toData);
-	serializer.registerDeserializer!(Foo)(&fromData);
-	
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
@@ -66,6 +63,9 @@ unittest
 
 	describe("serialize object using a non-intrusive method") in {
 		it("should return a custom serialized object") in {
+			Serializer.registerSerializer!(Foo)(&toData);
+			Serializer.registerDeserializer!(Foo)(&fromData);
+			
 			serializer.serialize(foo);
 
 			assert(archive.data().containsDefaultXmlContent());
@@ -89,6 +89,8 @@ unittest
 			assert(foo.x == f.x);
 
 			assert(i == 5);
+			
+			Serializer.resetSerializers;
 		};
 	};
 }

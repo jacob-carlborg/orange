@@ -148,15 +148,20 @@ class Serializer
 			string key;
 		}
 		
-		static void function (Serializer serializer, Object, Mode mode) [ClassInfo] registeredTypes;
+		static
+		{
+			void function (Serializer serializer, Object, Mode mode) [ClassInfo] registeredTypes;
+			RegisterBase[string] serializers;
+			RegisterBase[string] deserializers;
+		}
 
 		Archive archive_;
 		
 		size_t keyCounter;
 		Id idCounter;
 		
-		RegisterBase[string] serializers;
-		RegisterBase[string] deserializers;
+		RegisterBase[string] overriddenSerializers;
+		RegisterBase[string] overriddenDeserializers;
 		
 		Id[void*] serializedReferences;
 		void*[Id] deserializedReferences;
@@ -175,6 +180,8 @@ class Serializer
 		
 		void delegate (SerializationException exception) throwOnErrorCallback;
 		void delegate (SerializationException exception) doNothingOnErrorCallback;
+		
+		Mode mode;
 	}
 	
 	/**
@@ -288,9 +295,9 @@ class Serializer
 	 * See_Also: registerDeserializer
 	 * See_Also: Serializable.toData
 	 */
-	void registerSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
+	static void registerSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
 	{
-		serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
+		Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
 	}
 
 
@@ -330,9 +337,9 @@ class Serializer
 	 * See_Also: registerDeserializer
 	 * See_Also: Serializable.toData
 	 */
-	void registerSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
+	static void registerSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
 	{
-		serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
+		Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
 	}
 
 	/**
@@ -371,9 +378,9 @@ class Serializer
 	 * See_Also: registerSerializer
 	 * See_Also: Serializable.fromData
 	 */
-	void registerDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+	static void registerDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
 	{
-		deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
+		Serializer.deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
 	}
 	
 	/**
@@ -412,9 +419,29 @@ class Serializer
 	 * See_Also: registerSerializer
 	 * See_Also: Serializable.fromData
 	 */
-	void registerDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
+	static void registerDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
 	{
-		deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
+		Serializer.deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
+	}
+	
+	void overrideSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
+	{
+		overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
+	}
+	
+	void overrideSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
+	{
+		overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
+	}
+	
+	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+	{
+		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
+	}
+
+	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+	{
+		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
 	}
 	
 	/// Returns the receivers archive
@@ -454,6 +481,19 @@ class Serializer
 	}
 	
 	/**
+	 * Resets all registered (de)serializers registered via the "registerSerializer" method.
+	 * This method will not reset the overridden (de)serializers.
+	 * 
+	 * See_Also: registerSerializer
+	 * See_Also: registerDeserializer
+	 */ 
+	static void resetSerializers ()
+	{
+		serializers = null;
+		deserializers = null;
+	}
+	
+	/**
 	 * Resets the serializer.
 	 * 
 	 * All internal data is reset, including the archive. After calling this method the
@@ -463,8 +503,8 @@ class Serializer
 	{
 		resetCounters();
 		
-		serializers = null;
-		deserializers = null;
+		overriddenSerializers = null;
+		overriddenDeserializers = null;
 		
 		serializedReferences = null;
 		deserializedReferences = null;
@@ -482,6 +522,8 @@ class Serializer
 		hasBegunDeserializing = false;
 		
 		archive.reset;
+		
+		mode = Mode.init;
 	}
 	
 	/**
@@ -507,6 +549,8 @@ class Serializer
 	 */
 	Data serialize (T) (T value, string key = null)
 	{
+		mode = serializing;
+		
 		if (!hasBegunSerializing)
 			hasBegunSerializing = true;
 		
@@ -615,13 +659,13 @@ class Serializer
 
 			addSerializedReference(value, id);
 
-			triggerEvents(serializing, value, {
+			triggerEvents(value, {
 				archive.archiveObject(runtimeType, typeName, key, id, {
-					if (runtimeType in serializers)
-					{
-						auto wrapper = getSerializerWrapper!(T)(runtimeType);
-						wrapper(value, this, key);
-					}
+					if (auto serializer = runtimeType in overriddenSerializers)
+						callSerializer(serializer, value, key);
+					
+					else if (auto serializer = runtimeType in Serializer.serializers)
+						callSerializer(serializer, value, key);
 
 					else static if (isSerializable!(T))
 						value.toData(this, key);
@@ -654,13 +698,13 @@ class Serializer
 		{
 			string type = typeid(T).toString;
 
-			triggerEvents(serializing, value, {
+			triggerEvents(value, {
 				archive.archiveStruct(type, key, id, {
-					if (type in serializers)
-					{
-						auto wrapper = getSerializerWrapper!(T)(type);
-						wrapper(value, this, key);
-					}
+					if (auto serializer = type in overriddenSerializers)
+						callSerializer(serializer, value, key);
+					
+					else if (auto serializer = type in Serializer.serializers)
+						callSerializer(serializer, value, key);
 
 					else
 					{
@@ -741,11 +785,11 @@ class Serializer
 		addSerializedReference(value, id);
 
 		archive.archivePointer(key, id, {
-			if (key in serializers)
-			{
-				auto wrapper = getSerializerWrapper!(T)(key);
-				wrapper(value, this, key);
-			}
+			if (auto serializer = key in overriddenSerializers)
+				callSerializer(serializer, value, key);
+			
+			else if (auto serializer = key in Serializer.serializers)
+				callSerializer(serializer, value, key);
 			
 			else static if (isSerializable!(T))
 				value.toData(this, key);
@@ -816,6 +860,8 @@ class Serializer
 	 */
 	T deserialize (T) (Data data, string key = "")
 	{
+		mode = deserializing;
+		
 		if (hasBegunSerializing && !hasBegunDeserializing)
 			resetCounters();
 		
@@ -997,15 +1043,15 @@ class Serializer
 			nextId;
 
 			archive.unarchiveObject(keyOrId, id, val, {
-				triggerEvents(deserializing, cast(T) val, {
+				triggerEvents(cast(T) val, {
 					value = cast(T) val;
 					auto runtimeType = value.classinfo.name;
+					
+					if (auto deserializer = runtimeType in overriddenDeserializers)
+						callSerializer(deserializer, value, keyOrId);
 
-					if (runtimeType in deserializers)
-					{
-						auto wrapper = getDeserializerWrapper!(T)(runtimeType);
-						wrapper(value, this, keyOrId);
-					}
+					else if (auto deserializer = runtimeType in Serializer.deserializers)
+						callSerializer(deserializer, value, keyOrId);
 
 					else static if (isSerializable!(T))
 						value.fromData(this, keyOrId);
@@ -1047,14 +1093,14 @@ class Serializer
 			nextId;
 
 			archive.unarchiveStruct(key, {
-				triggerEvents(deserializing, value, {
+				triggerEvents(value, {
 					auto type = toData(typeid(T).toString);
 
-					if (type in deserializers)
-					{
-						auto wrapper = getDeserializerWrapper!(T)(type);
-						wrapper(value, this, key);
-					}
+					if (auto deserializer = type in overriddenDeserializers)
+						callSerializer(deserializer, value, key);
+
+					else if (auto deserializer = type in Serializer.deserializers)
+						callSerializer(deserializer, value, key);
 
 					else
 					{
@@ -1192,11 +1238,11 @@ class Serializer
 		T value = new BaseTypeOfPointer!(T);
 		
 		auto pointerId = archive.unarchivePointer(key, {
-			if (key in deserializers)
-			{
-				auto wrapper = getDeserializerWrapper!(T)(key);
-				wrapper(value, this, key);
-			}
+			if (auto deserializer = key in overriddenDeserializers)
+				callSerializer(deserializer, value, key);
+			
+			else if (auto deserializer = key in Serializer.deserializers)
+				callSerializer(deserializer, value, key);
 			
 			else static if (isSerializable!(T))
 				value.fromData(this, key);
@@ -1445,43 +1491,38 @@ class Serializer
 	{
 		return array[slice.offset .. slice.offset + slice.length];
 	}
-	
-	private SerializeRegisterWrapper!(T) getSerializerWrapper (T) (string type)
-	{
-		auto wrapper = cast(SerializeRegisterWrapper!(T)) serializers[type];
-		
-		if (wrapper)
-			return wrapper;
-		
-		assert(0, "this shouldn't happen");
-	}
 
-	private DeserializeRegisterWrapper!(T) getDeserializerWrapper (T) (string type)
+	void callSerializer (T) (RegisterBase* baseWrapper, ref T value, string key)
 	{
-		auto wrapper = cast(DeserializeRegisterWrapper!(T)) deserializers[type];
+		if (mode == serializing)
+		{
+			auto wrapper = cast(SerializeRegisterWrapper!(T)) *baseWrapper;
+			wrapper(value, this, key);
+		}
 		
-		if (wrapper)
-			return wrapper;
-		
-		assert(0, "this shouldn't happen");
+		else
+		{
+			auto wrapper = cast(DeserializeRegisterWrapper!(T)) *baseWrapper;
+			wrapper(value, this, key);
+		}
 	}
 	
-	private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, Data) dg)
+	static private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, Data) dg)
 	{		
 		return new SerializeRegisterWrapper!(T)(dg);
 	}
 
-	private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void function (T, Serializer, Data) func)
+	static private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void function (T, Serializer, Data) func)
 	{		
 		return new SerializeRegisterWrapper!(T)(func);
 	}
 
-	private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, Data) dg)
+	static private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, Data) dg)
 	{		
 		return new DeserializeRegisterWrapper!(T)(dg);
 	}
 
-	private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, Data) func)
+	static private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void function (ref T, Serializer, Data) func)
 	{		
 		return new DeserializeRegisterWrapper!(T)(func);
 	}
@@ -1590,7 +1631,7 @@ class Serializer
 		}
 	}
 	
-	private void triggerEvents (T) (Mode mode, T value, void delegate () dg)
+	private void triggerEvents (T) (T value, void delegate () dg)
 	{
 		if (mode == serializing)
 			triggerEvent!(onSerializingField)(value);
