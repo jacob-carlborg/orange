@@ -551,9 +551,9 @@ class Serializer
 	 * serializer.overrideSerializer!(Foo)(&overrideFunc);
 	 * ---
 	 */
-	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+	void overrideDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
 	{
-		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
+		overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
 	}
 	
 	/// Returns the receivers archive
