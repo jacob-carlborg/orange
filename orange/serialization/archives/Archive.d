@@ -83,7 +83,7 @@ private enum ArchiveMode
  * In the above example the archive have to make sure that any values archived by
  * the callback (the delegate) get archived as an element of the array. The same
  * principle applies to objects, structs, associative arrays and other
- * non-primitive that accepts an delegate as a parameter.
+ * non-primitives that accepts a delegate as a parameter.
  * 
  * An archive implementation needs to be able to handle errors, like missing values
  * in the serialized data, without throwing exceptions. This is because the
@@ -155,7 +155,6 @@ interface Archive
 	void beginArchiving ();
 	
 	/**
-	 * There are a couple of limitations when implementing a new archive, this is due
 	 * Begins the unarchiving process. Call this method before unarchiving any values.
 	 * 
 	 * Params:
@@ -426,7 +425,7 @@ interface Archive
 	 * 
 	 * If a pointer points to a value that is serialized as well, the pointer should be
 	 * archived as a reference. Otherwise the value that the pointer points to should be
-	 * seriailzed as a regular value.
+	 * serialized as a regular value.
 	 * 
 	 * Examples:
 	 * ---
@@ -897,13 +896,6 @@ interface Archive
 	void unarchiveBaseClass (string key);
 	
 	/**
-	 * 
-	 * Params:
-	 *     key =
-	 */
-	//void unarchiveNull (string key);
-	
-	/**
 	 * Unarchives the object associated with the given key.
 	 * 
 	 * Examples:
@@ -1170,9 +1162,9 @@ interface Archive
 	/**
 	 * Performs post processing of the array associated with the given id.
 	 * 
-	 * Post processing can bascailly be anything that the archive wants to do. This
-	 * method is called by the seriailzer once for each seriailzed array at the end of
-	 * the seriailzation process when all values have been seriailzed.
+	 * Post processing can basically be anything that the archive wants to do. This
+	 * method is called by the serializer once for each serialized array at the end of
+	 * the serialization process when all values have been serialized.
 	 * 
 	 * With this method the archive has a last chance of changing an archived array to
 	 * an archived slice instead.
@@ -1185,9 +1177,9 @@ interface Archive
 	/**
 	 * Performs post processing of the pointer associated with the given id.
 	 * 
-	 * Post processing can bascailly be anything that the archive wants to do. This
-	 * method is called by the seriailzer once for each seriailzed pointer at the end of
-	 * the seriailzation process when all values have been seriailzed.
+	 * Post processing can basically be anything that the archive wants to do. This
+	 * method is called by the serializer once for each serialized pointer at the end of
+	 * the serialization process when all values have been serialized.
 	 * 
 	 * With this method the archive has a last chance of changing an archived pointer to
 	 * an archived reference instead.
@@ -1199,8 +1191,8 @@ interface Archive
 }
 
 /**
- * This class serves as an optinal base class for archive implementations. It
- * contains some utility methods that can be helpfull when creating a new archive
+ * This class serves as an optional base class for archive implementations. It
+ * contains some utility methods that can be helpful when creating a new archive
  * implementation.
  * 
  * Most of the examples below are assumed to be in a sub class to this class and
