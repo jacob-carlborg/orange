@@ -652,7 +652,7 @@ class Serializer
 	 *    
 	 * Returns: return the serialized data, in an untyped format. 
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	Data serialize (T) (T value, string key = null)
 	{
@@ -690,7 +690,7 @@ class Serializer
 	 * }
 	 * ---
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	void serializeBase (T) (T value)
 	{
@@ -963,7 +963,7 @@ class Serializer
 	 * Returns: the deserialized value. A different runtime type can be returned
 	 * 			if the given type is a base class.
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	T deserialize (T) (Data data, string key = "")
 	{
@@ -991,7 +991,7 @@ class Serializer
 	 * This method should only be called when performing custom an deserializing a value
 	 * that is part of an class or struct. If this method is called before that actual
 	 * deserialization process has begun an SerializationException will be thrown.
-	 * Use this method if a key was specfied during the serialization process.
+	 * Use this method if a key was specified during the serialization process.
 	 * 
 	 * Examples:
 	 * ---
@@ -1013,9 +1013,9 @@ class Serializer
 	 * 			if the given type is a base class.
 	 * 
 	 * Throws: SerializationException if this method is called before
-	 * 		   the actuall deserialization process has begun.
+	 * 		   the actual deserialization process has begun.
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	T deserialize (T) (string key)
 	{
@@ -1032,7 +1032,7 @@ class Serializer
 	 * This method should only be called when performing custom an deserializing a value
 	 * that is part of an class or struct. If this method is called before that actual
 	 * deserialization process has begun an SerializationException will be thrown.
-	 * Use this method if no key was specfied during the serialization process.
+	 * Use this method if no key was specified during the serialization process.
 	 * 
 	 * Examples:
 	 * ---
@@ -1054,9 +1054,9 @@ class Serializer
 	 * 			if the given type is a base class.
 	 * 
 	 * Throws: SerializationException if this method is called before
-	 * 		   the actuall deserialization process has begun.
+	 * 		   the actual deserialization process has begun.
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	T deserialize (T) ()
 	{
@@ -1087,7 +1087,7 @@ class Serializer
 	 * }
 	 * ---
 	 * 
-	 * Throws: SerializationException if an error occures
+	 * Throws: SerializationException if an error occurs
 	 */
 	void deserializeBase (T) (T value)
 	{
