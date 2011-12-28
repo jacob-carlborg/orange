@@ -60,7 +60,7 @@ private
  * They can also be used by the user to give a name to a value. Keys are unique within
  * it's scope.
  * 
- * ID's are an unique identifier associated with each serializeed value. The serializer
+ * ID's are an unique identifier associated with each serialized value. The serializer
  * uses the ID's to track values when (de)serializing reference types. An ID is unique
  * across the whole serialized data.
  * 
@@ -270,10 +270,6 @@ class Serializer
 	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = the runtime type to register. For all types except classes the runtime type and the
-	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
-	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be serialized
 	 *     
 	 * Examples:
@@ -288,7 +284,7 @@ class Serializer
 	 * 	// perform serialization
 	 * };
 	 * 
-	 * Serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * Serializer.registerSerializer!(Foo)(dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -299,7 +295,6 @@ class Serializer
 	{
 		Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
 	}
-
 
 	/**
 	 * Registers a serializer for the given type.
@@ -312,10 +307,6 @@ class Serializer
 	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = the runtime type to register. For all types except classes the runtime type and the
-	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
-	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be serialized
 	 *     
 	 * Examples:
@@ -326,11 +317,11 @@ class Serializer
 	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
-	 * auto dg = (Base value, Serializer serializer, Data key) {
+	 * void func (Base value, Serializer serializer, Data key) {
 	 * 	// perform serialization
-	 * };
+	 * }
 	 * 
-	 * Serializer.registerSerializer(Foo.classinfo.name, dg);
+	 * Serializer.registerSerializer!(Foo)(&func);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -353,10 +344,6 @@ class Serializer
 	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = the runtime type to register. For all types except classes the runtime type and the
-	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
-	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be deserialized
 	 *     
 	 * Examples:
@@ -371,7 +358,7 @@ class Serializer
 	 * 	// perform deserialization
 	 * };
 	 * 
-	 * Serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * Serializer.registerDeserializer!(Foo)(dg);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -394,10 +381,6 @@ class Serializer
 	 * types or when otherwise chaining an already existing type is not desired.
 	 * 
 	 * Params:
-	 *     type = the runtime type to register. For all types except classes the runtime type and the
-	 *     		  static (compile time) type is the same. For classes use
-	 *     		  $(D_CODE Class.classinfo.name). For other types $(D_CODE typeid(Type).toString) can be used.
-	 *     
 	 *     dg = the callback that will be called when value of the given type is about to be deserialized
 	 *     
 	 * Examples:
@@ -408,11 +391,11 @@ class Serializer
 	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * 
-	 * auto dg = (ref Base value, Serializer serializer, Data key) {
+	 * void func (ref Base value, Serializer serializer, Data key) {
 	 * 	// perform deserialization
-	 * };
+	 * }
 	 * 
-	 * Serializer.registerDeserializer(Foo.classinfo.name, dg);
+	 * Serializer.registerDeserializer!(Foo)(&func);
 	 * ---
 	 * 
 	 * See_Also: register
@@ -431,6 +414,9 @@ class Serializer
 	 * The receiver will first check if a local serializer is registered, otherwise a global
 	 * serializer will be used (if available).
 	 * 
+	 * Params:
+	 *     dg = the callback that will be called when value of the given type is about to be serialized
+	 * 
 	 * Examples:
 	 * ---
 	 * class Base {}
@@ -445,11 +431,11 @@ class Serializer
 	 * 
 	 * Serializer.registerSerializer!(Foo)(dg);
 	 * 
-	 * auto o = (Base value, Serializer serializer, Data key) {
+	 * auto overrideDg = (Base value, Serializer serializer, Data key) {
 	 * 	// this will override the above serializer
 	 * }
 	 * 
-	 * serializer.overrideSerializer!(Foo)(o);
+	 * serializer.overrideSerializer!(Foo)(overrideDg);
 	 * ---
 	 */
 	void overrideSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
@@ -464,6 +450,9 @@ class Serializer
 	 * The receiver will first check if a local serializer is registered, otherwise a global
 	 * serializer will be used (if available).
 	 * 
+	 * Params:
+	 *     dg = the callback that will be called when value of the given type is about to be serialized
+	 * 
 	 * Examples:
 	 * ---
 	 * class Base {}
@@ -474,15 +463,15 @@ class Serializer
 	 * 
 	 * void func (Base value, Serializer serializer, Data key) {
 	 * 	// perform serialization
-	 * };
+	 * }
 	 * 
 	 * Serializer.registerSerializer!(Foo)(&func);
 	 * 
-	 * void o (Base value, Serializer serializer, Data key) {
+	 * void overrideFunc (Base value, Serializer serializer, Data key) {
 	 * 	// this will override the above serializer
 	 * }
 	 * 
-	 * serializer.overrideSerializer!(Foo)(&o);
+	 * serializer.overrideSerializer!(Foo)(&overrideFunc);
 	 * ---
 	 */
 	void overrideSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
@@ -496,6 +485,9 @@ class Serializer
 	 * 
 	 * The receiver will first check if a local deserializer is registered, otherwise a global
 	 * deserializer will be used (if available).
+	 * 
+	 * Params:
+	 *     dg = the callback that will be called when value of the given type is about to be deserialized
 	 * 
 	 * Examples:
 	 * ---
@@ -511,11 +503,11 @@ class Serializer
 	 * 
 	 * Serializer.registerSerializer!(Foo)(dg);
 	 * 
-	 * auto o = (ref Base value, Serializer serializer, Data key) {
+	 * auto overrideDg = (ref Base value, Serializer serializer, Data key) {
 	 * 	// this will override the above deserializer
-	 * }
+	 * };
 	 * 
-	 * serializer.overrideSerializer!(Foo)(o);
+	 * serializer.overrideSerializer!(Foo)(overrideDg);
 	 * ---
 	 */
 	void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
@@ -530,6 +522,9 @@ class Serializer
 	 * The receiver will first check if a local deserializer is registered, otherwise a global
 	 * deserializer will be used (if available).
 	 * 
+	 * Params:
+	 *     dg = the callback that will be called when value of the given type is about to be deserialized
+	 * 
 	 * Examples:
 	 * ---
 	 * class Base {}
@@ -540,7 +535,7 @@ class Serializer
 	 * 
 	 * void func (ref Base value, Serializer serializer, Data key) {
 	 * 	// perform deserialization
-	 * };
+	 * }
 	 * 
 	 * Serializer.registerSerializer!(Foo)(&func);
 	 * 
