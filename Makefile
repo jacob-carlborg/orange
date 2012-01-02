@@ -1,6 +1,10 @@
-LIBNAME		=	orange
-SRC			=	\
-	core/io.d \
+LIBNAME=orange
+DC=dmd
+PREFIX=/usr/local
+LIBDIR=lib/$(MODEL)
+ARCH=$(shell arch || uname -m)
+
+SRC=core/io.d \
 	core/string.d \
 	core/_.d \
 	serialization/Events.d \
@@ -21,47 +25,76 @@ SRC			=	\
 	util/collection/_.d \
 	xml/PhobosXml.d \
 	xml/XmlDocument.d \
-	xml/_.d \
+	xml/_.d
 
-DC			=	dmd
-DCFLAGS		=	-I/usr/include/d -I/usr/local/include/d
+UNITTEST=tests/Array.d \
+	tests/AssociativeArray.d \
+	tests/AssociativeArrayReference.d \
+	tests/BaseClass.d \
+	tests/Custom.d \
+	tests/Enum.d \
+	tests/Event.d \
+	tests/Events.d \
+	tests/NonIntrusive.d \
+	tests/NonSerialized.d \
+	tests/Object.d \
+	tests/OverrideSerializer.d \
+	tests/Pointer.d \
+	tests/Primitive.d \
+	tests/Slice.d \
+	tests/String.d \
+	tests/Struct.d \
+	tests/Subclass.d \
+	tests/Typedef.d \
+	tests/unittest.d \
+	tests/Util.d
 
+TEST=test/UnitTester.d
 
-UNITTEST = test/UnitTester.d \
-	tests/Serializer.d \
-	tests/all.d \
+ifdef MODEL
+	DCFLAGS=-m$(MODEL)
+else ifeq ("$(ARCH)", "x86_64")
+	DCFLAGS=-m64
+	override MODEL=64
+else
+	DCFLAGS=-m32
+	override MODEL=32
+endif
 
 # Everything below this line should be fairly generic (with a few hard-coded things).
 
-OBJ         =   $(addsuffix .o,$(addprefix $(LIBNAME)/,$(basename $(SRC))))
-TARGET		=	lib/lib$(LIBNAME).a
+OBJ=$(addsuffix .o,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
+HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
+TARGET=$(LIBDIR)/lib$(LIBNAME).a
 
-all : $(TARGET)
+all: $(TARGET) $(HEADER)
 
-install : $(TARGET)
-	@echo Installing $(LIBNAME) . . .
-	@cp $(TARGET) /usr/local/lib/lib$(LIBNAME).a
-	@echo Installing $(LIBNAME) import files . . .
-	@cp -r import/$(LIBNAME) /usr/local/include/d/$(LIBNAME)
-	@echo done.
+install: all
+	@mkdir -p $(PREFIX)/lib $(PREFIX)/include/d
+	cp $(TARGET) $(PREFIX)/lib/
+	cp -r import/$(LIBNAME) $(PREFIX)/include/d
 
-uninstall :
-	@echo Uninstalling $(LIBNAME) import files . . .
-	@rm -rf /usr/local/include/d/$(LIBNAME)
-	@echo Uninstalling $(LIBNAME) . . .
-	@rm -f /usr/local/lib/lib$(LIBNAME).a
-	@echo done.
+uninstall:
+	rm -rf $(PREFIX)/include/d/$(LIBNAME)
+	rm -f $(PREFIX)/lib/lib$(LIBNAME).a
+	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
 
-clean :
-	@echo Cleaning $(LIBNAME) . . .
-	@rm -rf import lib $(OBJ)
-	@echo done.
+unittest: ~~cleanunittest
+	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
+	./unittest
 
-$(TARGET) : $(OBJ)
-	@echo Linking $@ . . .
-	@$(DC) -lib $^ -of$@
-	@echo done.
+clean: ~~cleanunittest
+	rm -rf import/ lib/
 
-%.o : %.d
-	@echo Compiling $< . . .
-	@$(DC) -c $< -of$@ -Hfimport/$(basename $@).di
+~~cleanunittest:
+	rm -f unittest.o unittest
+
+$(TARGET): $(OBJ)
+	$(DC) -lib $(DCFLAGS) -of$@ $^
+
+$(LIBDIR)/$(LIBNAME)/%.o: $(LIBNAME)/%.d
+	$(DC) -c $(DCFLAGS) -of$@ $<
+
+import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
+	$(DC) -c -o- -Hf$@ $<
+
