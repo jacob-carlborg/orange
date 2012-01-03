@@ -65,7 +65,7 @@ endif
 
 OBJ=$(addsuffix .o,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
 HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
-TARGET=$(LIBDIR)/lib$(LIBNAME).a
+TARGET=$(LIBDIR)/lib$(LIBNAME)-dmd.a
 
 all: $(TARGET) $(HEADER)
 
@@ -76,7 +76,7 @@ install: all
 
 uninstall:
 	rm -rf $(PREFIX)/include/d/$(LIBNAME)
-	rm -f $(PREFIX)/lib/lib$(LIBNAME).a
+	rm -f $(PREFIX)/lib/$(notdir $(TARGET))
 	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
 
 unittest: ~~cleanunittest
