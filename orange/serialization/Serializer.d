@@ -33,7 +33,7 @@ private
 	alias Mode.serializing serializing;
 	alias Mode.deserializing deserializing;
 	
-	private char toUpper (char c)
+	private char toUpper () (char c)
 	{
 		if (c >= 'a' && c <= 'z')
 			return cast(char) (c - 32);
