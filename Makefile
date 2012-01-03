@@ -70,14 +70,18 @@ TARGET=$(LIBDIR)/lib$(LIBNAME).a
 all: $(TARGET) $(HEADER)
 
 install: all
-	@mkdir -p $(PREFIX)/lib $(PREFIX)/include/d
-	cp $(TARGET) $(PREFIX)/lib/
+	@mkdir -p $(PREFIX)/lib/orange $(PREFIX)/include/d
+	cp $(TARGET) $(PREFIX)/lib/orange
 	cp -r import/$(LIBNAME) $(PREFIX)/include/d
+	@echo =========================================================================
+	@echo To compile with \"orange\" library:
+	@echo $$ dmd -I/usr/local/include/d -L-L/usr/local/lib/orange -L-lorange myapp.d
+	@echo =========================================================================
 
 uninstall:
+	rm -f $(PREFIX)/lib/orange/lib$(LIBNAME).a
 	rm -rf $(PREFIX)/include/d/$(LIBNAME)
-	rm -f $(PREFIX)/lib/lib$(LIBNAME).a
-	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
+	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib/orange $(PREFIX)/include/d 2>/dev/null || true
 
 unittest: ~~cleanunittest
 	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
@@ -97,4 +101,3 @@ $(LIBDIR)/$(LIBNAME)/%.o: $(LIBNAME)/%.d
 
 import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
 	$(DC) -c -o- -Hf$@ $<
-
