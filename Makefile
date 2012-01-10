@@ -2,6 +2,7 @@ LIBNAME=orange
 DC=dmd
 PREFIX=/usr/local
 LIBDIR=lib/$(MODEL)
+DOCDIR=doc
 ARCH=$(shell arch || uname -m)
 
 SRC=core/io.d \
@@ -66,6 +67,7 @@ endif
 OBJ=$(addsuffix .o,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
 HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
 TARGET=$(LIBDIR)/lib$(LIBNAME).a
+DOCLIST=$(shell echo $(sort $(addprefix $(LIBNAME)/,$(SRC) $(TEST))) | sed 's; ;\n;g' | sed '/_.d/d') 
 
 all: $(TARGET) $(HEADER)
 
@@ -79,14 +81,24 @@ uninstall:
 	rm -f $(PREFIX)/lib/lib$(LIBNAME).a
 	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
 
-unittest: ~~cleanunittest
+unittest: ~cleanunittest
 	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
 	./unittest
 
-clean: ~~cleanunittest
-	rm -rf import/ lib/
+doc: ~candydoc
 
-~~cleanunittest:
+clean: ~cleanunittest
+	rm -rf import/ lib/
+	rm -f $(DOCDIR)/*.html
+	rm -f $(DOCDIR)/candydoc/modules.ddoc
+
+~candydoc:
+	@echo "MODULES = " > $(DOCDIR)/candydoc/modules.ddoc
+	@echo $(patsubst %.d,"	(MODULE "%")",$(subst /,.,$(sort $(DOCLIST)))) | \
+		sed 's/(/\x24(/g' | sed 's/ \t/\n\t/g' >> $(DOCDIR)/candydoc/modules.ddoc
+	$(DC) -o- -D -Dd$(DOCDIR) $(DOCDIR)/candydoc/modules.ddoc $(DOCDIR)/candydoc/candy.ddoc $(DOCLIST)
+
+~cleanunittest:
 	rm -f unittest.o unittest
 
 $(TARGET): $(OBJ)
@@ -97,4 +109,3 @@ $(LIBDIR)/$(LIBNAME)/%.o: $(LIBNAME)/%.d
 
 import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
 	$(DC) -c -o- -Hf$@ $<
-
