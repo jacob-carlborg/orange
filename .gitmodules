@@ -1,0 +1,3 @@
+[submodule "candydoc"]
+	path = candydoc
+	url = git://github.com/jacob-carlborg/candydoc.git
