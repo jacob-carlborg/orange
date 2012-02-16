@@ -483,9 +483,6 @@ final class XmlDocument (T = char)
 				
 				foreach (parent ; nodes_)
 				{
-					if (parent.name == name)
-						proxies ~= parent;
-					
 					foreach (e ; parent.node.elements)
 					{
 						if (e.tag.name == name)
@@ -612,7 +609,13 @@ final class XmlDocument (T = char)
 	void parse (tstring xml)
 	{
 		version (Tango) doc.parse(xml);
-		else doc = new Doc(xml);
+
+		else
+		{
+			auto tmp = new Doc(xml);
+			doc = new Doc(new Tag("root"));
+			doc.elements ~= tmp;
+		}
 	}
 	
 	/// Return an xpath handle to query this document. This starts at the document root.

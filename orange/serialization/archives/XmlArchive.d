@@ -1887,18 +1887,8 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 			return false;
 		});
 
-		version (Tango)
-		{
-			if (set.nodes.length == 1)
-				return set.nodes[0].parent;
-		}
-		
-		else
-		{	// Temporary fix, this is probably a problem in the Phobos
-			// implementation of the XML query function
-			if (set.nodes.length > 0)
-				return set.nodes[set.nodes.length - 1].parent;
-		}
+		if (set.nodes.length == 1)
+			return set.nodes[0].parent;
 
 		if (throwOnError)
 		{
