@@ -130,6 +130,7 @@ version (Phobos):
 mixin(`import std.array;
 import std.string;
 import std.encoding;
+import std.ascii;
 
 enum cdata = "<![CDATA[";
 
@@ -2930,10 +2931,9 @@ private
 		s = s[1..$];
 	}
 
-	hash_t hash(string s,hash_t h=0)
+	hash_t hash(string s,hash_t h=0) @trusted
 	{
-		foreach(dchar c;s) h = h * 11 + c;
-		return h;
+		return typeid(s).getHash(&s) + h;
 	}
 
 	// Definitions from the XML specification
