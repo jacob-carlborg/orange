@@ -131,6 +131,7 @@ mixin(`import std.array;
 import std.string;
 import std.encoding;
 import std.ascii;
+import std.algorithm : count;
 
 enum cdata = "<![CDATA[";
 
@@ -1013,7 +1014,7 @@ class Element : Item
 				string[] b = item.pretty(indent);
 				foreach(s;b)
 				{
-					a ~= rightJustify(s,s.length + indent);
+					a ~= rightJustify(s,count(s) + indent);
 				}
 			}
 			a ~= tag.toEndString;
