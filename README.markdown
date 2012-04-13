@@ -10,6 +10,12 @@ types that can be used with the existing serializer.
 **Github is only used for the code repository, for more information and
 issue reporting see the project page: [http://dsource.org/projects/orange](http://dsource.org/projects/orange)**
 
+## Dep Package
+
+A deb package is available on:
+
+[APT_Repository_for_D](https://code.google.com/p/d-apt/wiki/APT_Repository#APT_Repository_for_D)
+
 ## Build Dependencies
 
 Make or [DSSS](http://dsource.org/projects/dsss) 
