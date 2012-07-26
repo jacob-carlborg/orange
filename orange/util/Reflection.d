@@ -451,10 +451,10 @@ T factory (T) (string name)
 private
 {
 	version (LDC)
-		extern (C) Object _d_allocclass(ClassInfo);
+		extern (C) Object _d_allocclass(in ClassInfo);
 	
 	else
-		extern (C) Object _d_newclass(ClassInfo);
+		extern (C) Object _d_newclass(in ClassInfo);
 }
 
 /**
@@ -465,7 +465,7 @@ private
  *     
  * Returns: a new instnace of the class associated with the given class info.
  */
-Object newInstance (ClassInfo classInfo)
+Object newInstance (in ClassInfo classInfo)
 {
 	version (LDC)
 	{		

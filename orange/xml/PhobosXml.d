@@ -664,7 +664,7 @@ class Document : Element
 			((prolog != doc.prolog			)
 				? ( prolog < doc.prolog			 ? -1 : 1 ) :
 			((super  != cast(const Element)doc)
-				? ( super  < cast(const Element)doc ? -1 : 1 ) :
+				? ( cast()super  < cast()cast(const Element)doc ? -1 : 1 ) :
 			((epilog != doc.epilog			)
 				? ( epilog < doc.epilog			 ? -1 : 1 ) :
 		0 )));
@@ -918,7 +918,7 @@ class Element : Item
 		if (len != element.items.length) return false;
 		for (uint i=0; i<len; ++i)
 		{
-			if (!items[i].opEquals(element.items[i])) return false;
+			if (!items[i].opEquals(cast()element.items[i])) return false;
 		}
 		return true;
 	}
@@ -944,7 +944,7 @@ class Element : Item
 			if (i == items.length) return -1;
 			if (i == element.items.length) return 1;
 			if (items[i] != element.items[i])
-				return items[i].opCmp(element.items[i]);
+				return items[i].opCmp(cast()element.items[i]);
 		}
 	}
 
