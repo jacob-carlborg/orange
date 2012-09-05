@@ -244,3 +244,13 @@ template TypeOfDataType (T)
 {
 	alias T.DataType TypeOfDataType;
 }
+
+/// Unqualifies the given type, i.e. removing const, immutable and so on.
+template Unqual (T)
+{
+	version (Tango)
+		alias T Unqual;
+
+	else
+		alias Phobos.Unqual!(T) Unqual;
+}

@@ -155,7 +155,7 @@ class Serializer
 		
 		static
 		{
-			void function (Serializer serializer, Object, Mode mode) [ClassInfo] registeredTypes;
+			void function (Serializer serializer, in Object, Mode mode) [ClassInfo] registeredTypes;
 			RegisterBase[string] serializers;
 			RegisterBase[string] deserializers;
 		}
@@ -177,7 +177,7 @@ class Serializer
 		void**[Id] deserializedPointers;
 		
 		ValueMeta[void*] serializedValues;
-		void*[Id] deserializedValues;
+		const(void)*[Id] deserializedValues;
 		
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
@@ -247,8 +247,10 @@ class Serializer
 		registeredTypes[T.classinfo] = &downcastSerialize!(T);
 	}
 	
-	private static void downcastSerialize (T : Object) (Serializer serializer, Object value, Mode mode)
+	private static void downcastSerialize (U : Object) (Serializer serializer, in Object value, Mode mode)
 	{
+		alias Unqual!(U) T;
+
 		static if (!isNonSerialized!(T)())
 		{
 			auto casted = cast(T) value;
@@ -701,8 +703,10 @@ class Serializer
 			serializeBaseTypes(value);
 	}
 	
-	private void serializeInternal (T) (T value, string key = null, Id id = Id.max)
+	private void serializeInternal (U) (U value, string key = null, Id id = Id.max)
 	{
+		alias Unqual!(U) T;
+
 		if (!key)
 			key = nextKey;
 
@@ -1104,8 +1108,10 @@ class Serializer
 			deserializeBaseTypes(value);
 	}
 	
-	private T deserializeInternal (T, U) (U keyOrId)
-	{		
+	private Unqual!(U) deserializeInternal (U, Key) (Key keyOrId)
+	{
+		alias Unqual!(U) T;
+
 		static if (isTypedef!(T))
 			return deserializeTypedef!(T)(keyOrId);
 
@@ -1145,8 +1151,10 @@ class Serializer
 		}			
 	}
 	
-	private T deserializeObject (T, U) (U keyOrId)
+	private Unqual!(U) deserializeObject (U, Key) (Key keyOrId)
 	{
+		alias Unqual!(U) T;
+
 		static if (!isNonSerialized!(T)())
 		{
 			auto id = deserializeReference(keyOrId);
@@ -1445,7 +1453,7 @@ class Serializer
 		return archive.unarchiveSlice(key);
 	}
 	
-	private void objectStructSerializeHelper (T) (ref T value)
+	private void objectStructSerializeHelper (T) (ref in T value)
 	{
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
@@ -1466,7 +1474,8 @@ class Serializer
 			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
 				alias typeof(T.tupleof[i]) Type;				
-				Type v = value.tupleof[i];
+
+				auto v = value.tupleof[i];				
 				auto id = nextId;
 
 				static if (isPointer!(Type))
@@ -1501,7 +1510,10 @@ class Serializer
 			
 		else
 			mixin(`enum nonSerializedFields = collectAnnotations!(T);`);
-		
+
+		auto rawObject = new void[typeid(T).tsize];
+		auto offsets = typeid(T).offTi;
+
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
 			version (Tango)
@@ -1512,7 +1524,8 @@ class Serializer
 						
 			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
-				alias typeof(T.tupleof[i]) Type;
+				alias TypeOfField!(T, field) QualifiedType;
+				alias Unqual!(QualifiedType) Type;
 
 				auto id = deserializeReference(field);
 				auto isReference = id != Id.max;
@@ -1544,25 +1557,40 @@ class Serializer
 
 					else
 					{
-						value.tupleof[i] = deserializeInternal!(Type)(toData(field));
-						addDeserializedValue(value.tupleof[i], nextId);
+					    auto fieldValue = deserializeInternal!(Type)(toData(field));
+    					//auto offset = mixin("value. " ~ field ~ ".offsetof");
+    					auto offset = value.tupleof[i].offsetof;
+    					auto fieldAddress = cast(Type*) (rawObject.ptr + offset);//offsets[i].offset;
+    					*fieldAddress = fieldValue;
+
+                        addDeserializedValue(value.tupleof[i], nextId);
+                        // value.tupleof[i] = deserializeInternal!(Type)(toData(field));
+                        // addDeserializedValue(value.tupleof[i], nextId);
 					}
 				}
 			}			
 		}
 
 		static if (isObject!(T) && !is(T == Object))
+		{
+			auto fieldAddress = cast(TypeInfo_Class*) (rawObject.ptr + value.classinfo.offsetof);
+			*fieldAddress = T.classinfo;
+			value = cast(T) rawObject.ptr;
 			deserializeBaseTypes(value);
+		}
+
+		else
+			value = *(cast(T*) rawObject.ptr);
 	}
 	
-	private void serializeBaseTypes (T : Object) (T value)
+	private void serializeBaseTypes (T : Object) (inout T value)
 	{
 		alias BaseTypeTupleOf!(T)[0] Base;
 
 		static if (!is(Base == Object))
 		{
 			archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
-			Base base = value;
+			inout Base base = value;
 			objectStructSerializeHelper(base);
 		}
 	}
@@ -1751,11 +1779,11 @@ class Serializer
 	
 	private void deserializingPostProcessPointers ()
 	{
-		foreach (pointeeId, pointee ; deserializedValues)
-		{
-			if (auto pointer = pointeeId in deserializedPointers)
-				**pointer = pointee;
-		}
+		// foreach (pointeeId, pointee ; deserializedValues)
+		// {
+		// 	if (auto pointer = pointeeId in deserializedPointers)
+		// 		**pointer = pointee;
+		// }
 	}
 	
 	private string arrayToString (T) ()
