@@ -1475,7 +1475,7 @@ class Serializer
 			{
 				alias typeof(T.tupleof[i]) Type;				
 
-				auto v = value.tupleof[i];				
+				auto v = value.tupleof[i];
 				auto id = nextId;
 
 				static if (isPointer!(Type))
@@ -1511,8 +1511,11 @@ class Serializer
 		else
 			mixin(`enum nonSerializedFields = collectAnnotations!(T);`);
 
-		auto rawObject = new void[typeid(T).tsize];
-		auto offsets = typeid(T).offTi;
+		static if (isObject!(T))
+			auto rawObject = cast(void*) value;
+
+		else
+			auto rawObject = cast(void*) &value;
 
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
@@ -1557,10 +1560,9 @@ class Serializer
 
 					else
 					{
-					    auto fieldValue = deserializeInternal!(Type)(toData(field));
-    					//auto offset = mixin("value. " ~ field ~ ".offsetof");
+    					auto fieldValue = deserializeInternal!(Type)(toData(field));
     					auto offset = value.tupleof[i].offsetof;
-    					auto fieldAddress = cast(Type*) (rawObject.ptr + offset);//offsets[i].offset;
+    					auto fieldAddress = cast(Type*) (rawObject + offset);
     					*fieldAddress = fieldValue;
 
                         addDeserializedValue(value.tupleof[i], nextId);
@@ -1572,15 +1574,7 @@ class Serializer
 		}
 
 		static if (isObject!(T) && !is(T == Object))
-		{
-			auto fieldAddress = cast(TypeInfo_Class*) (rawObject.ptr + value.classinfo.offsetof);
-			*fieldAddress = T.classinfo;
-			value = cast(T) rawObject.ptr;
 			deserializeBaseTypes(value);
-		}
-
-		else
-			value = *(cast(T*) rawObject.ptr);
 	}
 	
 	private void serializeBaseTypes (T : Object) (inout T value)
