@@ -144,8 +144,13 @@ class Serializer
 	{
 		struct ValueMeta
 		{
-			Id id;
+			Id id = Id.max;
 			string key;
+
+			bool isValid ()
+			{
+				return id != Id.max && key.length > 0;
+			}
 		}
 		
 		static
@@ -168,8 +173,7 @@ class Serializer
 		
 		Array[Id] serializedArrays;
 		void[][Id] deserializedSlices;
-		
-		void*[Id] serializedPointers;
+
 		void**[Id] deserializedPointers;
 		
 		ValueMeta[void*] serializedValues;
@@ -622,7 +626,6 @@ class Serializer
 		serializedValues = null;
 		deserializedValues = null;
 
-		serializedPointers = null;
 		deserializedPointers = null;
 		
 		hasBegunSerializing = false;
@@ -889,8 +892,6 @@ class Serializer
 		if (reference != Id.max)
 			return archive.archiveReference(key, reference);
 
-		addSerializedReference(value, id);
-
 		archive.archivePointer(key, id, {
 			if (auto serializer = key in overriddenSerializers)
 				callSerializer(serializer, value, key);
@@ -910,11 +911,19 @@ class Serializer
 						`.isSerializable or register a serializer.`), __LINE__);
 				
 				else
-					serializeInternal(*value, nextKey);
+				{
+					auto valueMeta = getSerializedValue(value);
+
+					if (valueMeta.isValid)
+						archive.archiveReference(nextKey, valueMeta.id);
+
+					else
+						serializeInternal(*value, nextKey);
+				}
 			}
 		});
 		
-		addSerializedPointer(value, id);
+		addSerializedReference(value, id);
 	}
 	
 	private void serializeEnum (T) (T value, string key, Id id)
@@ -1122,8 +1131,8 @@ class Serializer
 		{			
 			static if (isFunctionPointer!(T))
 				goto error;
-			Id id;
-			return deserializePointer!(T)(keyOrId, id);
+
+			return deserializePointer!(T)(keyOrId).value;
 		}		
 
 		else static if (isEnum!(T))
@@ -1153,17 +1162,27 @@ class Serializer
 				triggerEvents(cast(T) val, {
 					value = cast(T) val;
 					auto runtimeType = value.classinfo.name;
-					
-					if (auto deserializer = runtimeType in overriddenDeserializers)
-						callSerializer(deserializer, value, keyOrId);
+					auto runHelper = false;
 
-					else if (auto deserializer = runtimeType in Serializer.deserializers)
-						callSerializer(deserializer, value, keyOrId);
+					static if (isString!(U))
+					{
+						if (auto deserializer = runtimeType in overriddenDeserializers)
+							callSerializer(deserializer, value, keyOrId);
 
-					else static if (isSerializable!(T))
-						value.fromData(this, keyOrId);
+						else if (auto deserializer = runtimeType in Serializer.deserializers)
+							callSerializer(deserializer, value, keyOrId);
+
+						else static if (isSerializable!(T))
+							value.fromData(this, keyOrId);
+
+						else
+							runHelper = true;
+					}
 
 					else
+						runHelper = true;
+
+					if (runHelper)
 					{
 						if (isBaseClass(value))
 						{
@@ -1191,7 +1210,7 @@ class Serializer
 		return T.init;
 	}
 	
-	private T deserializeStruct (T) (string key)
+	private T deserializeStruct (T, U) (U key)
 	{
 		T value;
 		
@@ -1202,14 +1221,24 @@ class Serializer
 			archive.unarchiveStruct(key, {
 				triggerEvents(value, {
 					auto type = toData(typeid(T).toString);
+					auto runHelper = false;
 
-					if (auto deserializer = type in overriddenDeserializers)
-						callSerializer(deserializer, value, key);
+					static if (isString!(U))
+					{
+						if (auto deserializer = type in overriddenDeserializers)
+							callSerializer(deserializer, value, key);
 
-					else if (auto deserializer = type in Serializer.deserializers)
-						callSerializer(deserializer, value, key);
+						else if (auto deserializer = type in Serializer.deserializers)
+							callSerializer(deserializer, value, key);
+
+						else
+							runHelper = true;
+					}
 
 					else
+						runHelper = true;
+
+					if (runHelper)
 					{
 						static if (isSerializable!(T))
 							value.fromData(this, key);
@@ -1305,9 +1334,9 @@ class Serializer
 		
 		if (auto reference = getDeserializedReference!(T)(id))
 			return *reference;
-		
+
 		T value;
-		
+
 		alias KeyTypeOfAssociativeArray!(T) Key;
 		alias ValueTypeOfAssociativeArray!(T) Value;
 		
@@ -1335,24 +1364,24 @@ class Serializer
 		return value;
 	}
 	
-	private T deserializePointer (T) (string key, out Id id)
+	private Pointer!(T) deserializePointer (T) (string key)
 	{
-		id = deserializeReference(key);
+		auto pointeeId = deserializeReference(key);
 
-		if (auto reference = getDeserializedReference!(T)(id))
-			return *reference;
-		
-		T value = new BaseTypeOfPointer!(T);
+		if (auto reference = getDeserializedReference!(T)(pointeeId))
+			return Pointer!(T)(*reference, Id.max);
+
+		T pointer = new BaseTypeOfPointer!(T);
 		
 		auto pointerId = archive.unarchivePointer(key, {
 			if (auto deserializer = key in overriddenDeserializers)
-				callSerializer(deserializer, value, key);
+				callSerializer(deserializer, pointer, key);
 			
 			else if (auto deserializer = key in Serializer.deserializers)
-				callSerializer(deserializer, value, key);
+				callSerializer(deserializer, pointer, key);
 			
 			else static if (isSerializable!(T))
-				value.fromData(this, key);
+				pointer.fromData(this, key);
 			
 			else
 			{
@@ -1365,27 +1394,28 @@ class Serializer
 				else
 				{
 					auto k = nextKey;
-					id = deserializeReference(k);
+					pointeeId = deserializeReference(k);
 
-					if (id != Id.max)
-						return;
-
-					*value = deserializeInternal!(BaseTypeOfPointer!(T))(k);
+					if (pointeeId == Id.max)
+						*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(k);
 				}
 			}
 		});
 
-		addDeserializedReference(value, pointerId);
+		if (pointeeId != Id.max)
+			*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(pointeeId);
 
-		return value;
+		addDeserializedReference(pointer, pointerId);
+
+		return Pointer!(T)(pointer, pointerId, pointeeId);
 	}
 	
-	private T deserializeEnum (T) (string key)
+	private T deserializeEnum (T, U) (U keyOrId)
 	{
 		alias BaseTypeOfEnum!(T) Enum;
 
 		const functionName = toUpper(Enum.stringof[0]) ~ Enum.stringof[1 .. $];
-		mixin("return cast(T) archive.unarchiveEnum" ~ functionName ~ "(key);");
+		mixin("return cast(T) archive.unarchiveEnum" ~ functionName ~ "(keyOrId);");
 	}
 	
 	private T deserializePrimitive (T, U) (U keyOrId)
@@ -1436,11 +1466,25 @@ class Serializer
 			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
 				alias typeof(T.tupleof[i]) Type;				
-				Type v = value.tupleof[i];				
+				Type v = value.tupleof[i];
 				auto id = nextId;
 
-				addSerializedValue(value.tupleof[i], id, toData(keyCounter));
-				serializeInternal(v, toData(field), id);
+				static if (isPointer!(Type))
+					auto pointer = v;
+
+				else
+					auto pointer = &value.tupleof[i];
+
+				auto valueMeta = getSerializedValue(pointer);
+
+				if (valueMeta.isValid)
+					serializePointer(pointer, toData(field), id);
+
+				else
+				{
+					serializeInternal(v, toData(field), id);
+					addSerializedValue(pointer, id, toData(keyCounter));
+				}
 			}
 		}
 		
@@ -1468,22 +1512,42 @@ class Serializer
 						
 			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
-				alias TypeOfField!(T, field) Type;
-				
+				alias typeof(T.tupleof[i]) Type;
+
+				auto id = deserializeReference(field);
+				auto isReference = id != Id.max;
+
 				static if (isPointer!(Type))
 				{
-					Id id;
-					value.tupleof[i] = deserializePointer!(Type)(toData(field), id);
-					addDeserializedPointer(value.tupleof[i], id);
-				}
-				
-				else
-				{
-					auto fieldValue = deserializeInternal!(Type)(toData(field));
-					value.tupleof[i] = fieldValue;
+					auto pointer = deserializePointer!(Type)(toData(field));
+					Type pointerValue;
+
+					if (pointer.hasPointee)
+						pointerValue = getDeserializedValue!(Type)(pointer.pointee);
+
+					else
+						pointerValue = pointer.value;
+
+					value.tupleof[i] = pointerValue;
+					addDeserializedPointer(value.tupleof[i], pointer.id);
 				}
 
-				addDeserializedValue(value.tupleof[i], nextId);
+				else
+				{
+					auto pointer = getDeserializedPointer!(Type*)(id);
+
+					if (isReference && pointer)
+					{
+						value.tupleof[i] = **pointer;
+						*pointer = &value.tupleof[i];
+					}
+
+					else
+					{
+						value.tupleof[i] = deserializeInternal!(Type)(toData(field));
+						addDeserializedValue(value.tupleof[i], nextId);
+					}
+				}
 			}			
 		}
 
@@ -1536,21 +1600,16 @@ class Serializer
 		deserializedSlices[id] = cast(void[]) value;
 	}
 	
-	private void addSerializedValue (T) (ref T value, Id id, string key)
+	private void addSerializedValue (T) (T* value, Id id, string key)
 	{
-		serializedValues[&value] = ValueMeta(id, key);
+		serializedValues[value] = ValueMeta(id, key);
 	}
 	
 	private void addDeserializedValue (T) (ref T value, Id id)
 	{
 		deserializedValues[id] = &value;
 	}
-	
-	private void addSerializedPointer (T) (T value, Id id)
-	{
-		serializedPointers[id] = value;
-	}
-	
+
 	private void addDeserializedPointer (T) (ref T value, Id id)
 	{
 		deserializedPointers[id] = cast(void**) &value;
@@ -1563,7 +1622,15 @@ class Serializer
 		
 		return Id.max;
 	}
-	
+
+	private ValueMeta getSerializedValue (T) (T* value)
+	{
+		if (auto tmp = value in serializedValues)
+			return *tmp;
+
+		return ValueMeta();
+	}
+
 	private T* getDeserializedReference (T) (Id id)
 	{
 		if (auto reference = id in deserializedReferences)
@@ -1586,14 +1653,22 @@ class Serializer
 			return cast(T*) array;
 	}
 	
-	private T* getDeserializedValue (T) (Id id)
+	private T getDeserializedValue (T) (Id id)
 	{
 		if (auto value = id in deserializedValues)
-			return cast(T*) value;
+			return cast(T) *value;
 		
 		return null;
 	}
-	
+
+	private T* getDeserializedPointer (T) (Id id)
+	{
+		if (auto pointer = id in deserializedPointers)
+			return cast(T*) *pointer;
+
+		return null;
+	}
+
 	private T[] toSlice (T) (T[] array, Slice slice)
 	{
 		return array[slice.offset .. slice.offset + slice.length];
@@ -1642,7 +1717,6 @@ class Serializer
 	private void postProcess ()
 	{
 		postProcessArrays();
-		postProcessPointers();
 	}
 	
 	private void postProcessArrays ()
@@ -1667,18 +1741,6 @@ class Serializer
 			
 			if (!foundSlice)
 				archive.postProcessArray(sliceKey);
-		}
-	}
-	
-	private void postProcessPointers ()
-	{
-		foreach (pointerId, value ; serializedPointers)
-		{
-			if (auto valueMeta = value in serializedValues)
-				archive.archivePointer(valueMeta.id, valueMeta.key, pointerId);
-			
-			else
-				archive.postProcessPointer(pointerId);
 		}
 	}
 	
@@ -1786,6 +1848,18 @@ class Serializer
 	{
 		if (errorCallback)
 			errorCallback()(new SerializationException(message, __FILE__, line));
+	}
+
+	struct Pointer (T)
+	{
+		T value;
+		Id id = Id.max;
+		Id pointee = Id.max;
+
+		bool hasPointee ()
+		{
+			return pointee != Id.max;
+		}
 	}
 }
 

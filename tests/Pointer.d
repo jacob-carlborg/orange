@@ -26,6 +26,17 @@ F f;
 F fDeserialized;
 int pointee;
 
+class OutOfOrder
+{
+	int* ptr;
+	int value;
+	int* ptr2;
+}
+
+OutOfOrder outOfOrder;
+OutOfOrder outOfOrderDeserialized;
+int outOfOrderPointee;
+
 unittest
 {
 	archive = new XmlArchive!(char);
@@ -37,16 +48,24 @@ unittest
 	f.ptr = &f.value;
 	f.ptr2 = &pointee;
 
+	outOfOrderPointee = 3;
+	outOfOrder = new OutOfOrder;
+	outOfOrder.value = 9;
+	outOfOrder.ptr = &outOfOrder.value;
+	outOfOrder.ptr2 = &outOfOrderPointee;
+
 	describe("serialize pointer") in {
 		it("should return a serialized pointer") in {
 			serializer.reset();
 			serializer.serialize(f);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.F" type="tests.Pointer.F" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));
 			assert(archive.data().containsXmlTag("pointer", `key="ptr" id="2"`));
 			assert(archive.data().containsXmlTag("reference", `key="1"`, "1"));
-			assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));
+			assert(archive.data().containsXmlTag("pointer", `key="ptr2" id="3"`));
+			assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "3"));
 		};
 	};
 	
@@ -59,6 +78,33 @@ unittest
 		
 		it("the pointer should point to the deserialized value") in {
 			assert(fDeserialized.ptr == &fDeserialized.value);
+		};
+	};
+
+	describe("serialize pointer out of order") in {
+		it("should return a serialized pointer") in {
+			serializer.reset();
+			serializer.serialize(outOfOrder);
+
+			assert(archive.data().containsDefaultXmlContent());
+			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.OutOfOrder" type="tests.Pointer.OutOfOrder" key="0" id="0"`));
+			assert(archive.data().containsXmlTag("pointer", `key="ptr" id="1"`));
+			assert(archive.data().containsXmlTag("int", `key="1" id="2"`, "9"));
+			assert(archive.data().containsXmlTag("reference", `key="value"`, "1"));
+			assert(archive.data().containsXmlTag("pointer", `key="ptr2" id="4"`));
+			assert(archive.data().containsXmlTag("int", `key="2" id="5"`, "3"));
+		};
+	};
+
+	describe("deserialize pointer out of order") in {
+		outOfOrderDeserialized = serializer.deserialize!(OutOfOrder)(archive.untypedData);
+
+		it("should return a deserialized pointer equal to the original pointer") in {
+			assert(*outOfOrder.ptr == *outOfOrderDeserialized.ptr);
+		};
+
+		it("the pointer should point to the deserialized value") in {
+			assert(outOfOrderDeserialized.ptr == &outOfOrderDeserialized.value);
 		};
 	};
 }

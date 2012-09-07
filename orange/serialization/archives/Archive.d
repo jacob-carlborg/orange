@@ -470,37 +470,6 @@ interface Archive
 	void archivePointer (string key, Id id, void delegate () dg);
 	
 	/**
-	 * The archive is responsible for archiving primitive types in the format chosen by
-	 * Archives a pointer.
-	 * 
-	 * This method is used to archive a pointer to a value that has already been
-	 * archived. 
-	 * 
-	 * Examples:
-	 * ---
-	 * class Foo
-	 * {
-	 * 	int a;
-	 * 	int* b;
-	 * }
-	 * 
-	 * auto foo = new Foo;
-	 * foo.a = 3;
-	 * foo.b = &foo.a;
-	 * 
-	 * archive = new XmlArchive!();
-	 * archive.archive(foo.a, "a", 0);
-	 * archive.archivePointer(0, "b", 1);
-	 * ---
-	 * 
-	 * Params:
-	 *     pointeeId = the id associated with the value the pointer points to
-	 *     key = the key associated with the pointer
-	 *     id = the id associated with the pointer
-	 */
-	void archivePointer (Id pointeeId, string key, Id id);
-	
-	/**
 	 * Archives a reference.
 	 * 
 	 * A reference is reference to another value. For example, if an object is archived
@@ -872,7 +841,52 @@ interface Archive
 	
 	/// Ditto
 	wchar unarchiveEnumWchar (string key);
-	
+
+	/**
+	 * Unarchives the value associated with the given id as a bool.
+	 * 
+	 * This method is used when the unarchiving a enum value with the base type bool. 
+	 * 
+	 * Params:
+	 *     id = the id associated with the value
+	 *     
+	 * Returns: the unarchived value
+	 */
+	bool unarchiveEnumBool (Id id);
+
+	/// Ditto
+	byte unarchiveEnumByte (Id id);
+
+	/// Ditto
+	char unarchiveEnumChar (Id id);
+
+	/// Ditto
+	dchar unarchiveEnumDchar (Id id);
+
+	/// Ditto
+	int unarchiveEnumInt (Id id);
+
+	/// Ditto
+	long unarchiveEnumLong (Id id);
+
+	/// Ditto
+	short unarchiveEnumShort (Id id);
+
+	/// Ditto
+	ubyte unarchiveEnumUbyte (Id id);
+
+	/// Ditto
+	uint unarchiveEnumUint (Id id);
+
+	/// Ditto
+	ulong unarchiveEnumUlong (Id id);
+
+	/// Ditto
+	ushort unarchiveEnumUshort (Id id);
+
+	/// Ditto
+	wchar unarchiveEnumWchar (Id id);
+
 	/**
 	 * Unarchives the base class associated with the given key.
 	 * 
@@ -996,7 +1010,7 @@ interface Archive
 	Slice unarchiveSlice (string key);
 	
 	/**
-	 * Unarchives the string associated with the given key.
+	 * Unarchives the struct associated with the given key.
 	 * 
 	 * Examples:
 	 * ---
@@ -1017,7 +1031,31 @@ interface Archive
 	 *     dg = a callback that performs the unarchiving of the individual fields
 	 */
 	void unarchiveStruct (string key, void delegate () dg);
-	
+
+	/**
+	 * Unarchives the struct associated with the given id.
+	 * 
+	 * Examples:
+	 * ---
+	 * struct Foo
+	 * {
+	 * 	int a;
+	 * }
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * archive.beginUnarchiving(data);
+	 * archive.unarchiveStruct(0, {
+	 * 	// unarchive the fields of Foo
+	 * });
+	 * ---
+	 * 
+	 * Params:
+	 *     id = the id associated with the struct
+	 *     dg = a callback that performs the unarchiving of the individual fields.
+	 * 	   		The callback will receive the key the struct was archived with.
+	 */
+	void unarchiveStruct (Id id, void delegate () dg);
+
 	/**
 	 * Unarchives the typedef associated with the given key. 
 	 * 
@@ -1128,8 +1166,7 @@ interface Archive
 	
 	/// Ditto
     int unarchiveInt (string key);
-    
-	//int unarchiveInt (Id id);
+
     //ireal unarchiveIreal (string key); // currently not supported by to!()
 	
 	/// Ditto
@@ -1158,7 +1195,77 @@ interface Archive
 	
 	/// Ditto
     wchar unarchiveWchar (string key);
-	
+
+	/**
+	 * Unarchives the value associated with the given id.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XmlArchive!();
+	 * archive.beginUnarchiving(data);
+	 * auto foo = unarchiveBool(0);
+	 * ---
+	 * Params:
+	 *     id = the id associated with the value
+	 *     
+	 * Returns: the unarchived value
+	 */
+	bool unarchiveBool (Id id);
+
+	/// Ditto
+	byte unarchiveByte (Id id);
+
+	//cdouble unarchiveCdouble (Id id); // currently not supported by to!()
+	//cent unarchiveCent (Id id); // currently not implemented but a reserved keyword
+	//cfloat unarchiveCfloat (Id id); // currently not supported by to!()
+
+	/// Ditto
+	char unarchiveChar (Id id); // currently not implemented but a reserved keyword
+	//creal unarchiveCreal (Id id); // currently not supported by to!()
+
+	/// Ditto
+	dchar unarchiveDchar (Id id);
+
+	/// Ditto
+	double unarchiveDouble (Id id);
+
+	/// Ditto
+	float unarchiveFloat (Id id);
+	//idouble unarchiveIdouble (Id id); // currently not supported by to!()
+	//ifloat unarchiveIfloat (Id id); // currently not supported by to!()*/
+
+	/// Ditto
+	int unarchiveInt (Id id);
+
+	//ireal unarchiveIreal (Id id); // currently not supported by to!()
+
+	/// Ditto
+	long unarchiveLong (Id id);
+
+	/// Ditto
+	real unarchiveReal (Id id);
+
+	/// Ditto
+	short unarchiveShort (Id id);
+
+	/// Ditto
+	ubyte unarchiveUbyte (Id id);
+
+	///
+	//ucent unarchiveCcent (Id id); // currently not implemented but a reserved keyword
+
+	/// Ditto
+	uint unarchiveUint (Id id);
+
+	/// Ditto
+	ulong unarchiveUlong (Id id);
+
+	/// Ditto
+	ushort unarchiveUshort (Id id);
+
+	/// Ditto
+	wchar unarchiveWchar (Id id);
+
 	/**
 	 * Performs post processing of the array associated with the given id.
 	 * 
@@ -1173,21 +1280,6 @@ interface Archive
 	 *     id = the id associated with the array
 	 */
 	void postProcessArray (Id id);
-	
-	/**
-	 * Performs post processing of the pointer associated with the given id.
-	 * 
-	 * Post processing can basically be anything that the archive wants to do. This
-	 * method is called by the serializer once for each serialized pointer at the end of
-	 * the serialization process when all values have been serialized.
-	 * 
-	 * With this method the archive has a last chance of changing an archived pointer to
-	 * an archived reference instead.
-	 * 
-	 * Params:
-	 *     id = the id associated with the array
-	 */
-	void postProcessPointer (Id id);
 }
 
 /**

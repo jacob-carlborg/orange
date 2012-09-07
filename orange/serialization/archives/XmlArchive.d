@@ -584,58 +584,14 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	void archivePointer (string key, Id id, void delegate () dg)
 	{
 		restore(lastElement) in {
-			auto parent = lastElement;
-			lastElement = doc.createNode(Tags.pointerTag);
-			
-			lastElement.attribute(Attributes.keyAttribute, toData(key))
+			lastElement = lastElement.element(Tags.pointerTag)
+			.attribute(Attributes.keyAttribute, toData(key))
 			.attribute(Attributes.idAttribute, toData(id));
-			
-			addArchivedPointer(id, parent, lastElement, key);			
+
 			dg();
 		};
 	}
-	
-	/**
-	 * The archive is responsible for archiving primitive types in the format chosen by
-	 * Archives a pointer.
-	 * 
-	 * This method is used to archive a pointer to a value that has already been
-	 * archived. 
-	 * 
-	 * Examples:
-	 * ---
-	 * class Foo
-	 * {
-	 * 	int a;
-	 * 	int* b;
-	 * }
-	 * 
-	 * auto foo = new Foo;
-	 * foo.a = 3;
-	 * foo.b = &foo.a;
-	 * 
-	 * archive = new XmlArchive!();
-	 * archive.archive(foo.a, "a", 0);
-	 * archive.archivePointer(0, "b", 1);
-	 * ---
-	 * 
-	 * Params:
-	 *     pointeeId = the id associated with the value the pointer points to
-	 *     key = the key associated with the pointer
-	 *     id = the id associated with the pointer
-	 */
-	void archivePointer (Id pointeeId, string key, Id id)
-	{
-		if (auto pointerNode = getArchivedPointer(id))
-		{
-			pointerNode.parent.element(Tags.pointerTag)
-			.attribute(Attributes.keyAttribute, toData(pointerNode.key))
-			.attribute(Attributes.idAttribute, toData(id))
-			.element(Tags.referenceTag, toData(pointeeId))
-			.attribute(Attributes.keyAttribute, toData(key));
-		}
-	}
-	
+
 	/**
 	 * Archives a reference.
 	 * 
@@ -1268,15 +1224,105 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	wchar unarchiveEnumWchar (string key)
 	{
 		return unarchiveEnum!(wchar)(key);
-	}	
-	
-	private T unarchiveEnum (T) (string key)
+	}
+
+	/**
+	 * Unarchives the value associated with the given id as a bool.
+	 * 
+	 * This method is used when the unarchiving a enum value with the base type bool. 
+	 * 
+	 * Params:
+	 *     id = the id associated with the value
+	 *     
+	 * Returns: the unarchived value
+	 */
+	bool unarchiveEnumBool (Id id)
 	{
-		auto element = getElement(Tags.enumTag, key);
-		
+		return unarchiveEnum!(bool)(id);
+	}
+
+	/// Ditto
+	byte unarchiveEnumByte (Id id)
+	{
+		return unarchiveEnum!(byte)(id);
+	}
+
+	/// Ditto	
+	char unarchiveEnumChar (Id id)
+	{
+		return unarchiveEnum!(char)(id);
+	}
+
+	/// Ditto
+	dchar unarchiveEnumDchar (Id id)
+	{
+		return unarchiveEnum!(dchar)(id);
+	}
+
+	/// Ditto	
+	int unarchiveEnumInt (Id id)
+	{
+		return unarchiveEnum!(int)(id);
+	}
+
+	/// Ditto
+	long unarchiveEnumLong (Id id)
+	{
+		return unarchiveEnum!(long)(id);
+	}
+
+	/// Ditto	
+	short unarchiveEnumShort (Id id)
+	{
+		return unarchiveEnum!(short)(id);
+	}
+
+	/// Ditto	
+	ubyte unarchiveEnumUbyte (Id id)
+	{
+		return unarchiveEnum!(ubyte)(id);
+	}
+
+	/// Ditto	
+	uint unarchiveEnumUint (Id id)
+	{
+		return unarchiveEnum!(uint)(id);
+	}
+
+	/// Ditto	
+	ulong unarchiveEnumUlong (Id id)
+	{
+		return unarchiveEnum!(ulong)(id);
+	}
+
+	/// Ditto	
+	ushort unarchiveEnumUshort (Id id)
+	{
+		return unarchiveEnum!(ushort)(id);
+	}
+
+	/// Ditto	
+	wchar unarchiveEnumWchar (Id id)
+	{
+		return unarchiveEnum!(wchar)(id);
+	}
+
+	private T unarchiveEnum (T, U) (U keyOrId)
+	{
+		auto tag = Tags.enumTag;
+
+		static if (isString!(U))
+			auto element = getElement(Tags.enumTag, keyOrId);
+
+		else static if (is(U == Id))
+			auto element = getElement(tag, toData(keyOrId), Attributes.idAttribute);
+
+		else
+			static assert (false, format!(`Invalid type "`, U, `". Valid types are "string" and "Id"`));
+
 		if (!element.isValid)
 			return T.init;
-		
+
 		return fromData!(T)(element.value);
 	}
 	
@@ -1480,7 +1526,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	}
 	
 	/**
-	 * Unarchives the string associated with the given key.
+	 * Unarchives the struct associated with the given key.
 	 * 
 	 * Examples:
 	 * ---
@@ -1497,7 +1543,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	 * ---
 	 * 
 	 * Params:
-	 *     key = the key associated with the string
+	 *     key = the key associated with the struct
 	 *     dg = a callback that performs the unarchiving of the individual fields
 	 */
 	void unarchiveStruct (string key, void delegate () dg)
@@ -1512,7 +1558,42 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 			dg();
 		};
 	}
-	
+
+	/**
+	 * Unarchives the struct associated with the given id.
+	 * 
+	 * Examples:
+	 * ---
+	 * struct Foo
+	 * {
+	 * 	int a;
+	 * }
+	 * 
+	 * auto archive = new XmlArchive!();
+	 * archive.beginUnarchiving(data);
+	 * archive.unarchiveStruct(0, {
+	 * 	// unarchive the fields of Foo
+	 * });
+	 * ---
+	 * 
+	 * Params:
+	 *     id = the id associated with the struct
+	 *     dg = a callback that performs the unarchiving of the individual fields.
+	 * 	   		The callback will receive the key the struct was archived with.
+	 */
+	void unarchiveStruct (Id id, void delegate () dg)
+	{
+		restore(lastElement) in {
+			auto element = getElement(Tags.structTag, toData(id), Attributes.idAttribute);
+
+			if (!element.isValid)
+				return;
+
+			lastElement = element;
+			dg();
+		};
+	}
+
 	private T unarchiveTypeDef (T) (DataType key)
 	{
 		auto element = getElement(Tags.typedefTag, key);
@@ -1799,17 +1880,177 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	{
 		return unarchivePrimitive!(wchar)(key);
 	}
-	
-	T unarchivePrimitive (T) (string key)
+
+	/**
+	 * Unarchives the value associated with the given id.
+	 * 
+	 * Examples:
+	 * ---
+	 * auto archive = new XmlArchive!();
+	 * archive.beginUnarchiving(data);
+	 * auto foo = unarchiveBool(0);
+	 * ---
+	 * Params:
+	 *     id = the id associated with the value
+	 *     
+	 * Returns: the unarchived value
+	 */
+	bool unarchiveBool (Id id)
 	{
-		auto element = getElement(toData(T.stringof), key);
+		return unarchivePrimitive!(bool)(id);
+	}
+
+	/// Ditto
+	byte unarchiveByte (Id id)
+	{
+		return unarchivePrimitive!(byte)(id);
+	}
+
+	//currently not suppported by to!()
+	/*cdouble unarchiveCdouble (Id id)
+	{
+		return unarchivePrimitive!(cdouble)(id);
+	}*/
+
+	 //currently not implemented but a reserved keyword
+	/*cent unarchiveCent (Id id)
+	{
+		return unarchivePrimitive!(cent)(id);
+	}*/
+
+	// currently not suppported by to!()
+	/*cfloat unarchiveCfloat (Id id)
+	{
+		return unarchivePrimitive!(cfloat)(id);
+	}*/
+
+	/// Ditto
+	char unarchiveChar (Id id)
+	{
+		return unarchivePrimitive!(char)(id);
+	}
+
+	 //currently not implemented but a reserved keyword
+	/*creal unarchiveCreal (Id id)
+	{
+		return unarchivePrimitive!(creal)(id);
+	}*/
+
+	/// Ditto
+	dchar unarchiveDchar (Id id)
+	{
+		return unarchivePrimitive!(dchar)(id);
+	}
+
+	/// Ditto
+	double unarchiveDouble (Id id)
+	{
+		return unarchivePrimitive!(double)(id);
+	}
+
+	/// Ditto	
+	float unarchiveFloat (Id id)
+	{
+		return unarchivePrimitive!(float)(id);
+	}
+
+	//currently not suppported by to!()
+	/*idouble unarchiveIdouble (Id id)
+	{
+		return unarchivePrimitive!(idouble)(id);
+	}*/
+
+	// currently not suppported by to!()*/
+	/*ifloat unarchiveIfloat (Id id)
+	{
+		return unarchivePrimitive!(ifloat)(id);
+	}*/
+
+	/// Ditto
+	int unarchiveInt (Id id)
+	{
+		return unarchivePrimitive!(int)(id);
+	}
+
+	// currently not suppported by to!()
+	/*ireal unarchiveIreal (Id id)
+	{
+		return unarchivePrimitive!(ireal)(id);
+	}*/
+
+	/// Ditto
+	long unarchiveLong (Id id)
+	{
+		return unarchivePrimitive!(long)(id);
+	}
+
+	/// Ditto
+	real unarchiveReal (Id id)
+	{
+		return unarchivePrimitive!(real)(id);
+	}
+
+	/// Ditto	
+	short unarchiveShort (Id id)
+	{
+		return unarchivePrimitive!(short)(id);
+	}
+
+	/// Ditto	
+	ubyte unarchiveUbyte (Id id)
+	{
+		return unarchivePrimitive!(ubyte)(id);
+	}
+
+	// currently not implemented but a reserved keyword
+	/*ucent unarchiveCcent (Id id)
+	{
+		return unarchivePrimitive!(ucent)(id);
+	}*/
+
+	/// Ditto
+	uint unarchiveUint (Id id)
+	{
+		return unarchivePrimitive!(uint)(id);
+	}
+
+	/// Ditto	
+	ulong unarchiveUlong (Id id)
+	{
+		return unarchivePrimitive!(ulong)(id);
+	}
+
+	/// Ditto	
+	ushort unarchiveUshort (Id id)
+	{
+		return unarchivePrimitive!(ushort)(id);
+	}
+
+	/// Ditto	
+	wchar unarchiveWchar (Id id)
+	{
+		return unarchivePrimitive!(wchar)(id);
+	}
+
+	private T unarchivePrimitive (T, U) (U keyOrId)
+	{
+		auto tag = toData(T.stringof);
+
+		static if (isString!(U))
+			auto element = getElement(tag, keyOrId);
+
+		else static if (is(U == Id))
+			auto element = getElement(tag, to!(string)(keyOrId), Attributes.idAttribute);
+
+		else
+			static assert (false, format!(`Invalid type "`, U, `". Valid types are "string" and "Id"`));
 
 		if (!element.isValid)
 			return T.init;
 		
 		return fromData!(T)(element.value);
 	}
-	
+
 	/**
 	 * Performs post processing of the array associated with the given id.
 	 * 
@@ -1828,26 +2069,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 		if (auto array = getArchivedArray(id))
 			array.parent.attach(array.node);
 	}
-	
-	/**
-	 * Performs post processing of the pointer associated with the given id.
-	 * 
-	 * Post processing can basically be anything that the archive wants to do. This
-	 * method is called by the serializer once for each serialized pointer at the end of
-	 * the serialization process when all values have been serialized.
-	 * 
-	 * With this method the archive has a last chance of changing an archived pointer to
-	 * an archived reference instead.
-	 * 
-	 * Params:
-	 *     id = the id associated with the array
-	 */
-	void postProcessPointer (Id id)
-	{
-		if (auto pointer = getArchivedPointer(id))
-			pointer.parent.attach(pointer.node);
-	}
-	
+
 	private void addArchivedArray (Id id, doc.Node parent, doc.Node element, string key)
 	{
 		archivedArrays[id] = Node(parent, element, id, key);
@@ -1861,11 +2083,6 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 		error(`Could not continue archiving due to no array with the Id "` ~ to!(string)(id) ~ `" was found.`, __FILE__, __LINE__, [to!(string)(id)]);
 		
 		return null;
-	}
-	
-	private void addArchivedPointer (Id id, doc.Node parent, doc.Node element, string key)
-	{
-		archivedPointers[id] = Node(parent, element, id, key);
 	}
 	
 	private Node* getArchivedPointer (Id id)
@@ -1893,7 +2110,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 		if (throwOnError)
 		{
 			if (set.nodes.length == 0)
-				error(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(Attributes.keyAttribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__, [tag, Attributes.keyAttribute, key]);
+				error(`Could not find an element "` ~ to!(string)(tag) ~ `" with the attribute "` ~ to!(string)(attribute) ~ `" with the value "` ~ to!(string)(key) ~ `".`, __FILE__, __LINE__, [tag, Attributes.keyAttribute, key]);
 
 			else
 				error(`Could not unarchive the value with the key "` ~ to!(string)(key) ~ `" due to malformed data.`, __FILE__, __LINE__, [tag, Attributes.keyAttribute, key]);
