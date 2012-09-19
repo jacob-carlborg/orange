@@ -9,4 +9,5 @@ module orange.serialization.archives._;
 public:
 
 import orange.serialization.archives.Archive;
+import orange.serialization.archives.FastArchive;
 import orange.serialization.archives.XmlArchive;
