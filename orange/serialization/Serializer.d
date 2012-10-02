@@ -1554,8 +1554,13 @@ class Serializer
 
 					if (isReference && pointer)
 					{
-						value.tupleof[i] = **pointer;
-						*pointer = &value.tupleof[i];
+						auto offset = value.tupleof[i].offsetof;
+						auto fieldAddress = cast(Type*) (rawObject + offset);
+						*fieldAddress = **pointer;
+						*pointer = cast(Type*) &value.tupleof[i];
+
+						// value.tupleof[i] = **pointer;
+						// *pointer = &value.tupleof[i];
 					}
 
 					else
