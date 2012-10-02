@@ -700,7 +700,7 @@ class Serializer
 	void serializeBase (T) (T value)
 	{
 		static if (isObject!(T) && !is(T == Object))
-			serializeBaseTypes(value);
+				serializeBaseTypes(value);
 	}
 	
 	private void serializeInternal (U) (U value, string key = null, Id id = Id.max)
@@ -758,7 +758,7 @@ class Serializer
 	private void serializeObject (T) (T value, string key, Id id)
 	{
 		auto typeName = typeid(T).toString;
-		
+
 		static if (!isNonSerialized!(T)())
 		{
 			if (!value)
@@ -1470,7 +1470,7 @@ class Serializer
 				
 			else
 				mixin(`enum field = nameOfFieldAt!(T, i);`);
-			
+
 			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
 			{
 				alias typeof(T.tupleof[i]) Type;				
@@ -1484,15 +1484,23 @@ class Serializer
 				else
 					auto pointer = &value.tupleof[i];
 
-				auto valueMeta = getSerializedValue(pointer);
+				auto reference = getSerializedReference(v);
 
-				if (valueMeta.isValid)
-					serializePointer(pointer, toData(field), id);
+				if (reference != Id.max)
+					archive.archiveReference(field, reference);
 
 				else
 				{
-					serializeInternal(v, toData(field), id);
-					addSerializedValue(pointer, id, toData(keyCounter));
+					auto valueMeta = getSerializedValue(pointer);
+
+					if (valueMeta.isValid)
+						serializePointer(pointer, toData(field), id);
+
+					else
+					{
+						serializeInternal(v, toData(field), id);
+						addSerializedValue(pointer, id, toData(keyCounter));
+					}
 				}
 			}
 		}
@@ -1644,7 +1652,7 @@ class Serializer
 	
 	private Id getSerializedReference (T) (T value)
 	{
-		if (auto tmp = cast(void*) value in serializedReferences)
+		if (auto tmp = *(cast(void**) &value) in serializedReferences)
 			return *tmp;
 		
 		return Id.max;
