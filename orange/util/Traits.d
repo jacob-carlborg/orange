@@ -209,14 +209,14 @@ template BaseTypeOfEnum (T)
 /// Evaluates to the key type of the associative array.
 template KeyTypeOfAssociativeArray (T)
 {
-	static assert(isAssociativeArray!(T), "The type needs to be an associative array");
+	static assert(isAssociativeArray!(Unqual!(T)), "The type needs to be an associative array");
 	alias typeof(T.init.keys[0]) KeyTypeOfAssociativeArray;
 }
 
 /// Evaluates to the value type of the associative array.
 template ValueTypeOfAssociativeArray (T)
 {
-	static assert(isAssociativeArray!(T), "The type needs to be an associative array");
+	static assert(isAssociativeArray!(Unqual!(T)), "The type needs to be an associative array");
 	alias typeof(T.init.values[0]) ValueTypeOfAssociativeArray;
 }
 

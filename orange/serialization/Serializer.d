@@ -1172,7 +1172,7 @@ class Serializer
 					auto runtimeType = value.classinfo.name;
 					auto runHelper = false;
 
-					static if (isString!(U))
+					static if (isString!(Key))
 					{
 						if (auto deserializer = runtimeType in overriddenDeserializers)
 							callSerializer(deserializer, value, keyOrId);
@@ -1616,7 +1616,8 @@ class Serializer
 	
 	private void addSerializedReference (T) (T value, Id id)
 	{
-		static assert(isReference!(T) || isAssociativeArray!(T), format!(`The given type "`, T, `" is not a reference type, i.e. object, pointer or associative array.`));
+		alias Unqual!(T) Type;
+		static assert(isReference!(Type) || isAssociativeArray!(Type), format!(`The given type "`, T, `" is not a reference type, i.e. object, pointer or associative array.`));
 		
 		serializedReferences[cast(void*) value] = id;
 	}
