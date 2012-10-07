@@ -1453,7 +1453,7 @@ class Serializer
 		return archive.unarchiveSlice(key);
 	}
 	
-	private void objectStructSerializeHelper (T) (ref in T value)
+	private void objectStructSerializeHelper (T) (ref T value)
 	{
 		static assert(isStruct!(T) || isObject!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 		
