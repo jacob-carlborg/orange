@@ -1306,8 +1306,10 @@ class Serializer
 		if (auto tmp = getDeserializedSlice!(T)(slice))
 			return *tmp;
 		
-		alias Unqual!(ElementTypeOfArray!(T)) E;
-		E[] buffer;
+		alias ElementTypeOfArray!(T) E;
+		alias Unqual!(E) UnqualfiedE;
+
+		UnqualfiedE[] buffer;
 		T value;
 
 		auto dg = (size_t length) {
@@ -1322,7 +1324,7 @@ class Serializer
 		{
 			archive.unarchiveArray(slice.id, dg);
 			addDeserializedSlice(value, slice.id);
-			value = buffer;
+			assumeUnique(buffer, value);
 
 			return toSlice(value, slice);
 		}			
@@ -1330,7 +1332,7 @@ class Serializer
 		else
 		{
 			slice.id = archive.unarchiveArray(key, dg);
-			value = buffer;
+			assumeUnique(buffer, value);
 			
 			if (auto a = slice.id in deserializedSlices)
 				return cast(T) *a;
@@ -1375,7 +1377,7 @@ class Serializer
 			}
 		});
 
-		T value = buffer;
+		T value;
 		addDeserializedReference(value, id);
 		
 		return value;
