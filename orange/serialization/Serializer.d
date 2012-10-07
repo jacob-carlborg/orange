@@ -1348,16 +1348,19 @@ class Serializer
 		if (auto reference = getDeserializedReference!(T)(id))
 			return *reference;
 
-		T value;
-
 		alias KeyTypeOfAssociativeArray!(T) Key;
 		alias ValueTypeOfAssociativeArray!(T) Value;
-		
+
+		alias Unqual!(Key) UKey;
+		alias Unqual!(Value) UValue;
+
+		UValue[UKey] buffer;
+
 		id = archive.unarchiveAssociativeArray(key, (size_t length) {
 			for (size_t i = 0; i < length; i++)
 			{
-				Key aaKey;
-				Value aaValue;
+				UKey aaKey;
+				UValue aaValue;
 				auto k = toData(i);
 				
 				archive.unarchiveAssociativeArrayKey(k, {
@@ -1368,10 +1371,11 @@ class Serializer
 					aaValue = deserializeInternal!(Value)(k);
 				});
 				
-				value[aaKey] = aaValue;
+				buffer[aaKey] = aaValue;
 			}
 		});
-		
+
+		T value = buffer;
 		addDeserializedReference(value, id);
 		
 		return value;
