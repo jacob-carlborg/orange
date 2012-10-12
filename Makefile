@@ -1,6 +1,8 @@
 LIBNAME=orange
-DC=dmd
+DC?=dmd
 PREFIX=/usr/local
+#Warning, unittests fail with VERSION=release
+VERSION?=standard
 LIBDIR=lib/$(MODEL)
 ARCH=$(shell arch || uname -m)
 
@@ -61,13 +63,38 @@ else
 	override MODEL=32
 endif
 
+ifeq ("$(VERSION)","release")
+	ifeq ("$(DC)","dmd")
+		DCFLAGS += -O
+	else ifeq ("$(DC)","gdc")
+		DCFLAGS += -O3
+	endif
+else ifeq ("$(VERSION)","debug")
+	ifeq ("$(DC)","dmd")
+		DCFLAGS += -g
+	else ifeq ("$(DC)","gdc")
+		DCFLAGS += -g -fdebug
+	endif
+endif
+
+ifeq ("$(DC)","dmd")
+	OUTPUTPREFIX = -of
+	LIBCOMMAND = $(DC) -lib $(DCFLAGS) $(OUTPUTPREFIX)$@ $^
+	HEADEROPT = -o- -Hf
+else ifeq ("$(DC)","gdc")
+	OUTPUTPREFIX = -o
+	LIBCOMMAND = ar rcs $@ $^
+	HEADEROPT = -fintfc-file=
+	UNITTESTPREFIX=f
+endif
+
 # Everything below this line should be fairly generic (with a few hard-coded things).
 
 OBJ=$(addsuffix .o,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
 HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
 TARGET=$(LIBDIR)/lib$(LIBNAME).a
 
-all: $(TARGET) $(HEADER)
+all: mkdirs $(TARGET) $(HEADER)
 
 install: all
 	@mkdir -p $(PREFIX)/lib $(PREFIX)/include/d
@@ -80,7 +107,7 @@ uninstall:
 	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
 
 unittest: ~~cleanunittest
-	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
+	$(DC) $(DCFLAGS) -$(UNITTESTPREFIX)unittest $(OUTPUTPREFIX)unittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
 	./unittest
 
 clean: ~~cleanunittest
@@ -89,12 +116,14 @@ clean: ~~cleanunittest
 ~~cleanunittest:
 	rm -f unittest.o unittest
 
+mkdirs:
+	mkdir -p $(addprefix $(LIBDIR)/$(LIBNAME)/,  $(sort $(dir $(SRC))))
+
 $(TARGET): $(OBJ)
-	$(DC) -lib $(DCFLAGS) -of$@ $^
+	$(LIBCOMMAND)
 
 $(LIBDIR)/$(LIBNAME)/%.o: $(LIBNAME)/%.d
-	$(DC) -c $(DCFLAGS) -of$@ $<
+	$(DC) -c $(DCFLAGS) $(OUTPUTPREFIX)$@ $<
 
 import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
-	$(DC) -c -o- -Hf$@ $<
-
+	$(DC) -c $(HEADEROPT)$@ $<
