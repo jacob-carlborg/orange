@@ -118,6 +118,24 @@ template isArray (T)
 		const bool isArray = false;
 }
 
+/// Evaluates to true if $(D_PARAM T) is a static array.
+template isStaticArray (T : T[U], size_t U)
+{
+	const bool isStaticArray = true;
+}
+
+/// Evaluates to true if $(D_PARAM T) is a static array.
+template isStaticArray (T)
+{
+	const bool isStaticArray = false;
+}
+
+/// Evaluates to true if $(D_PARAM T) is a dynamic array.
+template isDynamicArray (T)
+{
+	const bool isDynamicArray = is(typeof(T.init[0])[] == T);
+}
+
 /// Evaluates to true if $(D_PARAM T) is a string.
 template isString (T)
 {

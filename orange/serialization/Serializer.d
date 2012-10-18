@@ -745,10 +745,12 @@ class Serializer
 			serializeEnum(value, key, id);
 		
 		else
-		{
-			error:
-			error(format!(`The type "`, T, `" cannot be serialized.`), __LINE__);
-		}
+			goto error;
+
+		return;
+
+		error:
+		error(format!(`The type "`, T, `" cannot be serialized.`), __LINE__);
 	}
 
 	private void serializeObject (T) (T value, string key, Id id)
@@ -883,7 +885,7 @@ class Serializer
 	}
 	
 	private void serializePointer (T) (T value, string key, Id id)
-	{	
+	{
 		if (!value)
 			return archive.archiveNull(typeid(T).toString, key);
 		
@@ -1128,21 +1130,24 @@ class Serializer
 			return deserializePrimitive!(T)(keyOrId);
 
 		else static if (isPointer!(T))
-		{			
+		{
 			static if (isFunctionPointer!(T))
 				goto error;
 
-			return deserializePointer!(T)(keyOrId).value;
-		}		
+			else
+				return deserializePointer!(T)(keyOrId).value;
+		}
 
 		else static if (isEnum!(T))
 			return deserializeEnum!(T)(keyOrId);
 
 		else
-		{
-			error:
-			error(format!(`The type "`, T, `" cannot be deserialized.`), __LINE__);
-		}			
+			return T.init;
+
+		error:
+		error(format!(`The type "`, T, `" cannot be deserialized.`), __LINE__);
+
+		return T.init;
 	}
 	
 	private T deserializeObject (T, U) (U keyOrId)
@@ -1293,39 +1298,62 @@ class Serializer
 	
 	private T deserializeArray (T) (string key)
 	{
-		auto slice = deserializeSlice(key);
+		Slice slice;
 
-		if (auto tmp = getDeserializedSlice!(T)(slice))
-			return *tmp;
-		
+		static if (isDynamicArray!(T))
+		{
+			slice = deserializeSlice(key);
+
+			if (auto tmp = getDeserializedSlice!(T)(slice))
+				return *tmp;
+		}
+
 		T value;
 
 		auto dg = (size_t length) {
-			value.length = length;
+			static if (isDynamicArray!(T))
+				value.length = length;
 
 			foreach (i, ref e ; value)
 				e = deserializeInternal!(typeof(e))(toData(i));
 		};
 
-		if (slice.id != size_t.max)
+		static if (isDynamicArray!(T))
 		{
-			archive.unarchiveArray(slice.id, dg);
-			addDeserializedSlice(value, slice.id);
+			if (slice.id != size_t.max)
+			{
+				archive.unarchiveArray(slice.id, dg);
+				addDeserializedSlice(value, slice.id);
 
-			return toSlice(value, slice);
-		}			
-		
+				return toSlice(value, slice);
+			}
+
+			else
+			{
+				slice.id = archive.unarchiveArray(key, dg);
+
+				if (auto a = slice.id in deserializedSlices)
+					return cast(T) *a;
+
+				addDeserializedSlice(value, slice.id);	
+			}
+		}
+
 		else
 		{
 			slice.id = archive.unarchiveArray(key, dg);
-			
+
 			if (auto a = slice.id in deserializedSlices)
-				return cast(T) *a;
+			{
+				alias ElementTypeOfArray!(T) E;
+				E[] e = cast(E[]) *a;
+				value[] = e[];
+			}
 
 			addDeserializedSlice(value, slice.id);
-			
-			return value;
 		}
+
+		return value;
 	}
 	
 	private T deserializeAssociativeArray (T) (string key)
@@ -1371,26 +1399,26 @@ class Serializer
 		if (auto reference = getDeserializedReference!(T)(pointeeId))
 			return Pointer!(T)(*reference, Id.max);
 
-		T pointer = new BaseTypeOfPointer!(T);
-		
-		auto pointerId = archive.unarchivePointer(key, {
-			if (auto deserializer = key in overriddenDeserializers)
-				callSerializer(deserializer, pointer, key);
+		T pointer;
+		Id pointerId;
+
+		static if (isVoid!(BaseTypeOfPointer!(T)) || isFunctionPointer!(T))
+			pointerError!(T)(key, __LINE__);
+
+		else
+		{
+			pointer = new BaseTypeOfPointer!(T);
+
+			pointerId = archive.unarchivePointer(key, {
+				if (auto deserializer = key in overriddenDeserializers)
+					callSerializer(deserializer, pointer, key);
 			
-			else if (auto deserializer = key in Serializer.deserializers)
-				callSerializer(deserializer, pointer, key);
+				else if (auto deserializer = key in Serializer.deserializers)
+					callSerializer(deserializer, pointer, key);
 			
-			else static if (isSerializable!(T))
-				pointer.fromData(this, key);
+				else static if (isSerializable!(T))
+					pointer.fromData(this, key);
 			
-			else
-			{
-				static if (isVoid!(BaseTypeOfPointer!(T)))
-					error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
-						format!(` of the type "`, T, `" cannot be deserialized on `
-						`its own, either implement orange.serialization.Serializable`
-						`.isSerializable or register a deserializer.`), __LINE__);
-				
 				else
 				{
 					auto k = nextKey;
@@ -1399,13 +1427,13 @@ class Serializer
 					if (pointeeId == Id.max)
 						*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(k);
 				}
-			}
-		});
+			});
 
-		if (pointeeId != Id.max)
-			*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(pointeeId);
+			if (pointeeId != Id.max)
+				*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(pointeeId);
 
-		addDeserializedReference(pointer, pointerId);
+			addDeserializedReference(pointer, pointerId);
+		}
 
 		return Pointer!(T)(pointer, pointerId, pointeeId);
 	}
@@ -1478,7 +1506,7 @@ class Serializer
 				auto valueMeta = getSerializedValue(pointer);
 
 				if (valueMeta.isValid)
-					serializePointer(pointer, toData(field), id);
+					serializeInternal(pointer, toData(field), id);
 
 				else
 				{
@@ -1519,17 +1547,23 @@ class Serializer
 
 				static if (isPointer!(Type))
 				{
-					auto pointer = deserializePointer!(Type)(toData(field));
-					Type pointerValue;
-
-					if (pointer.hasPointee)
-						pointerValue = getDeserializedValue!(Type)(pointer.pointee);
+					static if (isFunctionPointer!(Type))
+						pointerError!(Type)(field, __LINE__);
 
 					else
-						pointerValue = pointer.value;
+				    {
+						auto pointer = deserializeInternal!(Type)(toData(field));
+						Type pointerValue;
 
-					value.tupleof[i] = pointerValue;
-					addDeserializedPointer(value.tupleof[i], pointer.id);
+						if (pointer.hasPointee)
+							pointerValue = getDeserializedValue!(Type)(pointer.pointee);
+
+						else
+							pointerValue = pointer.value;
+
+						value.tupleof[i] = pointerValue;
+						addDeserializedPointer(value.tupleof[i], pointer.id);
+					}
 				}
 
 				else
@@ -1642,7 +1676,7 @@ class Serializer
 	private T* getDeserializedSlice (T) (Slice slice)
 	{
 		if (auto array = slice.id in deserializedSlices)
-			return &(cast(T) *array)[slice.offset .. slice.offset + slice.length]; // dereference the array, cast it to the right type, 
+			return cast(T*) &(*array)[slice.offset .. slice.offset + slice.length]; // dereference the array, cast it to the right type, 
 																				   // slice it and then return a pointer to the result
 		return null;		
 	}
@@ -1672,6 +1706,11 @@ class Serializer
 	private T[] toSlice (T) (T[] array, Slice slice)
 	{
 		return array[slice.offset .. slice.offset + slice.length];
+	}
+
+	private T[len] toSlice (T, size_t len) (T[len] array, Slice slice)
+	{
+		return cast(T[len]) array[slice.offset .. slice.offset + slice.length];
 	}
 
 	void callSerializer (T) (RegisterBase* baseWrapper, ref T value, string key)
@@ -1848,6 +1887,14 @@ class Serializer
 	{
 		if (errorCallback)
 			errorCallback()(new SerializationException(message, __FILE__, line));
+	}
+
+	void pointerError (T) (string key, size_t line)
+	{
+		error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
+			format!(` of the type "`, T, `" cannot be deserialized on `
+			`its own, either implement orange.serialization.Serializable`
+			`.isSerializable or register a deserializer.`), line);
 	}
 
 	struct Pointer (T)
