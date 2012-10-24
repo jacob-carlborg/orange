@@ -149,12 +149,12 @@ final class Attribute : Element
 		parent_ = parent;
 	}
 
-	tstring name ()
+	override tstring name ()
 	{
 		return name_;
 	}
 
-	tstring value ()
+	override tstring value ()
 	{
 		return value_;
 	}
