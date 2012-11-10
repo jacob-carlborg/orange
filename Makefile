@@ -1,6 +1,8 @@
 LIBNAME=orange
-DC=dmd
-PREFIX=/usr/local
+DC?=dmd
+PREFIX?=/usr/local
+#Warning, unittests fail with VERSION=release
+VERSION?=standard
 LIBDIR=lib/$(MODEL)
 ARCH=$(shell arch || uname -m)
 
@@ -61,13 +63,31 @@ else
 	override MODEL=32
 endif
 
+ifeq ("$(VERSION)","release")
+	DCFLAGS += -O
+else ifeq ("$(VERSION)","debug")
+	DCFLAGS += -g
+endif
+
+ifeq ("$(DC)","dmd")
+	LIBCOMMAND = $(DC) -lib $(DCFLAGS) -of$@ $^
+else ifeq ("$(DC)","gdc")
+	override DC=gdmd
+	LIBCOMMAND = ar rcs $@ $^
+else ifeq ("$(DC)","gdmd")
+	LIBCOMMAND = ar rcs $@ $^
+endif
+
 # Everything below this line should be fairly generic (with a few hard-coded things).
 
 OBJ=$(addsuffix .o,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
 HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
 TARGET=$(LIBDIR)/lib$(LIBNAME).a
 
-all: $(TARGET) $(HEADER)
+all: mkdirs $(TARGET) $(HEADER)
+
+mkdirs:
+	mkdir -p $(addprefix $(LIBDIR)/$(LIBNAME)/,  $(sort $(dir $(SRC))))
 
 install: all
 	@mkdir -p $(PREFIX)/lib $(PREFIX)/include/d
@@ -90,11 +110,10 @@ clean: ~~cleanunittest
 	rm -f unittest.o unittest
 
 $(TARGET): $(OBJ)
-	$(DC) -lib $(DCFLAGS) -of$@ $^
+	$(LIBCOMMAND)
 
 $(LIBDIR)/$(LIBNAME)/%.o: $(LIBNAME)/%.d
 	$(DC) -c $(DCFLAGS) -of$@ $<
 
 import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
 	$(DC) -c -o- -Hf$@ $<
-
