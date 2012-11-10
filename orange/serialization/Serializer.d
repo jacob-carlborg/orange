@@ -1317,28 +1317,27 @@ class Serializer
 
 			foreach (i, ref e ; buffer)
 				e = deserializeInternal!(typeof(e))(toData(i));
-
 		};
 
-		if (slice.id != size_t.max)
+		if (slice.id != size_t.max) // Deserialize slice
 		{
 			archive.unarchiveArray(slice.id, dg);
-			addDeserializedSlice(value, slice.id);
 			assumeUnique(buffer, value);
+			addDeserializedSlice(value, slice.id);
 
 			return toSlice(value, slice);
-		}			
+		}	
 		
-		else
-		{
+		else // Deserialize array
+		{			
 			slice.id = archive.unarchiveArray(key, dg);
-			assumeUnique(buffer, value);
-			
-			if (auto a = slice.id in deserializedSlices)
-				return cast(T) *a;
 
+			if (auto arr = slice.id in deserializedSlices)
+				return cast(T) *arr;
+
+			assumeUnique(buffer, value);
 			addDeserializedSlice(value, slice.id);
-			
+
 			return value;
 		}
 	}
@@ -1693,13 +1692,7 @@ class Serializer
 																				   // slice it and then return a pointer to the result
 		return null;		
 	}
-	
-	private T* getDeserializedArray (T) (Id id)
-	{
-		if (auto array = id in deserializedSlices)
-			return cast(T*) array;
-	}
-	
+
 	private T getDeserializedValue (T) (Id id)
 	{
 		if (auto value = id in deserializedValues)
