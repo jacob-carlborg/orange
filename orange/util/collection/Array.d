@@ -711,10 +711,20 @@ bool endsWith (T) (T[] a, T[] b)
 	return a.length > b.length && a[$ - b.length .. $] == b;
 }
 
-inout(T)[] assumeUnique (T) (ref T[] source, ref inout(T)[] destination)
-{
-	destination = cast(inout(T)[]) source;
-	source = null;
+version (D_Version2)
+	mixin(`inout(T)[] assumeUnique (T) (ref T[] source, ref inout(T)[] destination)
+	{
+		destination = cast(inout(T)[]) source;
+		source = null;
 
-	return destination;
-}
+		return destination;
+	}`);
+
+else
+	T[] assumeUnique (T) (ref T[] source, ref T[] destination)
+	{
+		destination = source;
+		source = null;
+
+		return destination;
+	}
