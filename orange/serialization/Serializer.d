@@ -1394,8 +1394,11 @@ class Serializer
 		if (auto reference = getDeserializedReference!(T)(pointeeId))
 			return Pointer!(T)(*reference, Id.max);
 
-		T pointer = new BaseTypeOfPointer!(T);
-		
+		alias BaseTypeOfPointer!(T) BaseType;
+		alias Unqual!(BaseType) UnqualfiedBaseType;
+
+		auto pointer = new UnqualfiedBaseType;
+
 		auto pointerId = archive.unarchivePointer(key, {
 			if (auto deserializer = key in overriddenDeserializers)
 				callSerializer(deserializer, pointer, key);
@@ -1420,17 +1423,17 @@ class Serializer
 					pointeeId = deserializeReference(k);
 
 					if (pointeeId == Id.max)
-						*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(k);
+						*pointer = deserializeInternal!(UnqualfiedBaseType)(k);
 				}
 			}
 		});
 
 		if (pointeeId != Id.max)
-			*pointer = deserializeInternal!(BaseTypeOfPointer!(T))(pointeeId);
+			*pointer = deserializeInternal!(UnqualfiedBaseType)(pointeeId);
 
 		addDeserializedReference(pointer, pointerId);
 
-		return Pointer!(T)(pointer, pointerId, pointeeId);
+		return Pointer!(T)(cast(T) pointer, pointerId, pointeeId);
 	}
 	
 	private T deserializeEnum (T, U) (U keyOrId)
@@ -1555,6 +1558,8 @@ class Serializer
 
 				auto id = deserializeReference(field);
 				auto isReference = id != Id.max;
+				auto offset = value.tupleof[i].offsetof;
+				auto fieldAddress = cast(Type*) (rawObject + offset);
 
 				static if (isPointer!(Type))
 				{
@@ -1567,7 +1572,7 @@ class Serializer
 					else
 						pointerValue = pointer.value;
 
-					value.tupleof[i] = pointerValue;
+					*fieldAddress = pointerValue;
 					addDeserializedPointer(value.tupleof[i], pointer.id);
 				}
 
@@ -1577,25 +1582,14 @@ class Serializer
 
 					if (isReference && pointer)
 					{
-						auto offset = value.tupleof[i].offsetof;
-						auto fieldAddress = cast(Type*) (rawObject + offset);
 						*fieldAddress = **pointer;
 						*pointer = cast(Type*) &value.tupleof[i];
-
-						// value.tupleof[i] = **pointer;
-						// *pointer = &value.tupleof[i];
 					}
 
 					else
 					{
-    					auto fieldValue = deserializeInternal!(Type)(toData(field));
-    					auto offset = value.tupleof[i].offsetof;
-    					auto fieldAddress = cast(Type*) (rawObject + offset);
-    					*fieldAddress = fieldValue;
-
+    					*fieldAddress = deserializeInternal!(Type)(toData(field));
                         addDeserializedValue(value.tupleof[i], nextId);
-                        // value.tupleof[i] = deserializeInternal!(Type)(toData(field));
-                        // addDeserializedValue(value.tupleof[i], nextId);
 					}
 				}
 			}			
