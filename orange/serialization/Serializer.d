@@ -1376,7 +1376,7 @@ class Serializer
 			}
 		});
 
-		T value;
+		T value = buffer;
 		addDeserializedReference(value, id);
 		
 		return value;
