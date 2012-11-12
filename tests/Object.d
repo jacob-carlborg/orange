@@ -17,7 +17,7 @@ XmlArchive!(char) archive;
 
 class A
 {
-	equals_t opEquals (Object other)
+	override equals_t opEquals (Object other)
 	{
 		if (auto o = cast(A) other)
 			return true;

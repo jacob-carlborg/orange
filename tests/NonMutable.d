@@ -24,7 +24,7 @@ class B
 		this.a = a;
 	}
 
-	equals_t opEquals (Object other)
+	override equals_t opEquals (Object other)
 	{
 		if (auto o = cast(B) other)
 			return a == o.a;
@@ -50,7 +50,7 @@ class A
 		this.e = e;
 	}
 
-	equals_t opEquals (Object other)
+	override equals_t opEquals (Object other)
 	{
 		if (auto o = cast(A) other)
 			return a == o.a &&

@@ -18,6 +18,12 @@ import orange.serialization.Serializer;
 import orange.util._;
 import orange.xml.XmlDocument;
 
+private enum ArchiveMode
+{
+	archiving,
+	unarchiving
+}
+
 /**
  * This class is a concrete implementation of the Archive interface. This archive
  * uses XML as the final format for the serialized data.

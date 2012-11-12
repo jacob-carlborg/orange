@@ -27,8 +27,6 @@ else
 
 import orange.core.io;
 
-/// Evaluates to $(D_PARAM T) if $(D_PARAM T) is a character type.
-
 /**
  * Evaluates to $(D_PARAM T) if $(D_PARAM T) is a character type. Otherwise this
  * template will not compile.
@@ -626,7 +624,7 @@ final class XmlDocument (T = char)
 	}
 	
 	/// Pretty prints the document.
-	string toString ()
+	override string toString ()
 	{
 		version (Tango)
 		{

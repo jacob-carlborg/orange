@@ -34,7 +34,7 @@ class Sub : Base
 {
 	int b;
 
-	int getB ()
+	override int getB ()
 	{
 		return b;
 	}

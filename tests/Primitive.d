@@ -41,7 +41,7 @@ class H
 	ushort ushort_;
 	wchar wchar_;
 	
-	equals_t opEquals (Object other)
+	override equals_t opEquals (Object other)
 	{
 		if (auto o =  cast(H) other)
 		{

@@ -24,12 +24,6 @@ import orange.serialization.SerializationException;
 import orange.serialization.Serializer;
 import orange.util.Traits;
 
-private enum ArchiveMode
-{
-	archiving,
-	unarchiving
-}
-
 /**
  * This interface represents an archive. This is the interface all archive
  * implementations need to implement to be able to be used as an archive with the
