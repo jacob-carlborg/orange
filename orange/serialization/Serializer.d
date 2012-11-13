@@ -1168,12 +1168,14 @@ class Serializer
 				return *reference;
 
 			T value;
-			Object val = value;
+			Object untypedValue;
 			nextId;
 
-			archive.unarchiveObject(keyOrId, id, val, {
-				triggerEvents(cast(T) val, {
-					value = cast(T) val;
+			archive.unarchiveObject(keyOrId, id, untypedValue, {
+				value = cast(T) untypedValue;
+				addDeserializedReference(value, id);
+
+				triggerEvents(value, {
 					auto runtimeType = value.classinfo.name;
 					auto runHelper = false;
 
@@ -1214,8 +1216,6 @@ class Serializer
 					}
 				});
 			});
-
-			addDeserializedReference(value, id);
 
 			return value;
 		}
