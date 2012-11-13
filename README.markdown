@@ -33,33 +33,35 @@ To run the unit test run the shell script "unittest.sh":
 
 ## Simple Usage Example
 
-	module main;
+```d
+module main;
 
-	import orange.core._;
-	import orange.serialization._;
-	import orange.serialization.archives._;
+import orange.core._;
+import orange.serialization._;
+import orange.serialization.archives._;
 
-	class Foo
-	{
-		int a;
-	}
+class Foo
+{
+	int a;
+}
 
-	void main ()
-	{
-		auto foo = new Foo; // create something to serialize
-		foo.a = 3; // change the default value of "a"
+void main ()
+{
+	auto foo = new Foo; // create something to serialize
+	foo.a = 3; // change the default value of "a"
+
+	auto archive = new XmlArchive!(char); // create an XML archive
+	auto serializer = new Serializer(archive); // create the serializer
+
+	serializer.serialize(foo); // serialize "foo"
 	
-		auto archive = new XmlArchive!(char); // create an XML archive
-		auto serializer = new Serializer(archive); // create the serializer
+	// deserialize the serialized data as an instance of "Foo"
+	auto f = serializer.deserialize!(Foo)(archive.untypedData);
 	
-		serializer.serialize(foo); // serialize "foo"
-		
-		// deserialize the serialized data as an instance of "Foo"
-		auto f = serializer.deserialize!(Foo)(archive.untypedData);
-		
-		// verify that the deserialized value is equal to the original value
-		assert(f.a == foo.a);
-	}
+	// verify that the deserialized value is equal to the original value
+	assert(f.a == foo.a);
+}
+```
 
 ## Detailed Build Instructions
 
