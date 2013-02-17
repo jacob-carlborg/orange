@@ -1421,7 +1421,7 @@ abstract class ArchiveBase (U) : Archive
 		static assert(isFloatingPoint!(T), format!(`The given value of the type "`, T,
 			`" is not a valid type, the only valid types for this method are floating point types.`));
 
-		to!(Data)(std.string.format("%a", value));
+		return to!(Data)(std.string.format("%a", value));
 	}
 
 	/**
@@ -1467,7 +1467,7 @@ abstract class ArchiveBase (U) : Archive
 	 * Params:
 	 *     exception = the exception to pass to the errorCallback
 	 */
-	protected void error (ExceptionBase exception)
+	protected void error (Exception exception)
 	{
 		if (errorCallback)
 			errorCallback()(new SerializationException(exception));

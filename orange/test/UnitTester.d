@@ -549,10 +549,6 @@ class UnitTester
 			println(whitespace, "# ", test.exception.file, ".d:", test.exception.line);
 			println(whitespace, "Stack trace:");
 			print(whitespace);
-
-			test.exception.writeOut(&printStackTrace);
-			println();
-			println(readFailedTest(test));
 		}
 	}
 
