@@ -18,9 +18,19 @@ A deb package is available on:
 
 ## Build Dependencies
 
-Make or [DSSS](http://dsource.org/projects/dsss) 
+Make or [DSSS](http://dsource.org/projects/dsss)
+
+## D Versions
+
+* D2/Phobos - master branch
+* D2/Tango - See the [mambo repository](https://github.com/jacob-carlborg/mambo).
+The API is the same, just replace "orange" with "mambo" for the imports
+* D1/Tango - d1 branch
+* D1/Tango and D2/Phobos in the same branch - mix branch
 
 ## Building
+
+The master branch is for D2/Phobos.
 
 1. Clone the repository
 2. Build the library either using make or dsss
@@ -54,10 +64,10 @@ void main ()
 	auto serializer = new Serializer(archive); // create the serializer
 
 	serializer.serialize(foo); // serialize "foo"
-	
+
 	// deserialize the serialized data as an instance of "Foo"
 	auto f = serializer.deserialize!(Foo)(archive.untypedData);
-	
+
 	// verify that the deserialized value is equal to the original value
 	assert(f.a == foo.a);
 }
@@ -68,13 +78,13 @@ void main ()
 Clone the repository:
 
 	$ git clone git://github.com/jacob-carlborg/orange.git
-	
+
 Change to the new directory "orange"
 
 	$ cd orange
 
 Build the library by running one of the following:
-	
+
 	$ dsss build
 Or
 

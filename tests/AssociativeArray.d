@@ -37,7 +37,6 @@ unittest
 
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.AssociativeArray.E" type="tests.AssociativeArray.E" key="0" id="0"`));
-			version (Tango) assert(archive.data().containsXmlTag("associativeArray", `keyType="int" valueType="int" length="4" key="aa" id="1"`));
 
 			assert(archive.data().containsXmlTag("key", `key="0"`));
 			assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));

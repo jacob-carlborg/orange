@@ -552,23 +552,6 @@ class UnitTester
 		}
 	}
 
-	void printStackTrace (string str)
-	{
-		return print(str);
-
-		/*if (str.find("start") < size_t.max ||
-		    str.find("main") < size_t.max ||
-		    str.find("rt.compiler.") < size_t.max ||
-		    str.find("orange.") ||
-		    str.find(":0") ||
-		    str.find("_d_assert") ||
-		    str.find("onAssertError") ||
-		    str.find("tango.core.Exception.AssertException._ctor ") ||
-		    str.find("object.") ||
-		    str.find("tango.core.tools."))
-				return;*/
-	}
-
 	void printNumberOfPending ()
 	{
 		if (hasPending)
