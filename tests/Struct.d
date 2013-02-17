@@ -17,20 +17,9 @@ XmlArchive!(char) archive;
 
 struct B
 {
-	version (Tango)
+	bool opEquals (ref const B) const
 	{
-		equals_t opEquals (B b)
-		{
-			return true;
-		}
-	}
-	
-	else
-	{
-		mixin(`bool opEquals (ref const B) const
-		{
-			return true;
-		}`);
+		return true;
 	}
 }
 
@@ -45,12 +34,12 @@ unittest
 		it("should return a serialized struct") in {
 			serializer.reset;
 			serializer.serialize(B());
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().contains(`<struct type="tests.Struct.B" key="0" id="0"/>`));
 		};
 	};
-	
+
 	describe("deserialize struct") in {
 		it("should return a deserialized struct equal to the original struct") in {
 			auto bDeserialized = serializer.deserialize!(B)(archive.untypedData);

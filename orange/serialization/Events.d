@@ -11,7 +11,7 @@ import orange.util._;
 /**
  * This event is triggered after the struct/class, this template has been mixed into,
  * has been completely deserialized, including all the fields.
- * 
+ *
  * Params:
  *     method = the method to be invoked when the event is triggered
  */
@@ -23,7 +23,7 @@ template OnDeserialized (alias method)
 /**
  * This event is triggered after the struct/class (that this template has been mixed into)
  * has been deserialized, but before any fields have been deserialized.
- * 
+ *
  * Params:
  *     method = the method to be invoked when the event is triggered
  */
@@ -35,7 +35,7 @@ template OnDeserializing (alias method)
 /**
  * This event is triggered after the struct/class (that this template has been mixed into)
  * has been completely serialized, including all the fields.
- * 
+ *
  * Params:
  *     method = the method to be invoked when the event is triggered
  */
@@ -47,7 +47,7 @@ template OnSerialized (alias method)
 /**
  * This event is triggered after the struct/class (that this template has been mixed into)
  * has been serialized, but before any fields have been serialized.
- * 
+ *
  * Params:
  *     method = the method to be invoked when the event is triggered
  */
@@ -58,21 +58,17 @@ template OnSerializing (alias method)
 
 /**
  * This struct represents an event.
- * 
+ *
  * Params:
  *     m = the method to be invoked when the event is triggered
  */
 struct Event (alias m)
 {
-	version (Tango)
-		private const method = &m;
-		
-	else
-		mixin("private enum method = &m;");
-	
+	private enum method = &m;
+
 	/**
 	 * Triggers the event on the given value.
-	 * 
+	 *
 	 * Params:
 	 *     value = the object to trigger the event on
 	 */

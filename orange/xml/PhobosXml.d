@@ -121,13 +121,7 @@ Distributed under the Boost Software License, Version 1.0.
 */
 module orange.xml.PhobosXml;
 
-version (Tango) {}
-else
-	version = Phobos;
-
-version (Phobos):
-
-mixin(`import std.array;
+import std.array;
 import std.string;
 import std.encoding;
 import std.ascii;
@@ -745,44 +739,44 @@ class Element : Item
 	{
 		return parent_;
 	}
-	
+
 	Element parent (Element parent)
 	{
 		return parent_ = parent;
 	}
-	
+
 	string name ()
 	{
 		return tag.name;
 	}
-	
+
 	string value ()
 	{
 		return text;
 	}
-	
+
 	alias elements children;
-	
+
 	Attribute[] attributes ()
 	{
 		auto attrs = new Attribute[tag.attr.length];
 		attrs = attrs[0 .. 0];
 
 		foreach (k, v ; tag.attr)
-			attrs ~= new Attribute(k, v, this);			
+			attrs ~= new Attribute(k, v, this);
 
-		return attrs;			
+		return attrs;
 	}
-	
+
 	Element query ()
 	{
 		return this;
 	}
-	
+
 	Element attribute (string prefix, string name, string value = null)
 	{
 		tag.attr[name] = value;
-		
+
 		return this;
 	}
 
@@ -1802,7 +1796,7 @@ class ElementParser
 			this();
 			tag_ = parent.tag_;
 		}
-		
+
 		// Private constructor for empty tags
 		this(Tag tag, string* t)
 		{
@@ -2131,7 +2125,7 @@ class ElementParser
 						handler1 = null in onStartTag;
 						if (handler1 !is null) (*handler1)(parser);
 					}
-					
+
 					// Handle the pretend end tag
 					auto element = new Element(startTag);
 					auto handler2 = tag_.name in onEndTag;
@@ -3041,5 +3035,5 @@ private
 	{
 		throw new XMLException(s);
 	}
-}`);
+}
 

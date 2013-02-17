@@ -10,35 +10,17 @@ import orange.serialization.Serializable;
 import orange.serialization.archives.Archive;
 import orange.util._;
 
-version (Tango)
-{
-	import Tango = tango.core.Traits;
-	
-	///
-	alias Tango.BaseTypeTupleOf BaseTypeTupleOf;
-	
-	///
-	alias Tango.ParameterTupleOf ParameterTupleOf;
-	
-	///
-	alias Tango.ReturnTypeOf ReturnTypeOf;
-}
 
-else
-{
-	import Phobos = std.traits;
-	
-	///
-	alias Phobos.BaseTypeTuple BaseTypeTupleOf;
-	
-	///
-	alias Phobos.ParameterTypeTuple ParameterTupleOf;
-	
-	///
-	alias Phobos.ReturnType ReturnTypeOf;
-	
-	version = Phobos;
-}
+import Phobos = std.traits;
+
+///
+alias Phobos.BaseTypeTuple BaseTypeTupleOf;
+
+///
+alias Phobos.ParameterTypeTuple ParameterTupleOf;
+
+///
+alias Phobos.ReturnType ReturnTypeOf;
 
 import orange.core.string;
 
@@ -113,7 +95,7 @@ template isArray (T)
 {
 	static if (is(T U : U[]))
 		const bool isArray = true;
-	
+
 	else
 		const bool isArray = false;
 }
@@ -135,7 +117,7 @@ template isPointer (T)
 {
 	static if (is(T U : U*))
 		const bool isPointer = true;
-	
+
 	else
 		const bool isPointer = false;
 }
@@ -181,7 +163,7 @@ template BaseTypeOfPointer (T)
 {
 	static if (is(T U : U*))
 		alias BaseTypeOfPointer!(U) BaseTypeOfPointer;
-	
+
 	else
 		alias T BaseTypeOfPointer;
 }
@@ -191,7 +173,7 @@ template BaseTypeOfTypedef (T)
 {
 	static if (is(T U == typedef))
 		alias BaseTypeOfTypedef!(U) BaseTypeOfTypedef;
-	
+
 	else
 		alias T BaseTypeOfTypedef;
 }
@@ -201,7 +183,7 @@ template BaseTypeOfEnum (T)
 {
 	static if (is(T U == enum))
 		alias BaseTypeOfEnum!(U) BaseTypeOfEnum;
-	
+
 	else
 		alias T BaseTypeOfEnum;
 }
@@ -228,7 +210,7 @@ template isArchive (T)
 	})) &&
 
 	is(typeof(T.archive(0, TypeOfDataType!(T).init, {}))) &&
-	is(typeof(T.unarchive!(int))) && 
+	is(typeof(T.unarchive!(int))) &&
 	is(typeof(T.beginArchiving)) &&
 	is(typeof(T.beginUnarchiving(TypeOfDataType!(T).init))) &&
 	is(typeof(T.archiveBaseClass!(Object))) &&
@@ -236,7 +218,7 @@ template isArchive (T)
 	is(typeof(T.reset)) &&
 	is(typeof({TypeOfDataType!(T) a = T.data;})) &&
 	is(typeof(T.unarchiveAssociativeArrayVisitor!(int[string])));
-	
+
 }
 
 /// Evaluates to the type of the data type.
@@ -248,9 +230,5 @@ template TypeOfDataType (T)
 /// Unqualifies the given type, i.e. removing const, immutable and so on.
 template Unqual (T)
 {
-	version (Tango)
-		alias T Unqual;
-
-	else
-		alias Phobos.Unqual!(T) Unqual;
+	alias Phobos.Unqual!(T) Unqual;
 }

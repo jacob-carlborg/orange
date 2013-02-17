@@ -8,21 +8,15 @@ module orange.serialization.SerializationException;
 
 import orange.core.string;
 
-version (Tango)
-	alias Exception ExceptionBase;
-
-else
-	alias Throwable ExceptionBase;
-
 /**
  * This class represents an exception, it's the base class of all exceptions used
- * throughout this library. 
+ * throughout this library.
  */
-class SerializationException : ExceptionBase
-{	
+class SerializationException : Exception
+{
 	/**
 	 * Creates a new exception with the given message.
-	 * 
+	 *
 	 * Params:
 	 *     message = the message of the exception
 	 */
@@ -30,10 +24,10 @@ class SerializationException : ExceptionBase
 	{
 		super(message);
 	}
-	
+
 	/**
 	 * Creates a new exception with the given message, file and line info.
-	 * 
+	 *
 	 * Params:
 	 *     message = the message of the exception
 	 *     file = the file where the exception occurred
@@ -41,42 +35,19 @@ class SerializationException : ExceptionBase
 	 */
 	this (string message, string file, long line)
 	{
-		version (Tango)
-			super(message, file, line);
-		
-		else
-			super(message);
+		super(message);
 	}
-	
-	version (Tango)
+
+	/**
+	 * Creates a new exception out of the given exception. Used for wrapping already existing
+	 * exceptions as SerializationExceptions.
+	 *
+	 *
+	 * Params:
+	 *     exception = the exception exception to wrap
+	 */
+	this (Exception exception)
 	{
-		/**
-		 * Creates a new exception out of the given exception. Used for wrapping already existing
-		 * exceptions as SerializationExceptions.
-		 * 
-		 * 
-		 * Params:
-		 *     exception = the exception exception to wrap
-		 */
-		this (ExceptionBase exception)
-		{
-			super(exception.msg, exception.file, exception.line, exception.next, exception.info);
-		}
-	}
-	
-	else
-	{
-		/**
-		 * Creates a new exception out of the given exception. Used for wrapping already existing
-		 * exceptions as SerializationExceptions.
-		 * 
-		 * 
-		 * Params:
-		 *     exception = the exception exception to wrap
-		 */
-		this (ExceptionBase exception)
-		{
-			super(exception.msg, exception.file, exception.line);
-		}
+		super(exception.msg, exception.file, exception.line);
 	}
 }

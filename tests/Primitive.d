@@ -40,7 +40,7 @@ class H
 	ulong ulong_;
 	ushort ushort_;
 	wchar wchar_;
-	
+
 	override equals_t opEquals (Object other)
 	{
 		if (auto o =  cast(H) other)
@@ -69,7 +69,7 @@ class H
 				   ushort_ == o.ushort_ &&
 				   wchar_ == o.wchar_;
 		}
-		
+
 		return false;
 	}
 }
@@ -81,17 +81,17 @@ unittest
 	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
 
-	h = new H;	
+	h = new H;
 	h.bool_ = true;
 	h.byte_ = 1;
 	h.char_ = 'a';
-	//h.cdouble_ = 0.0 + 0.0 * 1.0i; // currently not supported by to!() 
-	//h.cfloat_ = 0.0f + 0.0f * 1.0i; // currently not supported by to!() 
-	//h.creal_ = 0.0 + 0.0 * 1.0i; // currently not supported by to!() 
+	//h.cdouble_ = 0.0 + 0.0 * 1.0i; // currently not supported by to!()
+	//h.cfloat_ = 0.0f + 0.0f * 1.0i; // currently not supported by to!()
+	//h.creal_ = 0.0 + 0.0 * 1.0i; // currently not supported by to!()
 	h.dchar_ = 'b';
 	h.double_ = 0.0;
 	h.float_ = 0.0f;
-	//h.idouble_ = 0.0 * 1.0i; // currently not supported by to!() 
+	//h.idouble_ = 0.0 * 1.0i; // currently not supported by to!()
 	//h.ifloat_ = 0.0f * 1.0i; // currently not supported by to!()
 	h.int_ = 1;
 	//h.ireal_ = 0.0 * 1.0i; // currently not supported by to!()
@@ -104,8 +104,7 @@ unittest
 	h.ushort_ = 1U;
 	h.wchar_ = 'c';
 
-	version (Tango) const zero = "0";
-	else mixin(`enum zero = "0x0p+0";`);
+	enum zero = "0x0p+0";
 
 	describe("serialize primitives") in {
 		it("should return serialized primitives") in {
@@ -131,7 +130,7 @@ unittest
 			assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
 		};
 	};
-	
+
 	describe("deserialize primitives") in {
 		it("should return deserialized primitives equal to the original primitives") in {
 			auto hDeserialized = serializer.deserialize!(H)(archive.untypedData);
