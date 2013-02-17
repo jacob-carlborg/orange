@@ -6,7 +6,7 @@
  */
 module orange.serialization.Serializable;
 
-import orange.core.string;
+import orange.core._;
 import orange.serialization.archives.Archive;
 import orange.serialization.Events;
 import orange.serialization.Serializer;
@@ -134,6 +134,9 @@ template NonSerialized (Fields ...)
 	else
 		static enum __nonSerialized = toArray!(Fields)();
 }
+
+/// Indicates that the declaration this attribute is attached to should not be (de)serialized.
+@attribute struct nonSerialized { }
 
 /**
  *

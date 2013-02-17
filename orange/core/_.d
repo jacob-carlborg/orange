@@ -8,5 +8,6 @@ module orange.core._;
 
 public:
 
+import orange.core.Attribute;
 import orange.core.io;
 import orange.core.string;

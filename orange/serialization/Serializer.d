@@ -1470,37 +1470,42 @@ class Serializer
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
 			enum field = nameOfFieldAt!(T, i);
+			mixin(`alias getAttributes!(value.` ~ field ~ `) attributes;`);
 
-			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
+			static if (attributes.contains!(nonSerialized) ||
+				ctfeContains!(string)(internalFields, field) ||
+				ctfeContains!(string)(nonSerializedFields, field))
 			{
-				alias typeof(T.tupleof[i]) Type;
+				continue;
+			}
 
-				auto v = value.tupleof[i];
-				auto id = nextId;
+			alias typeof(T.tupleof[i]) Type;
 
-				static if (isPointer!(Type))
-					auto pointer = v;
+			auto v = value.tupleof[i];
+			auto id = nextId;
 
-				else
-					auto pointer = &value.tupleof[i];
+			static if (isPointer!(Type))
+				auto pointer = v;
 
-				auto reference = getSerializedReference(v);
+			else
+				auto pointer = &value.tupleof[i];
 
-				if (reference != Id.max)
-					archive.archiveReference(field, reference);
+			auto reference = getSerializedReference(v);
+
+			if (reference != Id.max)
+				archive.archiveReference(field, reference);
+
+			else
+			{
+				auto valueMeta = getSerializedValue(pointer);
+
+				if (valueMeta.isValid)
+					serializePointer(pointer, toData(field), id);
 
 				else
 				{
-					auto valueMeta = getSerializedValue(pointer);
-
-					if (valueMeta.isValid)
-						serializePointer(pointer, toData(field), id);
-
-					else
-					{
-						serializeInternal(v, toData(field), id);
-						addSerializedValue(pointer, id, toData(keyCounter));
-					}
+					serializeInternal(v, toData(field), id);
+					addSerializedValue(pointer, id, toData(keyCounter));
 				}
 			}
 		}
@@ -1524,47 +1529,52 @@ class Serializer
 		foreach (i, dummy ; typeof(T.tupleof))
 		{
 			enum field = nameOfFieldAt!(T, i);
+			mixin(`alias getAttributes!(value.` ~ field ~ `) attributes;`);
 
-			static if (!ctfeContains!(string)(internalFields, field) && !ctfeContains!(string)(nonSerializedFields, field))
+			static if (attributes.contains!(nonSerialized) ||
+				ctfeContains!(string)(internalFields, field) ||
+				ctfeContains!(string)(nonSerializedFields, field))
 			{
-				alias TypeOfField!(T, field) QualifiedType;
-				alias Unqual!(QualifiedType) Type;
+				continue;
+			}
 
-				auto id = deserializeReference(field);
-				auto isReference = id != Id.max;
-				auto offset = value.tupleof[i].offsetof;
-				auto fieldAddress = cast(Type*) (rawObject + offset);
+			alias TypeOfField!(T, field) QualifiedType;
+			alias Unqual!(QualifiedType) Type;
 
-				static if (isPointer!(Type))
+			auto id = deserializeReference(field);
+			auto isReference = id != Id.max;
+			auto offset = value.tupleof[i].offsetof;
+			auto fieldAddress = cast(Type*) (rawObject + offset);
+
+			static if (isPointer!(Type))
+			{
+				auto pointer = deserializePointer!(Type)(toData(field));
+				Type pointerValue;
+
+				if (pointer.hasPointee)
+					pointerValue = getDeserializedValue!(Type)(pointer.pointee);
+
+				else
+					pointerValue = pointer.value;
+
+				*fieldAddress = pointerValue;
+				addDeserializedPointer(value.tupleof[i], pointer.id);
+			}
+
+			else
+			{
+				auto pointer = getDeserializedPointer!(Type*)(id);
+
+				if (isReference && pointer)
 				{
-					auto pointer = deserializePointer!(Type)(toData(field));
-					Type pointerValue;
-
-					if (pointer.hasPointee)
-						pointerValue = getDeserializedValue!(Type)(pointer.pointee);
-
-					else
-						pointerValue = pointer.value;
-
-					*fieldAddress = pointerValue;
-					addDeserializedPointer(value.tupleof[i], pointer.id);
+					*fieldAddress = **pointer;
+					*pointer = cast(Type*) &value.tupleof[i];
 				}
 
 				else
 				{
-					auto pointer = getDeserializedPointer!(Type*)(id);
-
-					if (isReference && pointer)
-					{
-						*fieldAddress = **pointer;
-						*pointer = cast(Type*) &value.tupleof[i];
-					}
-
-					else
-					{
-    					*fieldAddress = deserializeInternal!(Type)(toData(field));
-                        addDeserializedValue(value.tupleof[i], nextId);
-					}
+   					*fieldAddress = deserializeInternal!(Type)(toData(field));
+                       addDeserializedValue(value.tupleof[i], nextId);
 				}
 			}
 		}
