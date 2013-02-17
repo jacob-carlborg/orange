@@ -95,7 +95,7 @@ interface Serializable
  */
 template isSerializable (T)
 {
-	const isSerializable = is(T : Serializable) || (
+	enum isSerializable = is(T : Serializable) || (
 		is(typeof(T.toData(Serializer.init, Serializer.Data.init))) &&
 		is(typeof(T.fromData(Serializer.init, Serializer.Data.init))));
 }
@@ -141,7 +141,7 @@ template NonSerialized (Fields ...)
  */
 struct NonSerializedField (string name)
 {
-	const field = name;
+	enum field = name;
 }
 
 /**
@@ -153,7 +153,7 @@ struct NonSerializedField (string name)
  * int a;
  * int b;
  *
- * const names = toArray!(a, b);
+ * enum names = toArray!(a, b);
  *
  * static assert(names == ["a", "b"]);
  * ---

@@ -27,7 +27,7 @@ import orange.core.string;
 /// Evaluates to true if $(D_PARAM T) is a primitive type.
 template isPrimitive (T)
 {
-	const bool isPrimitive = is(T == bool) ||
+	enum bool isPrimitive = is(T == bool) ||
 						is(T == byte) ||
 						is(T == cdouble) ||
 						//is(T == cent) ||
@@ -55,13 +55,13 @@ template isPrimitive (T)
 /// Evaluates to true if $(D_PARAM T) is a character type.
 template isChar (T)
 {
-	const bool isChar = is(T == char) || is(T == wchar) || is(T == dchar);
+	enum bool isChar = is(T == char) || is(T == wchar) || is(T == dchar);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a floating point type.
 template isFloatingPoint (T)
 {
-	const bool isFloatingPoint = is(T == float) || is(T == double) || is(T == real) ||
+	enum bool isFloatingPoint = is(T == float) || is(T == double) || is(T == real) ||
 								 is(T == cfloat) || is(T == cdouble) || is(T == creal) ||
 						  		 is(T == ifloat) || is(T == idouble) || is(T == ireal);
 }
@@ -69,87 +69,87 @@ template isFloatingPoint (T)
 /// Evaluates to true if $(D_PARAM T) is class.
 template isClass (T)
 {
-	const bool isClass = is(T == class);
+	enum bool isClass = is(T == class);
 }
 
 /// Evaluates to true if $(D_PARAM T) is an interface.
 template isInterface (T)
 {
-	const bool isInterface = is(T == interface);
+	enum bool isInterface = is(T == interface);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a class or an interface.
 template isObject (T)
 {
-	const bool isObject = isClass!(T) || isInterface!(T);
+	enum bool isObject = isClass!(T) || isInterface!(T);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a struct.
 template isStruct (T)
 {
-	const bool isStruct = is(T == struct);
+	enum bool isStruct = is(T == struct);
 }
 
 /// Evaluates to true if $(D_PARAM T) is an array.
 template isArray (T)
 {
 	static if (is(T U : U[]))
-		const bool isArray = true;
+		enum bool isArray = true;
 
 	else
-		const bool isArray = false;
+		enum bool isArray = false;
 }
 
 /// Evaluates to true if $(D_PARAM T) is a string.
 template isString (T)
 {
-	const bool isString = is(T : string) || is(T : wstring) || is(T : dstring);
+	enum bool isString = is(T : string) || is(T : wstring) || is(T : dstring);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a an associative array.
 template isAssociativeArray (T)
 {
-	const bool isAssociativeArray = is(typeof(T.init.values[0])[typeof(T.init.keys[0])] == T);
+	enum bool isAssociativeArray = is(typeof(T.init.values[0])[typeof(T.init.keys[0])] == T);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a pointer.
 template isPointer (T)
 {
 	static if (is(T U : U*))
-		const bool isPointer = true;
+		enum bool isPointer = true;
 
 	else
-		const bool isPointer = false;
+		enum bool isPointer = false;
 }
 
 /// Evaluates to true if $(D_PARAM T) is a function pointer.
 template isFunctionPointer (T)
 {
-	const bool isFunctionPointer = is(typeof(*T) == function);
+	enum bool isFunctionPointer = is(typeof(*T) == function);
 }
 
 /// Evaluates to true if $(D_PARAM T) is an enum.
 template isEnum (T)
 {
-	const bool isEnum = is(T == enum);
+	enum bool isEnum = is(T == enum);
 }
 
 /// Evaluates to true if $(D_PARAM T) is an object or a pointer.
 template isReference (T)
 {
-	const bool isReference = isObject!(T) || isPointer!(T);
+	enum bool isReference = isObject!(T) || isPointer!(T);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a typedef.
 template isTypedef (T)
 {
-	const bool isTypedef = is(T == typedef);
+	enum bool isTypedef = is(T == typedef);
 }
 
 /// Evaluates to true if $(D_PARAM T) is void.
 template isVoid (T)
 {
-	const bool isVoid = is(T == void);
+	enum bool isVoid = is(T == void);
 }
 
 /// Evaluates the type of the element of the array.
@@ -205,7 +205,7 @@ template ValueTypeOfAssociativeArray (T)
 /// Evaluates to true if $(D_PARAM T) is an archive.
 template isArchive (T)
 {
-	const isArchive = is(typeof({
+	enum isArchive = is(typeof({
 		alias T.DataType Foo;
 	})) &&
 

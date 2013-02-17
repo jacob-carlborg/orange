@@ -777,13 +777,13 @@ T[] replace (T) (T[] source, dchar match, dchar replacement)
 
 	static if (is(T == wchar))
 	{
-		const encodedLength = 2;
+		enum encodedLength = 2;
 		endOfCodeRange = wchar.init;
 	}
 
 	else static if (is(T == char))
 	{
-		const encodedLength = 4;
+		enum encodedLength = 4;
 		endOfCodeRange = '\x7F';
 	}
 

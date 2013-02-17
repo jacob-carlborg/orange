@@ -30,38 +30,38 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 	private struct Tags
 	{
-		static const Data structTag = "struct";
-		static const Data dataTag = "data";
-		static const Data archiveTag = "archive";
-		static const Data arrayTag = "array";
-		static const Data objectTag = "object";
-		static const Data baseTag = "base";
-		static const Data stringTag = "string";
-		static const Data referenceTag = "reference";
-		static const Data pointerTag = "pointer";
-		static const Data associativeArrayTag = "associativeArray";
-		static const Data typedefTag = "typedef";
-		static const Data nullTag = "null";
-		static const Data enumTag = "enum";
-		static const Data sliceTag = "slice";
-		static const Data elementTag = "element";
-		static const Data keyTag = "key";
-		static const Data valueTag = "value";
+		static enum Data structTag = "struct";
+		static enum Data dataTag = "data";
+		static enum Data archiveTag = "archive";
+		static enum Data arrayTag = "array";
+		static enum Data objectTag = "object";
+		static enum Data baseTag = "base";
+		static enum Data stringTag = "string";
+		static enum Data referenceTag = "reference";
+		static enum Data pointerTag = "pointer";
+		static enum Data associativeArrayTag = "associativeArray";
+		static enum Data typedefTag = "typedef";
+		static enum Data nullTag = "null";
+		static enum Data enumTag = "enum";
+		static enum Data sliceTag = "slice";
+		static enum Data elementTag = "element";
+		static enum Data keyTag = "key";
+		static enum Data valueTag = "value";
 	}
 
 	private struct Attributes
 	{
-		static const Data invalidAttribute = "\0";
-		static const Data typeAttribute = "type";
-		static const Data versionAttribute = "version";
-		static const Data lengthAttribute = "length";
-		static const Data keyAttribute = "key";
-		static const Data runtimeTypeAttribute = "runtimeType";
-		static const Data idAttribute = "id";
-		static const Data keyTypeAttribute = "keyType";
-		static const Data valueTypeAttribute = "valueType";
-		static const Data offsetAttribute = "offset";
-		static const Data baseTypeAttribute = "baseType";
+		static enum Data invalidAttribute = "\0";
+		static enum Data typeAttribute = "type";
+		static enum Data versionAttribute = "version";
+		static enum Data lengthAttribute = "length";
+		static enum Data keyAttribute = "key";
+		static enum Data runtimeTypeAttribute = "runtimeType";
+		static enum Data idAttribute = "id";
+		static enum Data keyTypeAttribute = "keyType";
+		static enum Data valueTypeAttribute = "valueType";
+		static enum Data offsetAttribute = "offset";
+		static enum Data baseTypeAttribute = "baseType";
 	}
 
 	private struct Node

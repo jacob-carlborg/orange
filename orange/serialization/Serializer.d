@@ -172,11 +172,7 @@ class Serializer
 
 		ValueMeta[void*] serializedValues;
 
-		version (D_Version2)
-			mixin(`const(void)*[Id] deserializedValues;`);
-
-		else
-			void*[Id] deserializedValues;
+		const(void)*[Id] deserializedValues;
 
 		bool hasBegunSerializing;
 		bool hasBegunDeserializing;
@@ -1434,13 +1430,13 @@ class Serializer
 	{
 		alias BaseTypeOfEnum!(T) Enum;
 
-		const functionName = toUpper(Enum.stringof[0]) ~ Enum.stringof[1 .. $];
+		enum functionName = toUpper(Enum.stringof[0]) ~ Enum.stringof[1 .. $];
 		mixin("return cast(T) archive.unarchiveEnum" ~ functionName ~ "(keyOrId);");
 	}
 
 	private T deserializePrimitive (T, U) (U keyOrId)
 	{
-		const functionName = toUpper(T.stringof[0]) ~ T.stringof[1 .. $];
+		enum functionName = toUpper(T.stringof[0]) ~ T.stringof[1 .. $];
 		mixin("return archive.unarchive" ~ functionName ~ "(keyOrId);");
 	}
 
@@ -1857,7 +1853,7 @@ class Serializer
 
 	private static template hasAnnotation (T, string annotation)
 	{
-		const hasAnnotation = is(typeof({ mixin("const a = T." ~ annotation ~ ";"); }));
+		enum hasAnnotation = is(typeof({ mixin("const a = T." ~ annotation ~ ";"); }));
 	}
 
 	private static string[] collectAnnotations (T) ()

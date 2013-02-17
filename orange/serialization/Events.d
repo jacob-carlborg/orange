@@ -83,7 +83,7 @@ struct Event (alias m)
 
 package:
 
-const onDeserializedField = "__onDeserialized";
-const onDeserializingField = "__onDeserializing";
-const onSerializedField = "__onSerialized";
-const onSerializingField = "__onSerializing";
+enum onDeserializedField = "__onDeserialized";
+enum onDeserializingField = "__onDeserializing";
+enum onSerializedField = "__onSerialized";
+enum onSerializingField = "__onSerializing";
