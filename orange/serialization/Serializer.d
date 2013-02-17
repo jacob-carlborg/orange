@@ -1858,7 +1858,7 @@ class Serializer
 	{
 		enum nonSerializedFields = collectAnnotations!(T);
 
-		return ctfeContains(nonSerializedFields, "this");
+		return ctfeContains(nonSerializedFields, "this") || getAttributes!(T).contains!(nonSerialized);
 	}
 
 	private static template hasAnnotation (T, string annotation)

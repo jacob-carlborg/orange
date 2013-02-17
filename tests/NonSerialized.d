@@ -23,12 +23,18 @@ class Bar
 	int c;
 }
 
+@nonSerialized class Baz
+{
+	int c;
+}
+
 class Foo
 {
 	int a;
 	int b;
 	@nonSerialized int c;
 	Bar bar;
+	Baz baz;
 
 	mixin NonSerialized!(a);
 }
@@ -46,6 +52,7 @@ unittest
 	foo.c = 5;
 
 	foo.bar = new Bar;
+	foo.baz = new Baz;
 
 	describe("serialize object with a non-serialized field") in {
 		it("should return serialized object with only one serialized field") in {
@@ -57,7 +64,11 @@ unittest
 
 			assert(!archive.data().containsXmlTag("int", `key="a" id="1"`, "3"));
 			assert(!archive.data().containsXmlTag("int", `key="c" id="3"`, "5"));
-			assert(!archive.data().containsXmlTag("object", `runtimeType="tests.NonSerialized.Bar" type="Bar" key="bar" id="2"`));
+
+			assert(!archive.data().containsXmlTag("object", `runtimeType="tests.NonSerialized.Bar" type="Bar" key="bar" id="4"`));
+			assert(!archive.data().containsXmlTag("int", `key="c" id="5"`, "0"));
+			assert(!archive.data().containsXmlTag("object", `runtimeType="tests.NonSerialized.Baz" type="Baz" key="bar" id="6"`));
+			assert(!archive.data().containsXmlTag("int", `key="c" id="7"`, "0"));
 		};
 	};
 
@@ -69,6 +80,7 @@ unittest
 			assert(f.b == foo.b);
 			assert(f.c == foo.c.init);
 			assert(f.bar is foo.bar.init);
+			assert(f.baz is foo.baz.init);
 		};
 	};
 }
