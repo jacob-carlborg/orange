@@ -6,7 +6,6 @@
  */
 module tests.Enum;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -41,14 +40,14 @@ unittest
 		it("should return a serialized enum") in {
 			serializer.reset();
 			serializer.serialize(g);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Enum.G" type="tests.Enum.G" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("enum", `type="tests.Enum.Foo" baseType="int" key="foo" id="1"`, "1"));
 		};
 	};
-	
-	
+
+
 	describe("deserialize enum") in {
 		it("should return an enum equal to the original enum") in {
 			auto gDeserialized = serializer.deserialize!(G)(archive.untypedData);

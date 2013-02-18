@@ -10,7 +10,6 @@ module orange.util.collection.Array;
 import std.c.string : memmove;
 import algorithm = std.algorithm;
 
-import orange.core.string;
 import orange.util.Traits;
 
 /**

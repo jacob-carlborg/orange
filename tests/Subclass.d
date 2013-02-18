@@ -6,7 +6,6 @@
  */
 module tests.Subclass;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -48,11 +47,11 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
 		};
 	};
-	
+
 	describe("deserialize class with a base class") in {
 		it("should return a deserialized string equal to the original string") in {
 			auto subDeserialized = serializer.deserialize!(Sub)(archive.untypedData);
-	
+
 			assert(sub.a == subDeserialized.a);
 			assert(sub.b == subDeserialized.b);
 		};

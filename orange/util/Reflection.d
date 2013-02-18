@@ -6,7 +6,6 @@
  */
 module orange.util.Reflection;
 
-import orange.core.string;
 import orange.util.CTFE;
 
 /**

@@ -22,8 +22,6 @@ alias Phobos.ParameterTypeTuple ParameterTupleOf;
 ///
 alias Phobos.ReturnType ReturnTypeOf;
 
-import orange.core.string;
-
 /// Evaluates to true if $(D_PARAM T) is a primitive type.
 template isPrimitive (T)
 {

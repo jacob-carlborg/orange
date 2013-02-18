@@ -6,7 +6,6 @@
  */
 module tests.BaseClass;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -18,12 +17,12 @@ XmlArchive!(char) archive;
 class Base
 {
 	int a;
-	
+
 	int getA ()
 	{
 		return a;
 	}
-	
+
 	int getB ()
 	{
 		return a;
@@ -57,7 +56,7 @@ unittest
 		it("should return serialized subclass with the static type \"Base\" and the runtime type \"tests.BaseClass.Sub\"") in {
 			Serializer.register!(Sub);
 			serializer.serialize(base);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.BaseClass.Sub" type="tests.BaseClass.Base" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
@@ -65,14 +64,14 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
 		};
 	};
-	
+
 	describe("deserialize subclass through a base class reference") in {
 		it("should return a deserialized subclass with the static type \"Base\" and the runtime type \"tests.BaseClass.Sub\"") in {
 			auto subDeserialized = serializer.deserialize!(Base)(archive.untypedData);
 
 			assert(sub.a == subDeserialized.getA);
 			assert(sub.b == subDeserialized.getB);
-			
+
 			Serializer.resetRegisteredTypes;
 		};
 	};

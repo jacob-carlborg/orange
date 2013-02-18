@@ -6,7 +6,6 @@
  */
 module tests.Event;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.Events;
 import orange.serialization.archives.XmlArchive;
@@ -30,17 +29,17 @@ class Foo
 	{
 		arr ~= 2;
 	}
-	
+
 	void deserializing ()
 	{
 		arr ~= 3;
 	}
-	
+
 	void deserialized ()
 	{
 		arr ~= 4;
 	}
-	
+
 	mixin OnSerializing!(serializing);
 	mixin OnSerialized!(serialized);
 	mixin OnDeserializing!(deserializing);

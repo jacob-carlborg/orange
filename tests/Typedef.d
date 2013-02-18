@@ -9,7 +9,6 @@ module tests.Typedef;
 version (D_Version2) {}
 else:
 mixin("
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -45,7 +44,7 @@ unittest
 			assert(archive.data().containsXmlTag(\"int\", `key=\"1\" id=\"3\"`, \"1\"));
 		};
 	};
-	
+
 	// describe(\"deserialize typedef\") in {
 	// 	it(\"should return a deserialized typedef equal to the original typedef\") in {
 	// 		auto iDeserialized = serializer.deserialize!(I)(archive.untypedData);

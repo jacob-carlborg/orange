@@ -6,10 +6,10 @@
  */
 module tests.Object;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
+import orange.util.collection.Array;
 import tests.Util;
 
 Serializer serializer;
@@ -21,7 +21,7 @@ class A
 	{
 		if (auto o = cast(A) other)
 			return true;
-		
+
 		return false;
 	}
 }
@@ -39,12 +39,12 @@ unittest
 		it("should return a serialized object") in {
 			serializer.reset;
 			serializer.serialize(a);
-	
+
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().contains(`<object runtimeType="tests.Object.A" type="tests.Object.A" key="0" id="0"/>`));
 		};
 	};
-	
+
 	describe("deserialize object") in {
 		it("should return a deserialized object equal to the original object") in {
 			auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);

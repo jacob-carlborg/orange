@@ -6,7 +6,6 @@
  */
 module tests.Pointer;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -68,14 +67,14 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "3"));
 		};
 	};
-	
+
 	describe("deserialize pointer") in {
 		fDeserialized = serializer.deserialize!(F)(archive.untypedData);
-	
+
 		it("should return a deserialized pointer equal to the original pointer") in {
 			assert(*f.ptr == *fDeserialized.ptr);
 		};
-		
+
 		it("the pointer should point to the deserialized value") in {
 			assert(fDeserialized.ptr == &fDeserialized.value);
 		};

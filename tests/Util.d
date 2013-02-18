@@ -6,7 +6,7 @@
  */
 module tests.Util;
 
-import orange.core.string;
+import orange.util.collection.Array;
 
 bool containsDefaultXmlContent (string source)
 {
@@ -44,10 +44,10 @@ bool containsXmlTag (string source, string tag, string attributes, bool simple =
 bool containsXmlTag (string source, string tag, string attributes, string content, bool simple = false)
 {
 	string pattern = '<' ~ tag;
-		
+
 	if (attributes.length > 0)
 		pattern ~= ' ' ~ attributes;
-	
+
 	if (simple)
 		return source.contains(pattern ~ "/>");
 

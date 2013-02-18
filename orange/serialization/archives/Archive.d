@@ -13,7 +13,6 @@ static import std.string;
 
 private alias ConvException ConversionException;
 
-import orange.core.string;
 import orange.serialization.SerializationException;
 import orange.serialization.Serializer;
 import orange.util.Traits;

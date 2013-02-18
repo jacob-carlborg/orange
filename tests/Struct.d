@@ -6,10 +6,10 @@
  */
 module tests.Struct;
 
-import orange.core.string;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
+import orange.util.collection.Array;
 import tests.Util;
 
 Serializer serializer;

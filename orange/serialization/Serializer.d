@@ -13,6 +13,7 @@ import orange.core._;
 import orange.serialization._;
 import orange.serialization.archives.Archive;
 import orange.util._;
+import orange.util.collection.Array;
 
 private
 {

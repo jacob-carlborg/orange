@@ -6,7 +6,6 @@
  */
 module orange.util.CTFE;
 
-import orange.core.string;
 import orange.util.Traits;
 
 /// Compile time string converter. Converts the given arguments to a string.

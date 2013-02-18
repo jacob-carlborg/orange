@@ -6,8 +6,6 @@
  */
 module orange.serialization.SerializationException;
 
-import orange.core.string;
-
 /**
  * This class represents an exception, it's the base class of all exceptions used
  * throughout this library.

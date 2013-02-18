@@ -10,6 +10,7 @@ import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
+import orange.util.collection.Array;
 import tests.Util;
 
 Serializer serializer;
@@ -94,7 +95,7 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="1" id="7"`, "3"));
 		};
 	};
-	
+
 	describe("deserialize object") in {
 		it("should return a deserialized object equal to the original object") in {
 			auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
