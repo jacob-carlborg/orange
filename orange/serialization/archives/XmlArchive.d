@@ -66,8 +66,8 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 	private struct Node
 	{
-		XmlDocument!(U).Node parent;
-		XmlDocument!(U).Node node;
+		XmlDocument.Node parent;
+		XmlDocument.Node node;
 		Id id;
 		string key;
 	}
@@ -77,7 +77,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 		Data archiveType = "org.dsource.orange.xml";
 		Data archiveVersion = "1.0.0";
 
-		XmlDocument!(U) doc;
+		XmlDocument doc;
 		doc.Node lastElement;
 
 		bool hasBegunArchiving;
@@ -97,7 +97,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	this (ErrorCallback errorCallback = null)
 	{
 		super(errorCallback);
-		doc = new XmlDocument!(U);
+		doc = new XmlDocument;
 	}
 
 	/// Starts the archiving process. Call this method before archiving any values.

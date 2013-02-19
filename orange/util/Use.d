@@ -11,7 +11,6 @@ import std.typecons;
 import std.traits;
 
 alias ReturnType ReturnTypeOf;
-alias ParameterTypeTuple ParameterTupleOf;
 
 /**
  * This struct can be used to implement, what looks similar to, new statements. This

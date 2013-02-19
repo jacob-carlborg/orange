@@ -13,19 +13,6 @@ import orange.xml.PhobosXml;
 
 import orange.core.io;
 
-/**
- * Evaluates to $(D_PARAM T) if $(D_PARAM T) is a character type. Otherwise this
- * template will not compile.
- */
-template Char (T)
-{
-	static if (is(T == char))
-		alias T Char;
-
-	else
-		static assert(false, `The given type "` ~ T.stringof ~ `" is not a vaild character type, the only valid type is "char".`);
-}
-
 /// This class represents an exception thrown by XmlDocument.
 class XMLException : Exception
 {
@@ -39,7 +26,7 @@ class XMLException : Exception
  * This class represents an XML DOM document. It provides a common interface to the XML
  * document implementations available in Phobos and Tango.
  */
-final class XmlDocument (T = char)
+final class XmlDocument
 {
 	/// The type of the document implementation.
 	alias Document Doc;
