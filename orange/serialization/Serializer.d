@@ -7,13 +7,15 @@
 module orange.serialization.Serializer;
 
 import std.conv;
-alias ConvException ConversionException;
+import std.array;
 
 import orange.core.Attribute;
 import orange.serialization._;
 import orange.serialization.archives.Archive;
 import orange.util._;
 import orange.util.collection.Array;
+
+alias ConvException ConversionException;
 
 private
 {

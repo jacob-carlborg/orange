@@ -6,7 +6,22 @@
  */
 module tests.Util;
 
-import orange.util.collection.Array;
+import std.algorithm;
+import std.array;
+
+/**
+ * Returns $(D_KEYWORD true) if the array contains the given pattern.
+ *
+ * Params:
+ *     arr = the array to check if it contains the element
+ *     pattern = the pattern whose presence in the array is to be tested
+ *
+ * Returns: $(D_KEYWORD true) if the array contains the given pattern
+ */
+bool contains (T) (T[] arr, T[] pattern)
+{
+	return !arr.find(pattern).empty;
+}
 
 bool containsDefaultXmlContent (string source)
 {
