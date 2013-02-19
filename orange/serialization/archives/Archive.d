@@ -1452,7 +1452,7 @@ abstract class ArchiveBase (U) : Archive
 	 *     file = the file where the error occurred
 	 *     line = the line where the error occurred
 	 */
-	protected void error (string message, string file, long line, string[] data = null)
+	protected void error (string message, string[] data = null, string file = __FILE__, size_t line = __LINE__)
 	{
 		if (errorCallback)
 			errorCallback()(new SerializationException(message, file, line));

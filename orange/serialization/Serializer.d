@@ -749,7 +749,7 @@ class Serializer
 		else
 		{
 			error:
-			error(format!(`The type "`, T, `" cannot be serialized.`), __LINE__);
+			error(format!(`The type "`, T, `" cannot be serialized.`));
 		}
 	}
 
@@ -793,7 +793,7 @@ class Serializer
 								error(`The object of the static type "` ~ typeName ~
 									`" have a different runtime type (` ~ runtimeType ~
 									`) and therefore needs to either register its type or register a serializer for its type "`
-									~ runtimeType ~ `".`, __LINE__);
+									~ runtimeType ~ `".`);
 						}
 
 						else
@@ -910,7 +910,7 @@ class Serializer
 					error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
 						format!(` of the type "`, T, `" cannot be serialized on `,
 						`its own, either implement orange.serialization.Serializable`,
-						`.isSerializable or register a serializer.`), __LINE__);
+						`.isSerializable or register a serializer.`));
 
 				else
 				{
@@ -1032,7 +1032,7 @@ class Serializer
 	{
 		if (!hasBegunDeserializing)
 			error("Cannot deserialize without any data, this method should"
-				"only be called after deserialization has begun.", __LINE__);
+				"only be called after deserialization has begun.");
 
 		return deserialize!(T)(archive.untypedData, key);
 	}
@@ -1145,7 +1145,7 @@ class Serializer
 		else
 		{
 			error:
-			error(format!(`The type "`, T, `" cannot be deserialized.`), __LINE__);
+			error(format!(`The type "`, T, `" cannot be deserialized.`));
 		}
 	}
 
@@ -1201,7 +1201,7 @@ class Serializer
 								error(`The object of the static type "` ~ typeid(T).toString ~
 									`" have a different runtime type (` ~ runtimeType ~
 									`) and therefore needs to either register its type or register a deserializer for its type "`
-									~ runtimeType ~ `".`, __LINE__);
+									~ runtimeType ~ `".`);
 						}
 
 						else
@@ -1408,7 +1408,7 @@ class Serializer
 					error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
 						format!(` of the type "`, T, `" cannot be deserialized on `
 						`its own, either implement orange.serialization.Serializable`
-						`.isSerializable or register a deserializer.`), __LINE__);
+						`.isSerializable or register a deserializer.`));
 
 				else
 				{
@@ -1866,7 +1866,7 @@ class Serializer
 			return [];
 	}
 
-	private void error (string message, long line)
+	private void error (string message, size_t line = __LINE__)
 	{
 		if (errorCallback)
 			errorCallback()(new SerializationException(message, __FILE__, line));
