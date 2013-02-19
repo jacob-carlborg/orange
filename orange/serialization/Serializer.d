@@ -1584,31 +1584,17 @@ class Serializer
 			deserializeBaseTypes(value);
 	}
 
-	version (D_Version2)
-		mixin(`private void serializeBaseTypes (T : Object) (inout T value)
+	private void serializeBaseTypes (T : Object) (inout T value)
+	{
+		alias BaseTypeTupleOf!(T)[0] Base;
+
+		static if (!is(Base == Object))
 		{
-			alias BaseTypeTupleOf!(T)[0] Base;
-
-			static if (!is(Base == Object))
-			{
-				archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
-				inout Base base = value;
-				objectStructSerializeHelper(base);
-			}
-		}`);
-
-	else
-		private void serializeBaseTypes (T : Object) (T value)
-		{
-			alias BaseTypeTupleOf!(T)[0] Base;
-
-			static if (!is(Base == Object))
-			{
-				archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
-				Base base = value;
-				objectStructSerializeHelper(base);
-			}
+			archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
+			inout Base base = value;
+			objectStructSerializeHelper(base);
 		}
+	}
 
 	private void deserializeBaseTypes (T : Object) (T value)
 	{

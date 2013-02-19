@@ -66,8 +66,7 @@ unittest
 			foreach (k, v ; eDeserialized.aa)
 				assert(e.aa[k] == v);
 
-			version (D_Version2)
-				assert(e.aa == eDeserialized.aa);
+			assert(e.aa == eDeserialized.aa);
 		};
 	};
 }

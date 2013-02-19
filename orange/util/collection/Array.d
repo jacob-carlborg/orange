@@ -53,20 +53,10 @@ bool isEmpty (T) (T[] arr)
  */
 alias isEmpty empty;
 
-version (D_Version2)
-	mixin(`inout(T)[] assumeUnique (T) (ref T[] source, ref inout(T)[] destination)
-	{
-		destination = cast(inout(T)[]) source;
-		source = null;
+inout(T)[] assumeUnique (T) (ref T[] source, ref inout(T)[] destination)
+{
+	destination = cast(inout(T)[]) source;
+	source = null;
 
-		return destination;
-	}`);
-
-else
-	T[] assumeUnique (T) (ref T[] source, ref T[] destination)
-	{
-		destination = source;
-		source = null;
-
-		return destination;
-	}
+	return destination;
+}
