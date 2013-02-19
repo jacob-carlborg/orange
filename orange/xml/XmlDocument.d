@@ -37,9 +37,6 @@ final class XmlDocument
 	/// The type of the query node implementation.
 	alias Element QueryNode;
 
-	///
-	alias string tstring;
-
 	/// The type of the visitor type implementation.
 	alias Element[] VisitorType;
 
@@ -132,13 +129,13 @@ final class XmlDocument
 	    }
 
 	    /// Returns the name of the node.
-		tstring name ()
+		string name ()
 		{
 			return node.name;
 		}
 
 		/// Returns the value of the node.
-		tstring value ()
+		string value ()
 		{
 			return node.value;
 		}
@@ -191,7 +188,7 @@ final class XmlDocument
 		 *
 		 * Returns: the newly create element.
 		 */
-		Node element (tstring name, tstring value = null)
+		Node element (string name, string value = null)
 		{
 			auto element = new Element(name, value);
 
@@ -227,7 +224,7 @@ final class XmlDocument
 		 *
 		 * Returns: the newly created attribute
 		 */
-		Node attribute (tstring name, tstring value)
+		Node attribute (string name, string value)
 		{
 			node.attribute(null, name, value);
 
@@ -305,7 +302,7 @@ final class XmlDocument
 		 *
 		 * Returns: a set of elements that passed the filter test
 		 */
-		QueryProxy attribute (tstring name = null)
+		QueryProxy attribute (string name = null)
 		{
 			bool filter (Node node)
 			{
@@ -338,7 +335,7 @@ final class XmlDocument
 		 *
 		 * Returns: a set of elements that passed the filter test
 		 */
-		QueryProxy opIndex (tstring name)
+		QueryProxy opIndex (string name)
 		{
 			Node[] proxies;
 
@@ -417,10 +414,10 @@ final class XmlDocument
 	 *
 	 * Returns: the receiver
 	 */
-	XmlDocument header (tstring encoding = null)
+	XmlDocument header (string encoding = null)
 	{
-		tstring newEncoding = encoding.length > 0 ? encoding : "UTF-8";
-		tstring header = `<?xml version="1.0" encoding="` ~ newEncoding ~ `"?>`;
+		string newEncoding = encoding.length > 0 ? encoding : "UTF-8";
+		string header = `<?xml version="1.0" encoding="` ~ newEncoding ~ `"?>`;
 		doc.prolog = header;
 
 		return this;
@@ -446,7 +443,7 @@ final class XmlDocument
 	 * Params:
 	 *     xml = the XML to parse
 	 */
-	void parse (tstring xml)
+	void parse (string xml)
 	{
 		auto tmp = new Doc(xml);
 		doc = new Doc(new Tag("root"));
@@ -474,7 +471,7 @@ final class XmlDocument
 	 *
 	 * Returns: returns the newly created node
 	 */
-	Node createNode (tstring name, tstring value = null)
+	Node createNode (string name, string value = null)
 	{
 		return Node(new Element(name, value), false, false);
 	}

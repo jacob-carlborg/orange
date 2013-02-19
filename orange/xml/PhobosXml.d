@@ -154,25 +154,6 @@ final class Attribute : Element
 	}
 }
 
-/*struct TagProxy
-{
-	private alias string tstring;
-	private tstring name_;
-
-	private static TagProxy opCall (tstring name)
-	{
-		TagProxy tp;
-		tp.name_ = name;
-
-		return tp;
-	}
-
-	tstring name ()
-	{
-		return name_;
-	}
-}*/
-
 /**
  * Returns true if the character is a character according to the XML standard
  *
