@@ -104,40 +104,6 @@ bool contains (T) (T[] arr, T element)
 	return indexOf(arr, element) != size_t.max;
 }
 
-/**
- * CTFE, splits the given string on the given pattern
- *
- * Params:
- *     str = the string to split
- *     splitChar = the character to split on
- *
- * Returns: an array of strings containing the splited string
- */
-T[][] split (T) (T[] str, T splitChar = ',')
-{
-	T[][] arr;
-	size_t x;
-
-	foreach (i, c ; str)
-	{
-		if (splitChar == c)
-		{
-			if (str[x] == splitChar)
-				x++;
-
-			arr ~= str[x .. i];
-			x = i;
-		}
-	}
-
-	if (str[x] == splitChar)
-		x++;
-
-	arr ~= str[x .. $];
-
-	return arr;
-}
-
 private:
 
 template decimalDigit (int n)	// [3]
