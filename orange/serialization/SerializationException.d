@@ -13,17 +13,6 @@ module orange.serialization.SerializationException;
 class SerializationException : Exception
 {
 	/**
-	 * Creates a new exception with the given message.
-	 *
-	 * Params:
-	 *     message = the message of the exception
-	 */
-	this (string message)
-	{
-		super(message);
-	}
-
-	/**
 	 * Creates a new exception with the given message, file and line info.
 	 *
 	 * Params:
@@ -31,7 +20,7 @@ class SerializationException : Exception
 	 *     file = the file where the exception occurred
 	 *     line = the line in the file where the exception occurred
 	 */
-	this (string message, string file, long line)
+	this (string message, string file = __FILE__, size_t line = __LINE__)
 	{
 		super(message);
 	}
