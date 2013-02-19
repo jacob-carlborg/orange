@@ -30,7 +30,7 @@ class J
 
 J j;
 J jDeserialized;
-import orange.core.io;
+
 unittest
 {
 	archive = new XmlArchive!(char);

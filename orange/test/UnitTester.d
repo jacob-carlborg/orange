@@ -71,6 +71,7 @@ module orange.test.UnitTester;
 
 import core.exception;
 import std.conv;
+import std.stdio;
 
 private alias AssertError AssertException;
 
@@ -438,9 +439,9 @@ class UnitTester
 		printPending;
 		printFailures;
 
-		print("\n", numberOfTests, " ", pluralize("test", numberOfTests),", ", numberOfFailures, " ", pluralize("failure", numberOfFailures));
+		write("\n", numberOfTests, " ", pluralize("test", numberOfTests),", ", numberOfFailures, " ", pluralize("failure", numberOfFailures));
 		printNumberOfPending;
-		println();
+		writeln();
 	}
 
 	void printResultImpl (DescriptionManager descriptions)
@@ -458,22 +459,22 @@ class UnitTester
 
 	void printDescription (Description description)
 	{
-		println(indentation, description.message);
+		writeln(indentation, description.message);
 
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
 
 			foreach (i, ref test ; description.tests)
 			{
-				print(indentation, "- ", test.message);
+				write(indentation, "- ", test.message);
 
 				if (test.isPending)
-					print(" (PENDING: Not Yet Implemented)");
+					write(" (PENDING: Not Yet Implemented)");
 
 				if (test.failed)
-					print(" (FAILED - ", ++failureId, ')');
+					write(" (FAILED - ", ++failureId, ')');
 
-				println();
+				writeln();
 			}
 		};
 	}
@@ -483,7 +484,7 @@ class UnitTester
 		if (!hasPending)
 			return;
 
-		println("\nPending:");
+		writeln("\nPending:");
 
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
@@ -508,7 +509,7 @@ class UnitTester
 	void printPendingDescription (Description description)
 	{
 		foreach (test ; description.pending)
-			println(indentation, description.message, " ", test.message, "\n", indentation, indentation, "# Not Yet Implemented");
+			writeln(indentation, description.message, " ", test.message, "\n", indentation, indentation, "# Not Yet Implemented");
 	}
 
 	void printFailures ()
@@ -516,7 +517,7 @@ class UnitTester
 		if (!hasFailures)
 			return;
 
-		println("\nFailures:");
+		writeln("\nFailures:");
 
 		restore(indentation) in {
 			indentation ~= defaultIndentation;
@@ -545,22 +546,22 @@ class UnitTester
 			auto str = indentation ~ to!(string)(++failureId) ~ ") ";
 			auto whitespace = toWhitespace(str.length);
 
-			println(str, description.message, " ", test.message);
-			println(whitespace, "# ", test.exception.file, ".d:", test.exception.line);
-			println(whitespace, "Stack trace:");
-			print(whitespace);
+			writeln(str, description.message, " ", test.message);
+			writeln(whitespace, "# ", test.exception.file, ".d:", test.exception.line);
+			writeln(whitespace, "Stack trace:");
+			write(whitespace);
 		}
 	}
 
 	void printNumberOfPending ()
 	{
 		if (hasPending)
-			print(", ", numberOfPending, " pending");
+			write(", ", numberOfPending, " pending");
 	}
 
 	void printSuccess ()
 	{
-		println("All ", numberOfTests, pluralize(" test", numberOfTests), " passed successfully.");
+		writeln("All ", numberOfTests, pluralize(" test", numberOfTests), " passed successfully.");
 	}
 
 	bool isAllTestsSuccessful ()

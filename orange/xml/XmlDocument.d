@@ -11,8 +11,6 @@ import std.stdio;
 
 import orange.xml.PhobosXml;
 
-import orange.core.io;
-
 /// This class represents an exception thrown by XmlDocument.
 class XMLException : Exception
 {
