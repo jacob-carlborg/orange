@@ -6,7 +6,6 @@
  */
 module tests.NonMutable;
 
-import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;

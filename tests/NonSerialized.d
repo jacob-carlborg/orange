@@ -6,7 +6,6 @@
  */
 module tests.NonSerialized;
 
-import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.Serializable;
 import orange.serialization.archives.XmlArchive;

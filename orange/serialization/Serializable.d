@@ -6,7 +6,7 @@
  */
 module orange.serialization.Serializable;
 
-import orange.core._;
+import orange.core.Attribute;
 import orange.serialization.archives.Archive;
 import orange.serialization.Events;
 import orange.serialization.Serializer;

@@ -6,7 +6,6 @@
  */
 module tests.CircularReference;
 
-import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;

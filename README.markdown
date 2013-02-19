@@ -46,7 +46,6 @@ To run the unit test run the shell script "unittest.sh":
 ```d
 module main;
 
-import orange.core._;
 import orange.serialization._;
 import orange.serialization.archives._;
 

@@ -6,7 +6,6 @@
  */
 module tests.Custom;
 
-import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -19,7 +18,7 @@ class Foo
 {
 	int a;
 	int b;
-	
+
 	void toData (Serializer serializer, Serializer.Data key)
 	{
 		i++;
@@ -40,7 +39,7 @@ unittest
 {
 	archive = new XmlArchive!(char);
 	serializer = new Serializer(archive);
-	
+
 	foo = new Foo;
 	foo.a = 3;
 	foo.b = 4;
@@ -53,17 +52,17 @@ unittest
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Custom.Foo" type="tests.Custom.Foo" key="0" id="0"`));
 			assert(archive.data().containsXmlTag("int", `key="x" id="1"`));
-			
+
 			assert(i == 4);
 		};
 	};
-	
+
 	describe("deserialize object using custom serialization methods") in {
 		it("short return a custom deserialized object equal to the original object") in {
 			auto f = serializer.deserialize!(Foo)(archive.untypedData);
 
 			assert(foo.a == f.a);
-			
+
 			assert(i == 5);
 		};
 	};

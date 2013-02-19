@@ -8,7 +8,6 @@ module orange.serialization.archives.XmlArchive;
 
 import std.conv;
 
-import orange.core._;
 import orange.serialization.archives._;
 import orange.serialization.Serializer;
 import orange.util._;

@@ -75,8 +75,6 @@ import std.stdio;
 
 private alias AssertError AssertException;
 
-
-import orange.core._;
 import orange.util._;
 
 /**

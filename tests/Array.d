@@ -6,7 +6,6 @@
  */
 module tests.Array;
 
-import orange.core._;
 import orange.serialization.Serializer;
 import orange.serialization.archives.XmlArchive;
 import orange.test.UnitTester;
@@ -46,7 +45,7 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="5" id="7"`, "832"));
 		};
 	};
-	
+
 	describe("deserialize array") in {
 		it("should return a deserialize array equal to the original array") in {
 			auto dDeserialized = serializer.deserialize!(D)(archive.untypedData);

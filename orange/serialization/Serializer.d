@@ -9,7 +9,7 @@ module orange.serialization.Serializer;
 import std.conv;
 alias ConvException ConversionException;
 
-import orange.core._;
+import orange.core.Attribute;
 import orange.serialization._;
 import orange.serialization.archives.Archive;
 import orange.util._;
@@ -61,9 +61,9 @@ private
  *
  * Examples:
  * ---
+ * import std.stdio;
  * import orange.serialization._;
  * import orange.serialization.archives._;
- * import orange.core._;
  *
  * class Foo
  * {
@@ -81,7 +81,7 @@ private
  * 	serializer.serialize(foo);
  * 	auto foo2 = serializer.deserialize!(Foo)(archive.untypedData);
  *
- * 	println(foo2.a); // prints "3"
+ * 	writeln(foo2.a); // prints "3"
  * 	assert(foo.a == foo2.a);
  * }
  * ---
@@ -106,7 +106,7 @@ class Serializer
 	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * serializer.errorCallback = (SerializationException exception) {
-	 * 	println(exception);
+	 * 	writeln(exception);
 	 * 	throw exception;
 	 * };
 	 * ---
@@ -125,7 +125,7 @@ class Serializer
 	 * auto archive = new XmlArchive!();
 	 * auto serializer = new Serializer(archive);
 	 * serializer.errorCallback = (SerializationException exception) {
-	 * 	println(exception);
+	 * 	writeln(exception);
 	 * 	throw exception;
 	 * };
 	 * ---
