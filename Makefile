@@ -6,9 +6,7 @@ VERSION?=standard
 LIBDIR=lib/$(MODEL)
 ARCH=$(shell arch || uname -m)
 
-SRC=core/io.d \
-	core/string.d \
-	core/_.d \
+SRC=core/Attribute.d \
 	serialization/Events.d \
 	serialization/RegisterWrapper.d \
 	serialization/Serializable.d \
@@ -47,7 +45,6 @@ UNITTEST=tests/Array.d \
 	tests/String.d \
 	tests/Struct.d \
 	tests/Subclass.d \
-	tests/Typedef.d \
 	tests/unittest.d \
 	tests/Util.d
 
