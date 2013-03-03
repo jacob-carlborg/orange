@@ -16,9 +16,6 @@ import Phobos = std.traits;
 ///
 alias Phobos.BaseTypeTuple BaseTypeTupleOf;
 
-///
-alias Phobos.ReturnType ReturnTypeOf;
-
 /// Evaluates to true if $(D_PARAM T) is a primitive type.
 template isPrimitive (T)
 {
@@ -45,12 +42,6 @@ template isPrimitive (T)
 						is(T == ulong) ||
 						is(T == ushort) ||
 						is(T == wchar);
-}
-
-/// Evaluates to true if $(D_PARAM T) is a character type.
-template isChar (T)
-{
-	enum bool isChar = is(T == char) || is(T == wchar) || is(T == dchar);
 }
 
 /// Evaluates to true if $(D_PARAM T) is a floating point type.
