@@ -11,8 +11,6 @@ import std.conv;
 import std.utf;
 static import std.string;
 
-private alias ConvException ConversionException;
-
 import orange.serialization.SerializationException;
 import orange.serialization.Serializer;
 import orange.util.Traits;
@@ -1354,7 +1352,7 @@ abstract class ArchiveBase (U) : Archive
 				return to!(Data)(value);
 		}
 
-		catch (ConversionException e)
+		catch (ConvException e)
 			error(e);
 
 		return Data.init;
@@ -1389,7 +1387,7 @@ abstract class ArchiveBase (U) : Archive
 				return to!(T)(value);
 		}
 
-		catch (ConversionException e)
+		catch (ConvException e)
 			error(e);
 
 		return T.init;
@@ -1477,7 +1475,7 @@ abstract class ArchiveBase (U) : Archive
 		auto c = value.front;
 
 		if (codeLength!(wchar)(c) > 2)
-			throw new ConversionException("Could not convert `" ~
+			throw new ConvException("Could not convert `" ~
 				to!(string)(value) ~ "` of type " ~
 				Data.stringof ~ " to type wchar.");
 

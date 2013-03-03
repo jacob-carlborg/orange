@@ -15,8 +15,6 @@ import orange.serialization.archives.Archive;
 import orange.util._;
 import orange.util.collection.Array;
 
-alias ConvException ConversionException;
-
 private
 {
 	alias orange.util.CTFE.contains ctfeContains;
