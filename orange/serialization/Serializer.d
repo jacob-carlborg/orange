@@ -1824,21 +1824,49 @@ class Serializer
 		}
 	}
 
+	private void triggertUdaEvent (alias event, T) (T value)
+	{
+		static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
+
+		foreach (m ; __traits(allMembers, T))
+		{
+			static if (m != nonSerializedField)
+			{
+				mixin(`alias getAttributes!(T.` ~ m ~ `) attrs;`);
+
+				static if (attrs.contains!(event))
+					__traits(getMember, value, m)();
+			}
+		}
+	}
+
 	private void triggerEvents (T) (T value, void delegate () dg)
 	{
 		if (mode == serializing)
+		{
 			triggerEvent!(onSerializingField)(value);
+			triggertUdaEvent!(onSerializing)(value);
+		}
 
 		else
+		{
 			triggerEvent!(onDeserializingField)(value);
+			triggertUdaEvent!(onDeserializing)(value);
+		}
 
 		dg();
 
 		if (mode == serializing)
+		{
 			triggerEvent!(onSerializedField)(value);
+			triggertUdaEvent!(onSerialized)(value);
+		}
 
 		else
+		{
 			triggerEvent!(onDeserializedField)(value);
+			triggertUdaEvent!(onDeserialized)(value);
+		}
 	}
 
 	private static bool isNonSerialized (T) ()

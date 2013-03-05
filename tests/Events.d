@@ -18,10 +18,16 @@ XmlArchive!(char) archive;
 int b;
 int c;
 
+int udaB;
+int udaC;
+
 class Events
 {
 	int a;
 	int d;
+
+	int udaA;
+	int udaD;
 
 	void serializing ()
 	{
@@ -30,12 +36,22 @@ class Events
 
 	mixin OnSerializing!(serializing);
 
+	@onSerializing void udaSerializing ()
+	{
+		udaA = 3;
+	}
+
 	void serialized ()
 	{
 		b = 4;
 	}
 
 	mixin OnSerialized!(serialized);
+
+	@onSerialized void udaSerialized ()
+	{
+		udaB = 4;
+	}
 
 	void deserializing ()
 	{
@@ -44,12 +60,22 @@ class Events
 
 	mixin OnDeserializing!(deserializing);
 
+	@onDeserializing void udaDeserializing ()
+	{
+		udaC = 5;
+	}
+
 	void deserialized ()
 	{
 		d = 6;
 	}
 
 	mixin OnDeserialized!(deserialized);
+
+	@onDeserialized void udaDeserialized ()
+	{
+		udaD = 6;
+	}
 }
 
 Events events;
@@ -68,10 +94,16 @@ unittest
 
 			assert(archive.data().containsDefaultXmlContent());
 			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Events.Events" type="tests.Events.Events" key="0" id="0"`));
+
 			assert(archive.data().containsXmlTag("int", `key="a" id="1"`, "3"));
 			assert(archive.data().containsXmlTag("int", `key="d" id="2"`, "0"));
 
+			assert(archive.data().containsXmlTag("int", `key="udaA" id="3"`, "3"));
+			assert(archive.data().containsXmlTag("int", `key="udaD" id="4"`, "0"));
+
+
 			assert(b == 4);
+			assert(udaB == 4);
 		};
 	};
 
@@ -82,7 +114,11 @@ unittest
 			assert(eventsDeserialized.a == 3);
 			assert(eventsDeserialized.d == 6);
 
+			assert(eventsDeserialized.udaA == 3);
+			assert(eventsDeserialized.udaD == 6);
+
 			assert(c == 5);
+			assert(udaC == 5);
 		};
 	};
 }

@@ -6,6 +6,7 @@
  */
 module orange.serialization.Events;
 
+import orange.core.Attribute;
 import orange.util._;
 
 /**
@@ -21,6 +22,12 @@ template OnDeserialized (alias method)
 }
 
 /**
+ * Methods with this attribute attached will be called after the struct/class has been
+ * deserialized.
+ */
+@attribute struct onDeserialized { }
+
+/**
  * This event is triggered after the struct/class (that this template has been mixed into)
  * has been deserialized, but before any fields have been deserialized.
  *
@@ -31,6 +38,12 @@ template OnDeserializing (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onDeserializing;
 }
+
+/**
+ * Methods with this attribute attached will be called before the struct/class has been
+ * deserialized.
+ */
+@attribute struct onDeserializing { }
 
 /**
  * This event is triggered after the struct/class (that this template has been mixed into)
@@ -45,6 +58,12 @@ template OnSerialized (alias method)
 }
 
 /**
+ * Methods with this attribute attached will be called after the struct/class has been
+ * serialized.
+ */
+@attribute struct onSerialized { }
+
+/**
  * This event is triggered after the struct/class (that this template has been mixed into)
  * has been serialized, but before any fields have been serialized.
  *
@@ -55,6 +74,12 @@ template OnSerializing (alias method)
 {
 	static orange.serialization.Events.Event!(method) __onSerializing;
 }
+
+/**
+ * Methods with this attribute attached will be called before the struct/class has been
+ * serialized.
+ */
+@attribute struct onSerializing { }
 
 /**
  * This struct represents an event.
