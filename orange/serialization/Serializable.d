@@ -138,16 +138,12 @@ template NonSerialized (Fields ...)
 /// Indicates that the declaration this attribute is attached to should not be (de)serialized.
 @attribute struct nonSerialized { }
 
-/**
- *
- * Authors: doob
- */
 struct NonSerializedField (string name)
 {
 	enum field = name;
 }
 
-/**
+/*
  * Converts a tuple of aliases to an array of strings containing the names of the given
  * aliases.
  *

@@ -28,7 +28,7 @@ template OnDeserialized (alias method)
 @attribute struct onDeserialized { }
 
 /**
- * This event is triggered after the struct/class (that this template has been mixed into)
+ * This event is triggered after the struct/class, this template has been mixed into,
  * has been deserialized, but before any fields have been deserialized.
  *
  * Params:
@@ -46,7 +46,7 @@ template OnDeserializing (alias method)
 @attribute struct onDeserializing { }
 
 /**
- * This event is triggered after the struct/class (that this template has been mixed into)
+ * This event is triggered after the struct/class, this template has been mixed into,
  * has been completely serialized, including all the fields.
  *
  * Params:
@@ -64,7 +64,7 @@ template OnSerialized (alias method)
 @attribute struct onSerialized { }
 
 /**
- * This event is triggered after the struct/class (that this template has been mixed into)
+ * This event is triggered after the struct/class, this template has been mixed into,
  * has been serialized, but before any fields have been serialized.
  *
  * Params:

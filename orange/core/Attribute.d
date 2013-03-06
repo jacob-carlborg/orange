@@ -11,7 +11,7 @@ import std.typetuple;
 import orange.util.Traits;
 
 /**
- * This s represent a meta attribute. Any declaration that has this attribute attached to
+ * This struct represent a meta attribute. Any declaration that has this attribute attached to
  * itself is to be considered an attribute. That declaration should only be used as an
  * attribute and never on its own.
  */
@@ -19,7 +19,7 @@ struct attribute { }
 
 /**
  * Evaluates to true if the given symbol is an attribute. An attribute is any declaration with
- * the "mambo.core.Attribute.attribute" attribute attached.
+ * the "orange.core.Attribute.attribute" attribute attached.
  */
 template isAttribute (alias symbol)
 {
@@ -32,7 +32,7 @@ template isAttribute (alias symbol)
 
 /**
  * Returns a tuple of all attributes attached to the given symbol. By default this will only
- * include actual attributes (see mambo.core.Attribute.isAttribute).
+ * include actual attributes (see orange.core.Attribute.isAttribute).
  *
  * Params:
  *     symbol = the symbol to return the attributes for
