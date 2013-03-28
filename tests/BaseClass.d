@@ -17,6 +17,7 @@ XmlArchive!(char) archive;
 class Base
 {
 	int a;
+	int[] c;
 
 	int getA ()
 	{
@@ -62,6 +63,7 @@ unittest
 			assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
 			assert(archive.data().containsXmlTag("base", `type="tests.BaseClass.Base" key="1" id="2"`));
 			assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
+			assert(archive.data().containsXmlTag("array", `type="inout(int)" length="0" key="c" id="4"`, true));
 		};
 	};
 

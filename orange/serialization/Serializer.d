@@ -844,8 +844,11 @@ class Serializer
 		auto array = Array(value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
 
 		archive.archiveArray(array, arrayToString!(T), key, id, {
-			foreach (i, e ; value)
-				serializeInternal(e, toData(i));
+		    for (size_t i = 0; i < value.length; i++)
+		    {
+		        const e = value[i];
+		        serializeInternal(e, toData(i));
+		    }
 		});
 
 		if (value.length > 0)
