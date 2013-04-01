@@ -34,6 +34,8 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		Data rawData;
 		size_t cursor;
 		Appender!(Data) buffer;
+		bool hasBegunArchiving;
+		bool hasBegunUnarchiving;
 	}
 
 	/**
@@ -75,7 +77,11 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	/// Starts the archiving process. Call this method before archiving any values.
 	void beginArchiving ()
 	{
-		buffer = appender(rawData);
+		if (!hasBegunArchiving)
+		{
+			buffer = appender(rawData);
+			hasBegunArchiving = true;
+		}
 	}
 
 	/**
@@ -86,13 +92,17 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	void beginUnarchiving (UntypedData data)
 	{
-		rawData = cast(Data) data;
+		if (!hasBegunUnarchiving)
+		{
+			rawData = cast(Data) data;
+			hasBegunUnarchiving = true;
+		}
 	}
 
 	/// Returns the data stored in the archive in an untyped form.
 	UntypedData untypedData ()
 	{
-		return rawData;
+		return data;
 	}
 
 	/// Returns the data stored in the archive in an typed form.
@@ -112,6 +122,8 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	{
 		rawData = null;
 		buffer = appender(rawData);
+		hasBegunArchiving = false;
+		hasBegunUnarchiving = false;
 	}
 
 	/**
