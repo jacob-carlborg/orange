@@ -1382,7 +1382,7 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		return internalUnarchiveString!(dstring)(key, id);
 	}
 
-	private T internalUnarchiveString (T) (string key, ref Id id = Id.max)
+	private T internalUnarchiveString (T) (string key, ref Id id)
 	{
 		alias Unqual!(ElementTypeOfArray!(T)) E;
 
@@ -1394,7 +1394,7 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		return cast(T) buffer;
 	}
 
-	private T internalUnarchiveString (T) (ref Id id = Id.max)
+	private T internalUnarchiveString (T) (ref Id id)
 	{
 		return internalUnarchiveString!(T)(null, id);
 	}

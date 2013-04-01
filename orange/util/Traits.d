@@ -194,14 +194,6 @@ template TypeOfDataType (T)
 	alias T.DataType TypeOfDataType;
 }
 
-template Unqual (T)
-{
-	version (D_Version2)
-		alias Phobos.Unqual!(T) Unqual;
-
-	else
-		alias T Unqual;
-}
 /// Unqualifies the given type, i.e. removing const, immutable and so on.
 alias Phobos.Unqual Unqual;
 
