@@ -1792,27 +1792,27 @@ private:
 
 	void append (T) (T value)
 	{
-		buffer.append!(BitType!(T))(value);
+		buffer.append!(ByteType!(T))(value);
 	}
 
 	T read (T) ()
 	{
-		return cast(T) rawData.read!(BitType!(T));
+		return cast(T) rawData.read!(ByteType!(T));
 	}
 
-	template BitType (T)
+	template ByteType (T)
 	{
 		static if (T.sizeof <= ubyte.sizeof)
-			alias ubyte BitType;
+			alias ubyte ByteType;
 
 		else static if (T.sizeof <= ushort.sizeof)
-			alias ushort BitType;
+			alias ushort ByteType;
 
 		else static if (T.sizeof <= uint.sizeof)
-			alias uint BitType;
+			alias uint ByteType;
 
 		else static if (T.sizeof <= ulong.sizeof)
-			alias ulong BitType;
+			alias ulong ByteType;
 
 		else
 			static assert(false, format!(`Unsupported size "`, T.sizeof, `" of type "`, T, `"`));
