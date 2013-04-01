@@ -26,19 +26,25 @@ import std.array : Appender, appender;
  *
  * The binary format of FastArchive:
  *
- * FileFormat := IdMapOffset Data IdentityMap
- * IdMapOffset := AbsOffset # Offset of the identity map
+ * FileFormat := CompoundArrayOffset Data CompoundArray
+ * CompoundArrayOffset := AbsOffset # Offset of the compound array
  * AbsOffset := 4B # Absolute offset from the beginning of FileFormat
- * IdentityMap := Array(4B) # An array of offset from the beginning of Data
- * Id := 4B # Index into IdentityMap
+ * CompoundArray := Compound* # An array of Compound
+ * CompoundOffset := 4B # Offset into CompoundArray
  * Data := Type*
- * Type := String | Array | Compound | Pointer | Enum | Primitive
- * Compound := Class | Struct | AssociativeArray
+ * Type := String | Array | Compound | AssociativeArray | Pointer | Enum | Primitive
+ * Compound := ClassData | StructData
  * String := Length 4B* | 2B* | 1B*
- * Class := String Field*
- * Struct := Field*
+ * Array := Length Type*
+ * Class := CompoundOffset
+ * Struct := CompoundOffset
+ * ClassData := String Field*
+ * StructData := Field*
  * Field := Type
- * Primitive := Bool | Byte | Cdouble | Cfloat | Char | Creal | Dchar | Double | Float | Idouble | Ifloat | Int | Ireal | Long | Real | Short | Ubyte | Uint | Ulong | Ushort | Wchar
+ * Length := 4B
+ * Primitive := Bool | Byte | Cdouble | Cfloat | Char | Creal | Dchar | Double | Float |
+ * 				Idouble | Ifloat | Int | Ireal | Long | Real | Short | Ubyte | Uint | Ulong |
+ * 				Ushort | Wchar
  * Bool := 1B
  * Byte := 1B
  * Cdouble := 8B 8B
@@ -64,7 +70,6 @@ import std.array : Appender, appender;
  * 2B := 2Bytes
  * 4B := 4Bytes
  * 8B := 8Bytes
- *
  */
 final class FastArchive : Archive//ArchiveBase!(ubyte)
 {
