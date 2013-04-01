@@ -1222,7 +1222,8 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	Id unarchiveReference (string key)
 	{
-		return read!(Id);
+		return Id.max;
+		//return read!(Id);
 	}
 
 	/**
