@@ -73,8 +73,7 @@ import std.array : Appender, appender;
  */
 final class FastArchive : Archive//ArchiveBase!(ubyte)
 {
-	version (Tango) alias U[] Data;
-	else mixin ("alias immutable(ubyte)[] Data;");
+	alias immutable(ubyte)[] Data;
 
 	private
 	{
