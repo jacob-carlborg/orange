@@ -23,6 +23,48 @@ import std.array : Appender, appender;
  *
  * Use this archive on your own risk when you know what you are doing and just want the
  * fastest archive possible.
+ *
+ * The binary format of FastArchive:
+ *
+ * FileFormat := IdMapOffset Data IdentityMap
+ * IdMapOffset := AbsOffset # Offset of the identity map
+ * AbsOffset := 4B # Absolute offset from the beginning of FileFormat
+ * IdentityMap := Array(4B) # An array of offset from the beginning of Data
+ * Id := 4B # Index into IdentityMap
+ * Data := Type*
+ * Type := String | Array | Compound | Pointer | Enum | Primitive
+ * Compound := Class | Struct | AssociativeArray
+ * String := Length 4B* | 2B* | 1B*
+ * Class := String Field*
+ * Struct := Field*
+ * Field := Type
+ * Primitive := Bool | Byte | Cdouble | Cfloat | Char | Creal | Dchar | Double | Float | Idouble | Ifloat | Int | Ireal | Long | Real | Short | Ubyte | Uint | Ulong | Ushort | Wchar
+ * Bool := 1B
+ * Byte := 1B
+ * Cdouble := 8B 8B
+ * Cfloat := 8B
+ * Char := 1B
+ * Creal := 8B 8B 8B 8B
+ * Dchar := 4B
+ * Double := 8B
+ * Float := 4B
+ * Idouble := 8B
+ * Ifloat := 4B
+ * Int := 4B
+ * Ireal := 8B 8B
+ * Long := 8B
+ * Real := 8B 8B 8B 8B
+ * Short := 2B
+ * Ubyte := 1B
+ * Uint := 4B
+ * Ulong := 8B
+ * Ushort := 2B
+ * Wchar := 2B
+ * 1B := 1Byte
+ * 2B := 2Bytes
+ * 4B := 4Bytes
+ * 8B := 8Bytes
+ *
  */
 final class FastArchive : Archive//ArchiveBase!(ubyte)
 {
