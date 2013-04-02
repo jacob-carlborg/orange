@@ -26,18 +26,18 @@ import std.array : Appender, appender;
  *
  * The binary format of FastArchive:
  *
- * FileFormat := CompoundArrayOffset Data CompoundArray
- * CompoundArrayOffset := AbsOffset # Offset of the compound array
+ * FileFormat := IdentityMapOffset Data IdentityMap
+ * IdentityMapOffset := AbsOffset # Offset of the compound array
  * AbsOffset := 4B # Absolute offset from the beginning of FileFormat
- * CompoundArray := Compound* # An array of Compound
- * CompoundOffset := 4B # Offset into CompoundArray
+ * IdentityMap := Compound* # An array of Compound
+ * Id := 4B # Offset into IdentityMap
  * Data := Type*
  * Type := String | Array | Compound | AssociativeArray | Pointer | Enum | Primitive
  * Compound := ClassData | StructData
  * String := Length 4B* | 2B* | 1B*
  * Array := Length Type*
- * Class := CompoundOffset
- * Struct := CompoundOffset
+ * Class := Id
+ * Struct := Id
  * ClassData := String Field*
  * StructData := Field*
  * Field := Type
@@ -73,13 +73,23 @@ import std.array : Appender, appender;
  */
 final class FastArchive : Archive//ArchiveBase!(ubyte)
 {
-	alias immutable(ubyte)[] Data;
+	alias ubyte[] Data;
 
 	private
 	{
-		Data rawData;
+		alias Appender!(Data) Buffer;
+		alias Offset = uint;
+
 		size_t cursor;
-		Appender!(Data) buffer;
+
+		Data rawData;
+		Data identityData;
+		Data currentData;
+
+		Buffer buffer;
+		Buffer identityBuffer;
+		Buffer currentBuffer;
+
 		bool hasBegunArchiving;
 		bool hasBegunUnarchiving;
 	}
@@ -126,6 +136,9 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		if (!hasBegunArchiving)
 		{
 			buffer = appender(rawData);
+			identityBuffer = appender(identityData);
+			currentBuffer = buffer;
+			appendIdentityMapOffsetPlaceholder();
 			hasBegunArchiving = true;
 		}
 	}
@@ -141,14 +154,24 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		if (!hasBegunUnarchiving)
 		{
 			rawData = cast(Data) data;
+			identityData = extractIdentityMap();
+			currentData = rawData;
 			hasBegunUnarchiving = true;
 		}
+	}
+
+	private Data extractIdentityMap ()
+	{
+		auto data = rawData;
+		auto offset = readOffset();
+
+		return data[offset .. $];
 	}
 
 	/// Returns the data stored in the archive in an untyped form.
 	UntypedData untypedData ()
 	{
-		return data;
+		return cast(UntypedData) data;
 	}
 
 	/// Returns the data stored in the archive in an typed form.
@@ -157,7 +180,10 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 		if (rawData.length > 0)
 			return rawData;
 
-		return buffer.data;
+		writeIdentityMapOffset(buffer.data.length);
+		buffer.put(identityBuffer.data);
+
+		return rawData = buffer.data;
 	}
 
 	/**
@@ -167,7 +193,13 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	void reset ()
 	{
 		rawData = null;
+		identityData = null;
+		currentData = null;
+
 		buffer = appender(rawData);
+		identityBuffer = appender(identityData);
+		currentBuffer = buffer;
+
 		hasBegunArchiving = false;
 		hasBegunUnarchiving = false;
 	}
@@ -477,8 +509,12 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	void archiveObject (string runtimeType, string type, string key, Id id, void delegate () dg)
 	{
-		archiveString(runtimeType, string.init, Id.max);
-		dg();
+		restore!({
+			currentBuffer = identityBuffer;
+			auto offset = appendCompound(runtimeType);
+			append(offset, buffer);
+			dg();
+		})(currentBuffer);
 	}
 
 	/**
@@ -667,29 +703,34 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	void archive (string value, string key, Id id)
 	{
-		archiveString(value, key, id);
+		archiveString(value);
 	}
 
 	/// Ditto
 	void archive (wstring value, string key, Id id)
 	{
-		archiveString(value, key, id);
+		archiveString(value);
 	}
 
 	/// Ditto
 	void archive (dstring value, string key, Id id)
 	{
-		archiveString(value, key, id);
+		archiveString(value);
 	}
 
-	private void archiveString (T) (T value, string key, Id id)
+	private void archiveString (T) (T value)
+	{
+		archiveString(value, currentBuffer);
+	}
+
+	private void archiveString (T) (T value, /*const*/ ref Buffer buffer)
 	{
 		alias ElementTypeOfArray!(T) E;
 
-		append(value.length);
+		append(cast(uint) value.length, buffer);
 
 		foreach (E e ; value)
-			append(e);
+			append(e, buffer);
 	}
 
 	/// Ditto
@@ -1210,11 +1251,16 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	void unarchiveObject (string key, out Id id, out Object result, void delegate () dg)
 	{
-		auto name = internalUnarchiveString!(string)(key, id);
-		result = newInstance(name);
-		id = Id.max;
+		restore!({
+			cursor = readOffset();
+			currentData = identityData;
 
-		dg();
+			auto name = internalUnarchiveString!(string)();
+			result = newInstance(name);
+			id = cursor;
+
+			dg();
+		})(currentBuffer, cursor);
 	}
 
 	/**
@@ -1392,19 +1438,19 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	string unarchiveString (Id id)
 	{
-		return internalUnarchiveString!(string)(null, id);
+		return internalUnarchiveString!(string)();
 	}
 
 	/// Ditto
 	wstring unarchiveWstring (Id id)
 	{
-		return internalUnarchiveString!(wstring)(id);
+		return internalUnarchiveString!(wstring)();
 	}
 
 	/// Ditto
 	dstring unarchiveDstring (Id id)
 	{
-		return internalUnarchiveString!(dstring)(id);
+		return internalUnarchiveString!(dstring)();
 	}
 
 	/**
@@ -1426,22 +1472,22 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 	 */
 	string unarchiveString (string key, out Id id)
 	{
-		return internalUnarchiveString!(string)(key, id);
+		return internalUnarchiveString!(string)();
 	}
 
 	/// Ditto
 	wstring unarchiveWstring (string key, out Id id)
 	{
-		return internalUnarchiveString!(wstring)(key, id);
+		return internalUnarchiveString!(wstring)();
 	}
 
 	/// Ditto
 	dstring unarchiveDstring (string key, out Id id)
 	{
-		return internalUnarchiveString!(dstring)(key, id);
+		return internalUnarchiveString!(dstring)();
 	}
 
-	private T internalUnarchiveString (T) (string key, ref Id id)
+	private T internalUnarchiveString (T) ()
 	{
 		alias Unqual!(ElementTypeOfArray!(T)) E;
 
@@ -1451,11 +1497,6 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 			buffer[i] = read!(E);
 
 		return cast(T) buffer;
-	}
-
-	private T internalUnarchiveString (T) (ref Id id)
-	{
-		return internalUnarchiveString!(T)(null, id);
 	}
 
 	/**
@@ -1789,19 +1830,57 @@ final class FastArchive : Archive//ArchiveBase!(ubyte)
 
 private:
 
-	size_t readLength ()
+	Offset readOffset ()
 	{
-		return read!(size_t);
+		return cast(Offset) std.bitmanip.read!(ByteType!(Offset))(rawData);
+	}
+
+	Offset readLength ()
+	{
+		return readLength(currentData);
+	}
+
+	Offset readLength (Data data)
+	{
+		return read!(Offset)(data);
+	}
+
+	T read (T) (Data data = null)
+	{
+		if (data is null)
+			data = currentData;
+
+		return cast(T) peek!(ByteType!(T))(data, &cursor);
+	}
+
+	Offset appendCompound (string name = null)
+	{
+		Offset offset = cast(Offset) identityBuffer.data.length;
+
+		if (name.length > 0)
+			archiveString(name, identityBuffer);
+
+		return offset;
+	}
+
+	void appendIdentityMapOffsetPlaceholder ()
+	{
+		append!(Offset)(0);
+	}
+
+	void writeIdentityMapOffset (size_t bufferLength)
+	{
+		std.bitmanip.write(buffer.data, cast(Offset) bufferLength, 0);
 	}
 
 	void append (T) (T value)
 	{
-		buffer.append!(ByteType!(T))(value);
+		currentBuffer.append!(ByteType!(T))(value);
 	}
 
-	T read (T) ()
+	void append (T) (T value, /*const*/ ref Buffer buffer)
 	{
-		return cast(T) rawData.read!(ByteType!(T));
+		buffer.append!(ByteType!(T))(value);
 	}
 
 	template ByteType (T)
@@ -1821,4 +1900,14 @@ private:
 		else
 			static assert(false, format!(`Unsupported size "`, T.sizeof, `" of type "`, T, `"`));
 	}
+}
+
+private void restore (alias dg, Args...) (ref Args args)
+{
+	auto tmp = args;
+
+	scope (exit)
+		args = tmp;
+
+	dg();
 }
