@@ -41,15 +41,19 @@ template isAttribute (alias symbol)
  */
 template getAttributes (alias symbol, bool includeNonAttributes = false)
 {
-	alias TypeTuple!(__traits(getAttributes, symbol)) Attrs;
+	static if (!__traits(compiles, __traits(getAttributes, symbol))) {
+		alias Attributes!(symbol, TypeTuple!()) getAttributes;
+	} else {
+		alias TypeTuple!(__traits(getAttributes, symbol)) Attrs;
 
-	static if (includeNonAttributes)
-		alias Attrs FilteredAttrs;
+		static if (includeNonAttributes)
+			alias Attrs FilteredAttrs;
 
-	else
-		alias Filter!(isAttribute, Attrs) FilteredAttrs;
+		else
+			alias Filter!(isAttribute, Attrs) FilteredAttrs;
 
-	alias Attributes!(symbol, FilteredAttrs) getAttributes;
+		alias Attributes!(symbol, FilteredAttrs) getAttributes;
+	}
 }
 
 /// This struct represent a tuple of attributes attached to the symbol.

@@ -237,7 +237,13 @@ final class XmlDocument
 		 */
 		void attach (Node node)
 		{
-			this.node ~= node.node;
+			//Note: Assigning and checking the parent fixes a problem
+			//with duplicated nodes. (postProcessArray() called for every
+			//serialize call).
+			if (this.node !is node.node.parent) {
+				node.node.parent = this.node;
+				this.node ~= node.node;
+			}
 		}
 	}
 
