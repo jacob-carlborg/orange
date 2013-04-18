@@ -1,7 +1,7 @@
 /**
- * Copyright: Copyright (c) 2011 Jacob Carlborg. All rights reserved.
- * Authors: Jacob Carlborg
- * Version: Initial created: Aug 6, 2011
+ * Copyright: Copyright (c) 2013 Jacob Carlborg. All rights reserved.
+ * Authors: Juan Manuel
+ * Version: Initial created: Apr 14, 2013
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost Software License 1.0)
  */
 module tests.ArrayOfObject;
@@ -16,11 +16,12 @@ XmlArchive!(char) archive;
 
 class A
 {
-    int a;
+	int a;
 
-    this(int value) {
-        this.a = value;
-    }
+	this (int value)
+	{
+		this.a = value;
+	}
 }
 
 class D
@@ -42,7 +43,7 @@ unittest
 	describe("serialize array") in {
 		it("shouldn't fail to compile while serializing an Object[] array") in {
 			serializer.reset;
-            Serializer.register!(A);
+			Serializer.register!(A);
 			serializer.serialize(d);
 
 			assert(archive.data().containsDefaultXmlContent());
@@ -58,11 +59,12 @@ unittest
 	describe("deserialize array") in {
 		it("should return a deserialized Object[] array equal to the original array") in {
 			auto dDeserialized = serializer.deserialize!(D)(archive.untypedData);
+
 			assert(d.arr.length == dDeserialized.arr.length);
 			assert((cast(A) d.arr[0]).a == (cast(A) dDeserialized.arr[0]).a);
 			assert((cast(A) d.arr[1]).a == (cast(A) dDeserialized.arr[1]).a);
 
-            Serializer.resetRegisteredTypes();
+			Serializer.resetRegisteredTypes();
 		};
 	};
 }

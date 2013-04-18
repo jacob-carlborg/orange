@@ -41,9 +41,11 @@ template isAttribute (alias symbol)
  */
 template getAttributes (alias symbol, bool includeNonAttributes = false)
 {
-	static if (!__traits(compiles, __traits(getAttributes, symbol))) {
+	static if (!__traits(compiles, __traits(getAttributes, symbol)))
 		alias Attributes!(symbol, TypeTuple!()) getAttributes;
-	} else {
+
+	else
+	{
 		alias TypeTuple!(__traits(getAttributes, symbol)) Attrs;
 
 		static if (includeNonAttributes)
