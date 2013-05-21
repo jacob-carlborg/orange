@@ -1,3 +1,11 @@
+# Useage Examples
+# ---------------
+# 'make -f Makefile.win'                          			make everything using dmd, standard build, 32-bit
+# 'make -f Makefile.win install PREFIX=InstallDir'        	same as above, but also install to directory InstallDir
+# 'make -f Makefile.win clean'                              delete last build output so you can build again
+#
+# Summary
+# -------
 # This is a makefile for windows.  Install MSYS first (for make & other tools), set your *System* Path variable to MSYS's bin directory (where make.exe), 
 # so that you can run make from any where and your command shell will find it).  Pass in variable assignments such as doing 'make MODEL=64' to mean build
 # for 64-bit machines.  Here are all the possible variable assignments accessible at the command line:
@@ -8,18 +16,22 @@
 # VERSION     standard, release, debug             standard          Build for debug or for release? 
 #                                                                    'standard' means the default of the chosen compiler.
 # MODEL       32, 64							   32                Build 32-bit or 64-bit code?								
+# PREFIX      (any empty directory)                Install           The directory to install the library and D includes to.   
 #
+# BUGS
+# ----
+# 'make clean':
+# 	If you get:
+#		rm: cannot lstat 'lib//32/orange/cor': Permission denied
+#   	make *** [clean] Error 1
+# 	Fix: open up msconfig (Start > Run > 'msconfig'), and enable the Application Experience service
 #
-# BUGS:
-# 'make clean'
-# ------------
-# If you get:
-#	rm: cannot lstat 'lib//32/orange/cor': Permission denied
-#   make *** [clean] Error 1
-# Fix: open up msconfig (Start > Run > 'msconfig'), and enable the Application Experience service
-#
+# Doesn't work in some shells:
+# 	For instance, spawning a shell from GitHub's native windows app causes MSYS commands to not work.
+#   Fix: start your shell, e.g. PowerShell, cmd.exe directly.
 
 LIBNAME=orange
+PREFIX?=Install
 DC?=dmd
 #Warning, unittests fail with VERSION=release
 VERSION?=standard
@@ -103,6 +115,16 @@ all: mkdirs $(TARGET) $(HEADER)
 mkdirs:
 	mkdir -p $(addprefix $(LIBDIR)/$(LIBNAME)/,  $(sort $(dir $(SRC))))
 
+install: all
+	@mkdir -p $(PREFIX)/lib $(PREFIX)/include/d
+	cp $(TARGET) $(PREFIX)/lib/
+	cp -r import/$(LIBNAME) $(PREFIX)/include/d	
+	
+uninstall:
+	rm -rf $(PREFIX)/include/d/$(LIBNAME)
+	rm -f $(PREFIX)/lib/lib$(LIBNAME).lib
+	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
+	
 unittest: cleanunittest
 	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
 	.\unittest
