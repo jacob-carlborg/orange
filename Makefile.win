@@ -129,7 +129,7 @@ install: all
 	
 uninstall:
 	rm -rf $(PREFIX)/include/d/$(LIBNAME)
-	rm -f $(PREFIX)/lib/lib$(LIBNAME).lib
+	rm -f $(PREFIX)/lib/$(LIBNAME).lib
 	@rmdir -p --ignore-fail-on-non-empty $(PREFIX)/lib $(PREFIX)/include/d 2>/dev/null || true
 	
 unittest: cleanunittest
