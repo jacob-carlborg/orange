@@ -1,0 +1,123 @@
+# This is a makefile for windows.  Install MSYS first (for make & other tools), set your *System* Path variable to MSYS's bin directory (where make.exe), 
+# so that you can run make from any where and your command shell will find it).  Pass in variable assignments such as doing 'make MODEL=64' to mean build
+# for 64-bit machines.  Here are all the possible variable assignments accessible at the command line:
+#
+# Variable    Possible Values                      Default Value     Description
+# ------------------------------------------------------------------------------
+# DC		  dmd, gdc, gdmd                       dmd               Which compiler to use.
+# VERSION     standard, release, debug             standard          Build for debug or for release? 
+#                                                                    'standard' means the default of the chosen compiler.
+# MODEL       32, 64							   32                Build 32-bit or 64-bit code?								
+#
+#
+# BUGS:
+# 'make clean'
+# ------------
+# If you get:
+#	rm: cannot lstat 'lib//32/orange/cor': Permission denied
+#   make *** [clean] Error 1
+# Fix: open up msconfig (Start > Run > 'msconfig'), and enable the Application Experience service
+#
+
+LIBNAME=orange
+DC?=dmd
+#Warning, unittests fail with VERSION=release
+VERSION?=standard
+LIBDIR=lib/$(MODEL)
+
+
+SRC=core/Attribute.d \
+	serialization/Events.d \
+	serialization/RegisterWrapper.d \
+	serialization/Serializable.d \
+	serialization/SerializationException.d \
+	serialization/Serializer.d \
+	serialization/_.d \
+	serialization/archives/Archive.d \
+	serialization/archives/XmlArchive.d \
+	serialization/archives/_.d \
+	util/CTFE.d \
+	util/Reflection.d \
+	util/Traits.d \
+	util/Use.d \
+	util/_.d \
+	util/collection/Array.d \
+	util/collection/_.d \
+	xml/PhobosXml.d \
+	xml/XmlDocument.d \
+	xml/_.d
+
+UNITTEST=tests/Array.d \
+	tests/AssociativeArray.d \
+	tests/AssociativeArrayReference.d \
+	tests/BaseClass.d \
+	tests/Custom.d \
+	tests/Enum.d \
+	tests/Event.d \
+	tests/Events.d \
+	tests/NonIntrusive.d \
+	tests/NonSerialized.d \
+	tests/Object.d \
+	tests/OverrideSerializer.d \
+	tests/Pointer.d \
+	tests/Primitive.d \
+	tests/Slice.d \
+	tests/String.d \
+	tests/Struct.d \
+	tests/Subclass.d \
+	tests/unittest.d \
+	tests/Util.d
+
+TEST=test/UnitTester.d
+
+ifdef MODEL
+	DCFLAGS=-m$(MODEL)			
+else
+	DCFLAGS=-m32
+	override MODEL=32
+endif
+
+ifeq ("$(VERSION)","release")
+	DCFLAGS += -O
+else ifeq ("$(VERSION)","debug")
+	DCFLAGS += -g
+endif
+
+ifeq ("$(DC)","dmd")
+	LIBCOMMAND = $(DC) -lib $(DCFLAGS) -of$@ $^
+else ifeq ("$(DC)","gdc")
+	override DC=gdmd
+	LIBCOMMAND = ar rcs $@ $^
+else ifeq ("$(DC)","gdmd")
+	LIBCOMMAND = ar rcs $@ $^
+endif
+
+# Everything below this line should be fairly generic (with a few hard-coded things).
+
+OBJ=$(addsuffix .obj,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
+HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
+TARGET=$(LIBDIR)/lib$(LIBNAME).lib
+
+all: mkdirs $(TARGET) $(HEADER)
+
+mkdirs:
+	mkdir -p $(addprefix $(LIBDIR)/$(LIBNAME)/,  $(sort $(dir $(SRC))))
+
+unittest: cleanunittest
+	$(DC) $(DCFLAGS) -unittest -ofunittest $(addprefix $(LIBNAME)/,$(SRC)) $(UNITTEST) $(LIBNAME)/$(TEST)
+	.\unittest
+
+clean: cleanunittest
+	rm -rf import/ lib/
+
+cleanunittest:
+	rm -f unittest.obj unittest
+
+$(TARGET): $(OBJ)
+	$(LIBCOMMAND)
+
+$(LIBDIR)/$(LIBNAME)/%.obj: $(LIBNAME)/%.d
+	$(DC) -c $(DCFLAGS) -of$@ $<
+
+import/$(LIBNAME)/%.di: $(LIBNAME)/%.d
+	$(DC) -c -o- -Hf$@ $<
