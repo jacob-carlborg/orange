@@ -115,7 +115,7 @@ endif
 
 OBJ=$(addsuffix .obj,$(addprefix $(LIBDIR)/$(LIBNAME)/,$(basename $(SRC))))
 HEADER=$(addsuffix .di,$(addprefix import/$(LIBNAME)/,$(basename $(SRC))))
-TARGET=$(LIBDIR)/lib$(LIBNAME).lib
+TARGET=$(LIBDIR)/$(LIBNAME).lib
 
 all: mkdirs $(TARGET) $(HEADER)
 
