@@ -18,6 +18,13 @@
 # MODEL       32, 64							   32                Build 32-bit or 64-bit code?								
 # PREFIX      (any empty directory)                Install           The directory to install the library and D includes to.   
 #
+# Installation
+# ------------
+# Either edit your compiler's default import & library paths (for dmd that's done in dmd2/windows/bin/sc.ini), or
+# copy directory & contents of InstallDir/include/d/orange to dmd2/src/orange (these are your imports for using orange in a D program),
+# and copy InstallDir/lib/orange.lib to dmd2/windows/lib/orange.lib (this is orange's code that you link with).  When building your program
+# make sure to link with orange.lib.
+#
 # BUGS
 # ----
 # 'make clean':
