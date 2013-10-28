@@ -25,7 +25,7 @@ private template hasFieldImpl (T, string field, size_t i)
 	static if (T.tupleof.length == i)
 		enum hasFieldImpl = false;
 
-	else static if (T.tupleof[i].stringof[1 + T.stringof.length + 2 .. $] == field)
+	else static if (nameOfFieldAt!(T, i) == field)
 		enum hasFieldImpl = true;
 
 	else
@@ -51,10 +51,10 @@ template fieldsOfImpl (T, size_t i)
 		enum fieldsOfImpl = [""];
 
 	else static if (T.tupleof.length - 1 == i)
-		enum fieldsOfImpl = [T.tupleof[i].stringof[1 + T.stringof.length + 2 .. $]];
+		enum fieldsOfImpl = [nameOfFieldAt!(T, i)];
 
 	else
-		enum fieldsOfImpl = T.tupleof[i].stringof[1 + T.stringof.length + 2 .. $] ~ fieldsOfImpl!(T, i + 1);
+		enum fieldsOfImpl = nameOfFieldAt!(T, i) ~ fieldsOfImpl!(T, i + 1);
 }
 
 /**
@@ -73,7 +73,7 @@ template TypeOfField (T, string field)
 
 private template TypeOfFieldImpl (T, string field, size_t i)
 {
-	static if (T.tupleof[i].stringof[1 + T.stringof.length + 2 .. $] == field)
+	static if (nameOfFieldAt!(T, i) == field)
 		alias typeof(T.tupleof[i]) TypeOfFieldImpl;
 
 	else
@@ -91,11 +91,7 @@ template nameOfFieldAt (T, size_t position)
 {
     static assert (position < T.tupleof.length, format!(`The given position "`, position, `" is greater than the number of fields (`, T.tupleof.length, `) in the type "`, T, `"`));
 
-	static if (T.tupleof[position].stringof.length > T.stringof.length + 3)
-		enum nameOfFieldAt = T.tupleof[position].stringof[1 + T.stringof.length + 2 .. $];
-
-	else
-		enum nameOfFieldAt = "";
+	enum nameOfFieldAt = __traits(identifier, T.tupleof[position]);
 }
 
 /**
@@ -116,9 +112,7 @@ body
 
 	foreach (i, dummy ; typeof(T.tupleof))
 	{
-		enum f = T.tupleof[i].stringof[1 + len + 2 .. $];
-
-		static if (f == field)
+		static if (nameOfFieldAt!(T, i) == field)
 		{
 			t.tupleof[i] = value;
 			break;
@@ -145,9 +139,7 @@ body
 
 	foreach (i, dummy ; typeof(T.tupleof))
 	{
-		enum f = T.tupleof[i].stringof[1 + len + 2 .. $];
-
-		static if (f == field)
+		static if (nameOfFieldAt!(T, i) == field)
 			return t.tupleof[i];
 	}
 
