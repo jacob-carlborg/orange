@@ -8,7 +8,7 @@ if "%TESTVAR%" == "before" (
 	set TESTVAR=after
 	if not "!TESTVAR!" == "after" (
 		rem Enabling env var expansion with /V, to build the list of .d files:
-		cmd.exe /V /C unittest.sh.bat
+		cmd.exe /V /C unittest.bat
 		exit /B
 	)
 )
@@ -35,7 +35,7 @@ for %%D in (
 rem Compile:
 dmd -unittest -ofunittest %dfiles%
 
-	
+
 rem Run (only if compilation succeded):
 if "%errorlevel%" == "0" (
 	.\unittest.exe
