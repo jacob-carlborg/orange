@@ -75,7 +75,7 @@ struct Use (ARGS...)
 	{
 		assert(args[0]);
 
-		static if (NEW_ARGS.length == 1)
+		static if (args.length == 1)
 			return args[0](dg);
 
 		else
