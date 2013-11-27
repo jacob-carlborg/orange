@@ -1838,7 +1838,7 @@ class Serializer
 		{
 			static if (m != nonSerializedField)
 			{
-				mixin(`alias getAttributes!(T.` ~ m ~ `) attrs;`);
+				mixin(`alias attrs = Attributes!(m, __traits(getAttributes, T.` ~ m ~ `));`);
 
 				static if (attrs.contains!(event))
 					__traits(getMember, value, m)();
