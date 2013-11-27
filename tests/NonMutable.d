@@ -65,6 +65,13 @@ class A
 A a;
 immutable int ptr = 3;
 
+class CTFEFieldsIssue35
+{
+	public immutable FIRST = 1;
+	public immutable SECOND = 1;
+	public bool someFlag;
+}
+
 unittest
 {
 	archive = new XmlArchive!(char);
@@ -95,6 +102,14 @@ unittest
 		it("should return a deserialized object equal to the original object") in {
 			auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
 			assert(a == aDeserialized);
+		};
+	};
+
+	describe("serializing object with CTFE fields") in {
+		it("should compile") in {
+			assert(__traits(compiles, {
+				serializer.serialize(new CTFEFieldsIssue35);
+			}));
 		};
 	};
 }
