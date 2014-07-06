@@ -67,9 +67,15 @@ immutable int ptr = 3;
 
 class CTFEFieldsIssue35
 {
-	public immutable FIRST = 1;
-	public immutable SECOND = 1;
+	public immutable int FIRST;
+	public immutable int SECOND1;
 	public bool someFlag;
+
+	this ()
+	{
+		FIRST = 1;
+		SECOND1 = 1;
+	}
 }
 
 unittest
