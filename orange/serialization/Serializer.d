@@ -699,7 +699,7 @@ class Serializer
 				serializeBaseTypes(value);
 	}
 
-	private void serializeInternal (U) (U value, string key = null, Id id = Id.max)
+	private void serializeInternal (U) (ref U value, string key = null, Id id = Id.max)
 	{
 		alias Unqual!(U) T;
 
@@ -839,7 +839,7 @@ class Serializer
 			addSerializedArray(array, id);
 	}
 
-	private void serializeArray (T) (T value, string key, Id id)
+	private void serializeArray (T) (ref T value, string key, Id id)
 	{
 		auto array = Array(value.ptr, value.length, ElementTypeOfArray!(T).sizeof);
 
@@ -1123,6 +1123,9 @@ class Serializer
 		else static if (isString!(T))
 			return deserializeString!(T)(keyOrId);
 
+		else static if (isStaticArray!(T))
+			return deserializeStaticArray!(T)(keyOrId);
+
 		else static if (isArray!(T))
 			return deserializeArray!(T)(keyOrId);
 
@@ -1341,6 +1344,18 @@ class Serializer
 		}
 	}
 
+	private T deserializeStaticArray (T) (string key)
+	{
+		T value;
+
+		archive.unarchiveArray(key, (size_t length) {
+			foreach (i, ref e ; value)
+				e = deserializeInternal!(typeof(e))(toData(i));
+		});
+
+		return value;
+	}
+
 	private T deserializeAssociativeArray (T) (string key)
 	{
 		auto id = deserializeReference(key);
@@ -1485,16 +1500,15 @@ class Serializer
 
 			alias typeof(T.tupleof[i]) Type;
 
-			auto v = value.tupleof[i];
 			auto id = nextId;
 
 			static if (isPointer!(Type))
-				auto pointer = v;
+				auto pointer = value.tupleof[i];
 
 			else
 				auto pointer = &value.tupleof[i];
 
-			auto reference = getSerializedReference(v);
+			auto reference = getSerializedReference(value.tupleof[i]);
 
 			if (reference != Id.max)
 				archive.archiveReference(field, reference);
@@ -1508,7 +1522,7 @@ class Serializer
 
 				else
 				{
-					serializeInternal(v, toData(field), id);
+					serializeInternal(value.tupleof[i], toData(field), id);
 					addSerializedValue(pointer, id, toData(keyCounter));
 				}
 			}
@@ -1577,8 +1591,12 @@ class Serializer
 
 				else
 				{
-   					*fieldAddress = deserializeInternal!(Type)(toData(field));
-                       addDeserializedValue(value.tupleof[i], nextId);
+					*fieldAddress = deserializeInternal!(Type)(toData(field));
+					Id newId = nextId;
+					addDeserializedValue(value.tupleof[i], newId);
+
+					static if (isStaticArray!(Type))
+						addDeserializedSlice(value.tupleof[i], newId);
 				}
 			}
 		}
@@ -1626,7 +1644,7 @@ class Serializer
 		deserializedReferences[id] = cast(void*) value;
 	}
 
-	private void addDeserializedSlice (T) (T value, Id id)
+	private void addDeserializedSlice (T) (ref T value, Id id)
 	{
 		static assert(isArray!(T) || isString!(T), format!(`The given type "`, T, `" is not a slice type, i.e. array or string.`));
 

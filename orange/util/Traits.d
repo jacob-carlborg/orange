@@ -86,6 +86,9 @@ template isArray (T)
 		enum bool isArray = false;
 }
 
+/// Evaluates to true if $(D_PARAM T) is a static array.
+enum isStaticArray (T) = is(T : U[n], U, size_t n);
+
 /// Evaluates to true if $(D_PARAM T) is a string.
 template isString (T)
 {
