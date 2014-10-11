@@ -786,40 +786,40 @@ interface Archive
 	 *
 	 * Returns: the unarchived value
 	 */
-	bool unarchiveEnumBool (string key);
+	bool unarchiveEnumBool (string key, out Id id);
 
 	/// Ditto
-	byte unarchiveEnumByte (string key);
+	byte unarchiveEnumByte (string key, out Id id);
 
 	/// Ditto
-	char unarchiveEnumChar (string key);
+	char unarchiveEnumChar (string key, out Id id);
 
 	/// Ditto
-	dchar unarchiveEnumDchar (string key);
+	dchar unarchiveEnumDchar (string key, out Id id);
 
 	/// Ditto
-	int unarchiveEnumInt (string key);
+	int unarchiveEnumInt (string key, out Id id);
 
 	/// Ditto
-	long unarchiveEnumLong (string key);
+	long unarchiveEnumLong (string key, out Id id);
 
 	/// Ditto
-	short unarchiveEnumShort (string key);
+	short unarchiveEnumShort (string key, out Id id);
 
 	/// Ditto
-	ubyte unarchiveEnumUbyte (string key);
+	ubyte unarchiveEnumUbyte (string key, out Id id);
 
 	/// Ditto
-	uint unarchiveEnumUint (string key);
+	uint unarchiveEnumUint (string key, out Id id);
 
 	/// Ditto
-	ulong unarchiveEnumUlong (string key);
+	ulong unarchiveEnumUlong (string key, out Id id);
 
 	/// Ditto
-	ushort unarchiveEnumUshort (string key);
+	ushort unarchiveEnumUshort (string key, out Id id);
 
 	/// Ditto
-	wchar unarchiveEnumWchar (string key);
+	wchar unarchiveEnumWchar (string key, out Id id);
 
 	/**
 	 * Unarchives the value associated with the given id as a bool.
@@ -1009,7 +1009,7 @@ interface Archive
 	 *     key = the key associated with the string
 	 *     dg = a callback that performs the unarchiving of the individual fields
 	 */
-	void unarchiveStruct (string key, void delegate () dg);
+	Id unarchiveStruct (string key, void delegate () dg);
 
 	/**
 	 * Unarchives the struct associated with the given id.
@@ -1055,7 +1055,7 @@ interface Archive
 	 *     dg = a callback that performs the unarchiving of the value as
 	 *     		 the base type of the typedef
 	 */
-	void unarchiveTypedef (string key, void delegate () dg);
+	Id unarchiveTypedef (string key, void delegate () dg);
 
 	/**
 	 * Unarchives the string associated with the given id.
@@ -1119,61 +1119,61 @@ interface Archive
 	 *
 	 * Returns: the unarchived value
 	 */
-    bool unarchiveBool (string key);
+    bool unarchiveBool (string key, out Id id);
 
 	/// Ditto
-    byte unarchiveByte (string key);
+    byte unarchiveByte (string key, out Id id);
 
-    //cdouble unarchiveCdouble (string key); // currently not supported by to!()
-    //cent unarchiveCent (string key); // currently not implemented but a reserved keyword
-    //cfloat unarchiveCfloat (string key); // currently not supported by to!()
+    //cdouble unarchiveCdouble (string key, out Id id); // currently not supported by to!()
+    //cent unarchiveCent (string key, out Id id); // currently not implemented but a reserved keyword
+    //cfloat unarchiveCfloat (string key, out Id id); // currently not supported by to!()
 
 	/// Ditto
-    char unarchiveChar (string key); // currently not implemented but a reserved keyword
-    //creal unarchiveCreal (string key); // currently not supported by to!()
+    char unarchiveChar (string key, out Id id); // currently not implemented but a reserved keyword
+    //creal unarchiveCreal (string key, out Id id); // currently not supported by to!()
 
     /// Ditto
-    dchar unarchiveDchar (string key);
+    dchar unarchiveDchar (string key, out Id id);
 
 	/// Ditto
-    double unarchiveDouble (string key);
+    double unarchiveDouble (string key, out Id id);
 
 	/// Ditto
-    float unarchiveFloat (string key);
-    //idouble unarchiveIdouble (string key); // currently not supported by to!()
-    //ifloat unarchiveIfloat (string key); // currently not supported by to!()*/
+    float unarchiveFloat (string key, out Id id);
+    //idouble unarchiveIdouble (string key, out Id id); // currently not supported by to!()
+    //ifloat unarchiveIfloat (string key, out Id id); // currently not supported by to!()*/
 
 	/// Ditto
-    int unarchiveInt (string key);
+    int unarchiveInt (string key, out Id id);
 
-    //ireal unarchiveIreal (string key); // currently not supported by to!()
-
-	/// Ditto
-    long unarchiveLong (string key);
+    //ireal unarchiveIreal (string key, out Id id); // currently not supported by to!()
 
 	/// Ditto
-    real unarchiveReal (string key);
+    long unarchiveLong (string key, out Id id);
 
 	/// Ditto
-    short unarchiveShort (string key);
+    real unarchiveReal (string key, out Id id);
 
 	/// Ditto
-    ubyte unarchiveUbyte (string key);
+    short unarchiveShort (string key, out Id id);
+
+	/// Ditto
+    ubyte unarchiveUbyte (string key, out Id id);
 
 	///
-    //ucent unarchiveCcent (string key); // currently not implemented but a reserved keyword
+    //ucent unarchiveCcent (string key, out Id id); // currently not implemented but a reserved keyword
 
     /// Ditto
-    uint unarchiveUint (string key);
+    uint unarchiveUint (string key, out Id id);
 
 	/// Ditto
-    ulong unarchiveUlong (string key);
+    ulong unarchiveUlong (string key, out Id id);
 
 	/// Ditto
-    ushort unarchiveUshort (string key);
+    ushort unarchiveUshort (string key, out Id id);
 
 	/// Ditto
-    wchar unarchiveWchar (string key);
+    wchar unarchiveWchar (string key, out Id id);
 
 	/**
 	 * Unarchives the value associated with the given id.

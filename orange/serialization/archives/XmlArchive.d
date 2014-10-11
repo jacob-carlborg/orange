@@ -1156,75 +1156,75 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	 *
 	 * Returns: the unarchived value
 	 */
-	bool unarchiveEnumBool (string key)
+	bool unarchiveEnumBool (string key, out Id id)
 	{
-		return unarchiveEnum!(bool)(key);
+		return unarchiveEnum!(bool)(key, id);
 	}
 
 	/// Ditto
-	byte unarchiveEnumByte (string key)
+	byte unarchiveEnumByte (string key, out Id id)
 	{
-		return unarchiveEnum!(byte)(key);
+		return unarchiveEnum!(byte)(key, id);
 	}
 
 	/// Ditto
-	char unarchiveEnumChar (string key)
+	char unarchiveEnumChar (string key, out Id id)
 	{
-		return unarchiveEnum!(char)(key);
+		return unarchiveEnum!(char)(key, id);
 	}
 
 	/// Ditto
-	dchar unarchiveEnumDchar (string key)
+	dchar unarchiveEnumDchar (string key, out Id id)
 	{
-		return unarchiveEnum!(dchar)(key);
+		return unarchiveEnum!(dchar)(key, id);
 	}
 
 	/// Ditto
-	int unarchiveEnumInt (string key)
+	int unarchiveEnumInt (string key, out Id id)
 	{
-		return unarchiveEnum!(int)(key);
+		return unarchiveEnum!(int)(key, id);
 	}
 
 	/// Ditto
-	long unarchiveEnumLong (string key)
+	long unarchiveEnumLong (string key, out Id id)
 	{
-		return unarchiveEnum!(long)(key);
+		return unarchiveEnum!(long)(key, id);
 	}
 
 	/// Ditto
-	short unarchiveEnumShort (string key)
+	short unarchiveEnumShort (string key, out Id id)
 	{
-		return unarchiveEnum!(short)(key);
+		return unarchiveEnum!(short)(key, id);
 	}
 
 	/// Ditto
-	ubyte unarchiveEnumUbyte (string key)
+	ubyte unarchiveEnumUbyte (string key, out Id id)
 	{
-		return unarchiveEnum!(ubyte)(key);
+		return unarchiveEnum!(ubyte)(key, id);
 	}
 
 	/// Ditto
-	uint unarchiveEnumUint (string key)
+	uint unarchiveEnumUint (string key, out Id id)
 	{
-		return unarchiveEnum!(uint)(key);
+		return unarchiveEnum!(uint)(key, id);
 	}
 
 	/// Ditto
-	ulong unarchiveEnumUlong (string key)
+	ulong unarchiveEnumUlong (string key, out Id id)
 	{
-		return unarchiveEnum!(ulong)(key);
+		return unarchiveEnum!(ulong)(key, id);
 	}
 
 	/// Ditto
-	ushort unarchiveEnumUshort (string key)
+	ushort unarchiveEnumUshort (string key, out Id id)
 	{
-		return unarchiveEnum!(ushort)(key);
+		return unarchiveEnum!(ushort)(key, id);
 	}
 
 	/// Ditto
-	wchar unarchiveEnumWchar (string key)
+	wchar unarchiveEnumWchar (string key, out Id id)
 	{
-		return unarchiveEnum!(wchar)(key);
+		return unarchiveEnum!(wchar)(key, id);
 	}
 
 	/**
@@ -1310,6 +1310,13 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 	private T unarchiveEnum (T, U) (U keyOrId)
 	{
+		Id dummy;
+		return unarchiveEnum!(T, U)(keyOrId, dummy);
+	}
+
+	private T unarchiveEnum (T, U) (U keyOrId, out Id id)
+	{
+		id = Id.max;
 		auto tag = Tags.enumTag;
 
 		static if (isString!(U))
@@ -1323,6 +1330,9 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 		if (!element.isValid)
 			return T.init;
+
+		auto stringId = getValueOfAttribute(Attributes.idAttribute, element);
+		id = stringId ? toId(stringId) : Id.max;
 
 		return fromData!(T)(element.value);
 	}
@@ -1547,17 +1557,24 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	 *     key = the key associated with the struct
 	 *     dg = a callback that performs the unarchiving of the individual fields
 	 */
-	void unarchiveStruct (string key, void delegate () dg)
+	Id unarchiveStruct (string key, void delegate () dg)
 	{
+		Id id = Id.max;
+
 		restore(lastElement) in {
 			auto element = getElement(Tags.structTag, key);
 
 			if (!element.isValid)
 				return;
 
+			auto stringId = getValueOfAttribute(Attributes.idAttribute, element);
+			id = stringId ? toId(stringId) : Id.max;
+
 			lastElement = element;
 			dg();
 		};
+
+		return id;
 	}
 
 	/**
@@ -1625,8 +1642,10 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	 *     dg = a callback that performs the unarchiving of the value as
 	 *     		 the base type of the typedef
 	 */
-	void unarchiveTypedef (string key, void delegate () dg)
+	Id unarchiveTypedef (string key, void delegate () dg)
 	{
+		Id id = Id.max;
+
 		restore(lastElement) in {
 			auto element = getElement(Tags.typedefTag, key);
 
@@ -1634,8 +1653,13 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 				return;
 
 			lastElement = element;
+			auto stringId = getValueOfAttribute(Attributes.id, element);
+			id = stringId ? toId(stringId) : Id.max;
+
 			dg();
 		};
+
+		return id;
 	}
 
 	/**
@@ -1745,141 +1769,141 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	 *
 	 * Returns: the unarchived value
 	 */
-	bool unarchiveBool (string key)
+	bool unarchiveBool (string key, out Id id)
 	{
-		return unarchivePrimitive!(bool)(key);
+		return unarchivePrimitive!(bool)(key, id);
 	}
 
 	/// Ditto
-	byte unarchiveByte (string key)
+	byte unarchiveByte (string key, out Id id)
 	{
-		return unarchivePrimitive!(byte)(key);
+		return unarchivePrimitive!(byte)(key, id);
 	}
 
 	//currently not suppported by to!()
-    /*cdouble unarchiveCdouble (string key)
+    /*cdouble unarchiveCdouble (string key, out Id id)
 	{
-		return unarchivePrimitive!(cdouble)(key);
+		return unarchivePrimitive!(cdouble)(key, id);
 	}*/
 
 	 //currently not implemented but a reserved keyword
-    /*cent unarchiveCent (string key)
+    /*cent unarchiveCent (string key, out Id id)
 	{
-		return unarchivePrimitive!(cent)(key);
+		return unarchivePrimitive!(cent)(key, id);
 	}*/
 
 	// currently not suppported by to!()
-    /*cfloat unarchiveCfloat (string key)
+    /*cfloat unarchiveCfloat (string key, out Id id)
 	{
-		return unarchivePrimitive!(cfloat)(key);
+		return unarchivePrimitive!(cfloat)(key, id);
 	}*/
 
 	/// Ditto
-	char unarchiveChar (string key)
+	char unarchiveChar (string key, out Id id)
 	{
-		return unarchivePrimitive!(char)(key);
+		return unarchivePrimitive!(char)(key, id);
 	}
 
 	 //currently not implemented but a reserved keyword
-	/*creal unarchiveCreal (string key)
+	/*creal unarchiveCreal (string key, out Id id)
 	{
-		return unarchivePrimitive!(creal)(key);
+		return unarchivePrimitive!(creal)(key, id);
 	}*/
 
 	/// Ditto
-	dchar unarchiveDchar (string key)
+	dchar unarchiveDchar (string key, out Id id)
 	{
-		return unarchivePrimitive!(dchar)(key);
+		return unarchivePrimitive!(dchar)(key, id);
 	}
 
 	/// Ditto
-	double unarchiveDouble (string key)
+	double unarchiveDouble (string key, out Id id)
 	{
-		return unarchivePrimitive!(double)(key);
+		return unarchivePrimitive!(double)(key, id);
 	}
 
 	/// Ditto
-	float unarchiveFloat (string key)
+	float unarchiveFloat (string key, out Id id)
 	{
-		return unarchivePrimitive!(float)(key);
+		return unarchivePrimitive!(float)(key, id);
 	}
 
 	//currently not suppported by to!()
-    /*idouble unarchiveIdouble (string key)
+    /*idouble unarchiveIdouble (string key, out Id id)
 	{
-		return unarchivePrimitive!(idouble)(key);
+		return unarchivePrimitive!(idouble)(key, id);
 	}*/
 
     // currently not suppported by to!()*/
-    /*ifloat unarchiveIfloat (string key)
+    /*ifloat unarchiveIfloat (string key, out Id id)
 	{
-		return unarchivePrimitive!(ifloat)(key);
+		return unarchivePrimitive!(ifloat)(key, id);
 	}*/
 
 	/// Ditto
-	int unarchiveInt (string key)
+	int unarchiveInt (string key, out Id id)
 	{
-		return unarchivePrimitive!(int)(key);
+		return unarchivePrimitive!(int)(key, id);
 	}
 
 	// currently not suppported by to!()
-    /*ireal unarchiveIreal (string key)
+    /*ireal unarchiveIreal (string key, out Id id)
 	{
-		return unarchivePrimitive!(ireal)(key);
+		return unarchivePrimitive!(ireal)(key, id);
 	}*/
 
 	/// Ditto
-	long unarchiveLong (string key)
+	long unarchiveLong (string key, out Id id)
 	{
-		return unarchivePrimitive!(long)(key);
+		return unarchivePrimitive!(long)(key, id);
 	}
 
 	/// Ditto
-	real unarchiveReal (string key)
+	real unarchiveReal (string key, out Id id)
 	{
-		return unarchivePrimitive!(real)(key);
+		return unarchivePrimitive!(real)(key, id);
 	}
 
 	/// Ditto
-	short unarchiveShort (string key)
+	short unarchiveShort (string key, out Id id)
 	{
-		return unarchivePrimitive!(short)(key);
+		return unarchivePrimitive!(short)(key, id);
 	}
 
 	/// Ditto
-	ubyte unarchiveUbyte (string key)
+	ubyte unarchiveUbyte (string key, out Id id)
 	{
-		return unarchivePrimitive!(ubyte)(key);
+		return unarchivePrimitive!(ubyte)(key, id);
 	}
 
 	// currently not implemented but a reserved keyword
-    /*ucent unarchiveCcent (string key)
+    /*ucent unarchiveCcent (string key, out Id id)
 	{
-		return unarchivePrimitive!(ucent)(key);
+		return unarchivePrimitive!(ucent)(key, id);
 	}*/
 
 	/// Ditto
-	uint unarchiveUint (string key)
+	uint unarchiveUint (string key, out Id id)
 	{
-		return unarchivePrimitive!(uint)(key);
+		return unarchivePrimitive!(uint)(key, id);
 	}
 
 	/// Ditto
-	ulong unarchiveUlong (string key)
+	ulong unarchiveUlong (string key, out Id id)
 	{
-		return unarchivePrimitive!(ulong)(key);
+		return unarchivePrimitive!(ulong)(key, id);
 	}
 
 	/// Ditto
-	ushort unarchiveUshort (string key)
+	ushort unarchiveUshort (string key, out Id id)
 	{
-		return unarchivePrimitive!(ushort)(key);
+		return unarchivePrimitive!(ushort)(key, id);
 	}
 
 	/// Ditto
-	wchar unarchiveWchar (string key)
+	wchar unarchiveWchar (string key, out Id id)
 	{
-		return unarchivePrimitive!(wchar)(key);
+		return unarchivePrimitive!(wchar)(key, id);
 	}
 
 	/**
@@ -1908,9 +1932,9 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 	}
 
 	//currently not suppported by to!()
-	/*cdouble unarchiveCdouble (Id id)
+	/*cdouble unarchiveCdouble (Id id, out Id id)
 	{
-		return unarchivePrimitive!(cdouble)(id);
+		return unarchivePrimitive!(cdouble)(id,);
 	}*/
 
 	 //currently not implemented but a reserved keyword
@@ -2035,6 +2059,13 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 	private T unarchivePrimitive (T, U) (U keyOrId)
 	{
+		Id id;
+		return unarchivePrimitive!(T, U)(keyOrId, id);
+	}
+
+	private T unarchivePrimitive (T, U) (U keyOrId, out Id id)
+	{
+		id = Id.max;
 		auto tag = toData(T.stringof);
 
 		static if (isString!(U))
@@ -2048,6 +2079,9 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 
 		if (!element.isValid)
 			return T.init;
+
+		auto stringId = getValueOfAttribute(Attributes.idAttribute, element);
+		id = stringId ? toId(stringId) : Id.max;
 
 		return fromData!(T)(element.value);
 	}

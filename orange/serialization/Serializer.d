@@ -1109,42 +1109,48 @@ class Serializer
 
 	private Unqual!(U) deserializeInternal (U, Key) (Key keyOrId)
 	{
+		Id dummy;
+		return deserializeInternal!(U, Key)(keyOrId, dummy);
+	}
+
+	private Unqual!(U) deserializeInternal (U, Key) (Key keyOrId, out Id id)
+	{
 		alias Unqual!(U) T;
 
 		static if (isTypedef!(T))
-			return deserializeTypedef!(T)(keyOrId);
+			return deserializeTypedef!(T)(keyOrId, id);
 
 		else static if (isObject!(T))
-			return deserializeObject!(T)(keyOrId);
+			return deserializeObject!(T)(keyOrId, id);
 
 		else static if (isStruct!(T))
-			return deserializeStruct!(T)(keyOrId);
+			return deserializeStruct!(T)(keyOrId, id);
 
 		else static if (isString!(T))
-			return deserializeString!(T)(keyOrId);
+			return deserializeString!(T)(keyOrId, id);
 
 		else static if (isStaticArray!(T))
-			return deserializeStaticArray!(T)(keyOrId);
+			return deserializeStaticArray!(T)(keyOrId, id);
 
 		else static if (isArray!(T))
-			return deserializeArray!(T)(keyOrId);
+			return deserializeArray!(T)(keyOrId, id);
 
 		else static if (isAssociativeArray!(T))
-			return deserializeAssociativeArray!(T)(keyOrId);
+			return deserializeAssociativeArray!(T)(keyOrId, id);
 
 		else static if (isPrimitive!(T))
-			return deserializePrimitive!(T)(keyOrId);
+			return deserializePrimitive!(T)(keyOrId, id);
 
 		else static if (isPointer!(T))
 		{
 			static if (isFunctionPointer!(T))
 				goto error;
 
-			return deserializePointer!(T)(keyOrId).value;
+			return deserializePointer!(T)(keyOrId, id).value;
 		}
 
 		else static if (isEnum!(T))
-			return deserializeEnum!(T)(keyOrId);
+			return deserializeEnum!(T)(keyOrId, id);
 
 		else
 		{
@@ -1153,13 +1159,13 @@ class Serializer
 		}
 	}
 
-	private Unqual!(U) deserializeObject (U, Key) (Key keyOrId)
+	private Unqual!(U) deserializeObject (U, Key) (Key keyOrId, out Id id)
 	{
 		alias Unqual!(U) T;
 
 		static if (!isNonSerialized!(T)())
 		{
-			auto id = deserializeReference(keyOrId);
+			id = deserializeReference(keyOrId);
 
 			if (auto reference = getDeserializedReference!(T)(id))
 				return *reference;
@@ -1220,7 +1226,7 @@ class Serializer
 		return T.init;
 	}
 
-	private T deserializeStruct (T, U) (U key)
+	private T deserializeStruct (T, U) (U key, out Id id)
 	{
 		T value;
 
@@ -1228,7 +1234,7 @@ class Serializer
 		{
 			nextId;
 
-			archive.unarchiveStruct(key, {
+			id = archive.unarchiveStruct(key, {
 				triggerEvents(value, {
 					auto type = toData(typeid(T).toString);
 					auto runHelper = false;
@@ -1263,7 +1269,7 @@ class Serializer
 		return value;
 	}
 
-	private T deserializeString (T) (string key)
+	private T deserializeString (T) (string key, out Id id)
 	{
 		auto slice = deserializeSlice(key);
 
@@ -1298,10 +1304,11 @@ class Serializer
 
 		addDeserializedSlice(value, slice.id);
 
+		id = slice.id;
 		return value;
 	}
 
-	private T deserializeArray (T) (string key)
+	private T deserializeArray (T) (string key, out Id id)
 	{
 		auto slice = deserializeSlice(key);
 
@@ -1323,6 +1330,7 @@ class Serializer
 
 		if (slice.id != size_t.max) // Deserialize slice
 		{
+			id = slice.id;
 			archive.unarchiveArray(slice.id, dg);
 			assumeUnique(buffer, value);
 			addDeserializedSlice(value, slice.id);
@@ -1332,23 +1340,23 @@ class Serializer
 
 		else // Deserialize array
 		{
-			slice.id = archive.unarchiveArray(key, dg);
+			id = archive.unarchiveArray(key, dg);
 
-			if (auto arr = slice.id in deserializedSlices)
+			if (auto arr = id in deserializedSlices)
 				return cast(T) *arr;
 
 			assumeUnique(buffer, value);
-			addDeserializedSlice(value, slice.id);
+			addDeserializedSlice(value, id);
 
 			return value;
 		}
 	}
 
-	private T deserializeStaticArray (T) (string key)
+	private T deserializeStaticArray (T) (string key, out Id id)
 	{
 		T value;
 
-		archive.unarchiveArray(key, (size_t length) {
+		id = archive.unarchiveArray(key, (size_t length) {
 			foreach (i, ref e ; value)
 				e = deserializeInternal!(typeof(e))(toData(i));
 		});
@@ -1356,9 +1364,9 @@ class Serializer
 		return value;
 	}
 
-	private T deserializeAssociativeArray (T) (string key)
+	private T deserializeAssociativeArray (T) (string key, out Id id)
 	{
-		auto id = deserializeReference(key);
+		id = deserializeReference(key);
 
 		if (auto reference = getDeserializedReference!(T)(id))
 			return *reference;
@@ -1445,25 +1453,37 @@ class Serializer
 		return Pointer!(T)(cast(T) pointer, pointerId, pointeeId);
 	}
 
-	private T deserializeEnum (T, U) (U keyOrId)
+	private T deserializeEnum (T, U) (U keyOrId, out Id id)
 	{
 		alias BaseTypeOfEnum!(T) Enum;
 
 		enum functionName = toUpper(Enum.stringof[0]) ~ Enum.stringof[1 .. $];
-		mixin("return cast(T) archive.unarchiveEnum" ~ functionName ~ "(keyOrId);");
+
+		static if (is(U == Id))
+			enum params = "(keyOrId);";
+		else
+			enum params = "(keyOrId, id);";
+
+		mixin("return cast(T) archive.unarchiveEnum" ~ functionName ~ params);
 	}
 
-	private T deserializePrimitive (T, U) (U keyOrId)
+	private T deserializePrimitive (T, U) (U keyOrId, out Id id)
 	{
 		enum functionName = toUpper(T.stringof[0]) ~ T.stringof[1 .. $];
-		mixin("return archive.unarchive" ~ functionName ~ "(keyOrId);");
+
+		static if (is(U == Id))
+			enum params = "(keyOrId);";
+		else
+			enum params = "(keyOrId, id);";
+
+		mixin("return archive.unarchive" ~ functionName ~ params);
 	}
 
-	private T deserializeTypedef (T, U) (U keyOrId)
+	private T deserializeTypedef (T, U) (U keyOrId, out Id id)
 	{
 		T value;
 
-		archive.unarchiveTypedef!(T)(key, {
+		id = archive.unarchiveTypedef!(T)(key, {
 			value = cast(T) deserializeInternal!(BaseTypeOfTypedef!(T))(nextKey);
 		});
 
@@ -1591,12 +1611,11 @@ class Serializer
 
 				else
 				{
-					*fieldAddress = deserializeInternal!(Type)(toData(field));
-					Id newId = nextId;
-					addDeserializedValue(value.tupleof[i], newId);
+					*fieldAddress = deserializeInternal!(Type)(toData(field), id);
+					addDeserializedValue(value.tupleof[i], id);
 
 					static if (isStaticArray!(Type))
-						addDeserializedSlice(value.tupleof[i], newId);
+						addDeserializedSlice(value.tupleof[i], id);
 				}
 			}
 		}
