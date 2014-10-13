@@ -1653,7 +1653,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
 				return;
 
 			lastElement = element;
-			auto stringId = getValueOfAttribute(Attributes.id, element);
+			auto stringId = getValueOfAttribute(Attributes.idAttribute, element);
 			id = stringId ? toId(stringId) : Id.max;
 
 			dg();
