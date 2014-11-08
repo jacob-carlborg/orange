@@ -103,7 +103,10 @@ unittest
 	h.ushort_ = 1U;
 	h.wchar_ = 'c';
 
-	enum zero = "0x0p+0";
+	version(Windows)
+		enum zero = "0x0.p+0";
+	else
+		enum zero = "0x0p+0";
 
 	describe("serialize primitives") in {
 		it("should return serialized primitives") in {

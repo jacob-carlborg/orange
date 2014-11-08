@@ -1348,7 +1348,9 @@ abstract class ArchiveBase (U) : Archive
 			static if (isFloatingPoint!(T))
 				return floatingPointToData(value);
 
-			else
+			//Note: Inlining bug workaround: "if(true)" is necessary to prevent
+			//      omission of "else" clause. Also works with: "if (!isFloatingPoint!(T))".
+			else if (true)  
 				return to!(Data)(value);
 		}
 
@@ -1383,7 +1385,9 @@ abstract class ArchiveBase (U) : Archive
 			static if (is(T == wchar))
 				return toWchar(value);
 
-			else
+			//Note: Inlining bug workaround: "if(true)" is necessary to prevent
+			//      omission of "else" clause. Also works with: "if (!isFloatingPoint!(T))".
+			else if (true)
 				return to!(T)(value);
 		}
 

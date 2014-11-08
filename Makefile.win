@@ -40,7 +40,7 @@
 LIBNAME=orange
 PREFIX?=Install
 DC?=dmd
-#Warning, unittests fail with VERSION=release
+#Note: unittests now work well with -inline and -release
 VERSION?=standard
 LIBDIR=lib/$(MODEL)
 

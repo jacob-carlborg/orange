@@ -1,7 +1,7 @@
 LIBNAME=orange
 DC?=dmd
 PREFIX?=/usr/local
-#Warning, unittests fail with VERSION=release
+#Note: unittests now work well with -inline and -release
 VERSION?=standard
 LIBDIR=lib/$(MODEL)
 ARCH=$(shell arch || uname -m)
