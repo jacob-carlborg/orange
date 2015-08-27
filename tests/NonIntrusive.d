@@ -62,20 +62,27 @@ unittest
 
     describe("serialize object using a non-intrusive method") in {
         it("should return a custom serialized object") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.NonIntrusive.Foo" type="tests.NonIntrusive.Foo" key="0" id="0">
+            <int key="a" id="1">3</int>
+            <int key="b" id="2">4</int>
+            <base type="tests.NonIntrusive.Base" key="1" id="3">
+                <int key="x" id="4">5</int>
+            </base>
+        </object>
+    </data>
+</archive>
+xml";
             Serializer.registerSerializer!(Foo)(&toData);
             Serializer.registerDeserializer!(Foo)(&fromData);
 
             serializer.serialize(foo);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.NonIntrusive.Foo" type="tests.NonIntrusive.Foo" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("int", `key="a" id="1"`, "3"));
-            assert(archive.data().containsXmlTag("int", `key="b" id="2"`, "4"));
-
-            assert(archive.data().containsXmlTag("base", `type="tests.NonIntrusive.Base" key="1" id="3"`));
-            assert(archive.data().containsXmlTag("int", `key="x" id="4"`, "5"));
-
             assert(i == 4);
+            assert(expected.equalToXml(archive.data));
         };
     };
 
