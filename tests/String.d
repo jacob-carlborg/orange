@@ -36,14 +36,22 @@ unittest
 
     describe("serialize strings") in {
         it("should return serialized strings") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.String.C" type="tests.String.C" key="0" id="0">
+            <string type="immutable(wchar)" length="3" key="wstr" id="2">bar</string>
+            <string type="immutable(char)" length="3" key="str" id="1">foo</string>
+            <string type="immutable(dchar)" length="6" key="dstr" id="3">foobar</string>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(c);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.String.C" type="tests.String.C" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("string", `type="immutable(char)" length="3" key="str" id="1"`, "foo"));
-            assert(archive.data().containsXmlTag("string", `type="immutable(wchar)" length="3" key="wstr" id="2"`, "bar"));
-            assert(archive.data().containsXmlTag("string", `type="immutable(dchar)" length="6" key="dstr" id="3"`, "foobar"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
@@ -64,14 +72,22 @@ unittest
 
     describe("serialize Unicode strings") in {
         it("should return a serialized string containing proper Unicode") in {
+auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.String.C" type="tests.String.C" key="0" id="0">
+            <string type="immutable(wchar)" length="7" key="wstr" id="2">foo ÅÄÖ</string>
+            <string type="immutable(char)" length="10" key="str" id="1">foo åäö</string>
+            <string type="immutable(dchar)" length="11" key="dstr" id="3">foo åäö ÅÄÖ</string>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(u);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.String.C" type="tests.String.C" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("string", `type="immutable(char)" length="10" key="str" id="1"`, "foo åäö"));
-            assert(archive.data().containsXmlTag("string", `type="immutable(wchar)" length="7" key="wstr" id="2"`, "foo ÅÄÖ"));
-            assert(archive.data().containsXmlTag("string", `type="immutable(dchar)" length="11" key="dstr" id="3"`, "foo åäö ÅÄÖ"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
