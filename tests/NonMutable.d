@@ -87,20 +87,28 @@ unittest
 
     describe("serialize object with immutable and const fields") in {
         it("should return a serialized object") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.NonMutable.A" type="tests.NonMutable.A" key="0" id="0">
+            <int key="a" id="1">1</int>
+            <int key="b" id="2">2</int>
+            <object runtimeType="tests.NonMutable.B" type="immutable(tests.NonMutable.B)" key="d" id="4">
+                <int key="a" id="5">3</int>
+            </object>
+            <pointer key="e" id="6">
+                <int key="1" id="7">3</int>
+            </pointer>
+            <string type="immutable(char)" length="3" key="c" id="3">str</string>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(a);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().contains(`<object runtimeType="tests.NonMutable.A" type="tests.NonMutable.A" key="0" id="0">`));
-
-            assert(archive.data().containsXmlTag("int", `key="a" id="1"`, "1"));
-            assert(archive.data().containsXmlTag("int", `key="b" id="2"`, "2"));
-            assert(archive.data().containsXmlTag("string", `type="immutable(char)" length="3" key="c" id="3"`, "str"));
-
-            assert(archive.data().contains(`<object runtimeType="tests.NonMutable.B" type="immutable(tests.NonMutable.B)" key="d" id="4">`));
-
-            assert(archive.data().containsXmlTag("pointer", `key="e" id="6"`));
-            assert(archive.data().containsXmlTag("int", `key="1" id="7"`, "3"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
