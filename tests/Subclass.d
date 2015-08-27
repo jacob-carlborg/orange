@@ -37,14 +37,23 @@ unittest
 
     describe("serialize a subclass") in {
         it("should return serialized subclass") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Subclass.Sub" type="tests.Subclass.Sub" key="0" id="0">
+            <int key="b" id="1">4</int>
+            <base type="tests.Subclass.Base" key="1" id="2">
+                <int key="a" id="3">3</int>
+            </base>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(sub);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Subclass.Sub" type="tests.Subclass.Sub" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
-            assert(archive.data().containsXmlTag("base", `type="tests.Subclass.Base" key="1" id="2"`));
-            assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
