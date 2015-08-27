@@ -89,21 +89,25 @@ unittest
 
     describe("serialize a class with event handlers") in {
         it("should return serialized class with the correct values set by the event handlers") in {
+            auto expected =q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Events.Events" type="tests.Events.Events" key="0" id="0">
+            <int key="a" id="1">3</int>
+            <int key="d" id="2">0</int>
+            <int key="udaA" id="3">3</int>
+            <int key="udaD" id="4">0</int>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(events);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Events.Events" type="tests.Events.Events" key="0" id="0"`));
-
-            assert(archive.data().containsXmlTag("int", `key="a" id="1"`, "3"));
-            assert(archive.data().containsXmlTag("int", `key="d" id="2"`, "0"));
-
-            assert(archive.data().containsXmlTag("int", `key="udaA" id="3"`, "3"));
-            assert(archive.data().containsXmlTag("int", `key="udaD" id="4"`, "0"));
-
-
             assert(b == 4);
             assert(udaB == 4);
+            assert(expected.equalToXml(archive.data));
         };
     };
 
