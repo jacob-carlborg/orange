@@ -42,17 +42,28 @@ unittest
 
     describe("serialize array") in {
         it("shouldn't fail to compile while serializing an Object[] array") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.ArrayOfObject.D" type="tests.ArrayOfObject.D" key="0" id="0">
+            <array type="object.Object" length="2" key="arr" id="1">
+                <object runtimeType="tests.ArrayOfObject.A" type="const(object.Object)" key="0" id="2">
+                    <int key="a" id="3">1</int>
+                </object>
+                <object runtimeType="tests.ArrayOfObject.A" type="const(object.Object)" key="1" id="4">
+                    <int key="a" id="5">2</int>
+                </object>
+            </array>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             Serializer.register!(A);
             serializer.serialize(d);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.ArrayOfObject.D" type="tests.ArrayOfObject.D" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("array", `type="object.Object" length="2" key="arr" id="1"`));
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.ArrayOfObject.A" type="const(object.Object)" key="0" id="2"`));
-            assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "1"));
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.ArrayOfObject.A" type="const(object.Object)" key="1" id="4"`));
-            assert(archive.data().containsXmlTag("int", `key="a" id="5"`, "2"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
