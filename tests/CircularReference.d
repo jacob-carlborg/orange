@@ -45,16 +45,24 @@ unittest
 
     describe("serialize objects with circular reference") in {
         it("should return a serialized object") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.CircularReference.A" type="tests.CircularReference.A" key="0" id="0">
+            <object runtimeType="tests.CircularReference.B" type="tests.CircularReference.B" key="b" id="1">
+                <reference key="a">0</reference>
+                <int key="y" id="3">4</int>
+            </object>
+            <int key="x" id="4">3</int>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(a);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().contains(`<object runtimeType="tests.CircularReference.A" type="tests.CircularReference.A" key="0" id="0">`));
-
-            assert(archive.data().contains(`<object runtimeType="tests.CircularReference.B" type="tests.CircularReference.B" key="b" id="1">`));
-            assert(archive.data().containsXmlTag("int", `key="y" id="3"`, "4"));
-
-            assert(archive.data().containsXmlTag("int", `key="x" id="4"`, "3"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
