@@ -38,12 +38,21 @@ unittest
 
     describe("serialize enum") in {
         it("should return a serialized enum") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Enum.G" type="tests.Enum.G" key="0" id="0">
+            <enum type="tests.Enum.Foo" baseType="int" key="foo" id="1">1</enum>
+        </object>
+    </data>
+</archive>
+xml";
+
             serializer.reset();
             serializer.serialize(g);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Enum.G" type="tests.Enum.G" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("enum", `type="tests.Enum.Foo" baseType="int" key="foo" id="1"`, "1"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
