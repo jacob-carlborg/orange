@@ -31,11 +31,18 @@ unittest
 
     describe("serialize struct") in {
         it("should return a serialized struct") in {
+auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <struct type="tests.Struct.B" key="0" id="0"/>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(B());
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().contains(`<struct type="tests.Struct.B" key="0" id="0"/>`));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
