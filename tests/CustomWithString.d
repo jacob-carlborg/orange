@@ -49,14 +49,20 @@ unittest
 
     describe("serialize object using custom serialization methods") in {
         it("should return a custom serialized object") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.CustomWithString.Foo" type="tests.CustomWithString.Foo" key="0" id="0">
+            <int key="x" id="1">3</int>
+            <string type="immutable(char)" length="8" key="y" id="2">a string</string>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.serialize(foo);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.CustomWithString.Foo" type="tests.CustomWithString.Foo" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("int", `key="x" id="1"`));
-            assert(archive.data().containsXmlTag("string", `type="immutable(char)" length="8" key="y" id="2"`));
-
-            assert(i == 4);
+            assert(expected.equalToXml(archive.data));
         };
     };
 
