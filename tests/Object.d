@@ -16,38 +16,38 @@ XmlArchive!(char) archive;
 
 class A
 {
-	override equals_t opEquals (Object other)
-	{
-		if (auto o = cast(A) other)
-			return true;
+    override equals_t opEquals (Object other)
+    {
+        if (auto o = cast(A) other)
+            return true;
 
-		return false;
-	}
+        return false;
+    }
 }
 
 A a;
 
 unittest
 {
-	archive = new XmlArchive!(char);
-	serializer = new Serializer(archive);
+    archive = new XmlArchive!(char);
+    serializer = new Serializer(archive);
 
-	a = new A;
+    a = new A;
 
-	describe("serialize object") in {
-		it("should return a serialized object") in {
-			serializer.reset;
-			serializer.serialize(a);
+    describe("serialize object") in {
+        it("should return a serialized object") in {
+            serializer.reset;
+            serializer.serialize(a);
 
-			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().contains(`<object runtimeType="tests.Object.A" type="tests.Object.A" key="0" id="0"/>`));
-		};
-	};
+            assert(archive.data().containsDefaultXmlContent());
+            assert(archive.data().contains(`<object runtimeType="tests.Object.A" type="tests.Object.A" key="0" id="0"/>`));
+        };
+    };
 
-	describe("deserialize object") in {
-		it("should return a deserialized object equal to the original object") in {
-			auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
-			assert(a == aDeserialized);
-		};
-	};
+    describe("deserialize object") in {
+        it("should return a deserialized object equal to the original object") in {
+            auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
+            assert(a == aDeserialized);
+        };
+    };
 }

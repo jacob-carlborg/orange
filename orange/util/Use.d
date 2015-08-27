@@ -22,66 +22,66 @@ alias ReturnType ReturnTypeOf;
  * ---
  * Use!(void delegate (), bool) unless (bool condition)
  * {
- * 	Use!(void delegate (), bool) use;
- * 	use.args[1] = condition;
+ *     Use!(void delegate (), bool) use;
+ *     use.args[1] = condition;
  *
- * 	use.args[0] = (void delegate () dg, bool condition) {
- * 		if (!condition)
- * 			dg();
- * 	};
+ *     use.args[0] = (void delegate () dg, bool condition) {
+ *         if (!condition)
+ *             dg();
+ *     };
  *
- * 	return use;
+ *     return use;
  * }
  *
  * int a = 3;
  * int b = 4;
  *
  * unless(a == b) in {
- * 	println("a != b");
+ *     println("a != b");
  * };
  * ---
  */
 struct Use (ARGS...)
 {
-	static assert (ARGS.length > 0);
+    static assert (ARGS.length > 0);
 
-	private
-	{
-		alias ReturnTypeOf!(ARGS[0]) ReturnType;
+    private
+    {
+        alias ReturnTypeOf!(ARGS[0]) ReturnType;
 
-		static if (ARGS.length >= 2)
-			alias Tuple!(ReturnType delegate (ARGS), ARGS[1 .. $]) NEW_ARGS;
+        static if (ARGS.length >= 2)
+            alias Tuple!(ReturnType delegate (ARGS), ARGS[1 .. $]) NEW_ARGS;
 
-		else
-			alias Tuple!(ReturnType delegate (ARGS)) NEW_ARGS;
-	}
+        else
+            alias Tuple!(ReturnType delegate (ARGS)) NEW_ARGS;
+    }
 
-	/**
-	 * The first argument will be the delegate that performs some arbitrary operation. The
-	 * rest of the arguments will be pass as arguments to the delegate in "args[0]".
-	 */
-	NEW_ARGS args;
+    /**
+     * The first argument will be the delegate that performs some arbitrary operation. The
+     * rest of the arguments will be pass as arguments to the delegate in "args[0]".
+     */
+    NEW_ARGS args;
 
-	/**
-	 * Overloads the "in" operator. The given delegate is supplied by the user and will be
-	 * called at a time the implementaion has decided.
-	 *
-	 * Params:
-	 *     dg = the user supplied delegate that will be called
-	 *
-	 * Returns: what ever the delegate stored in "args[0]" returns
-	 */
-	ReturnType opIn (ARGS[0] dg)
-	{
-		assert(args[0]);
+    /**
+     * Overloads the "in" operator. The given delegate is supplied by the user and will be
+     * called at a time the implementaion has decided.
+     *
+     * Params:
+     *     dg = the user supplied delegate that will be called
+     *
+     * Returns: what ever the delegate stored in "args[0]" returns
+     */
+    ReturnType opIn (ARGS[0] dg)
+    {
+        assert(args[0]);
 
-		// Issue: https://d.puremagic.com/issues/show_bug.cgi?id=11614
-		static if (args.length == 1)
-			return args[0](dg);
+        // Issue: https://d.puremagic.com/issues/show_bug.cgi?id=11614
+        static if (args.length == 1)
+            return args[0](dg);
 
-		else
-			return args[0](dg, args.expand[1 .. $]);
-	}
+        else
+            return args[0](dg, args.expand[1 .. $]);
+    }
 }
 
 /**
@@ -90,27 +90,27 @@ struct Use (ARGS...)
  */
 struct RestoreStruct (U, T)
 {
-	/// The delegate that performs the operation.
-	U delegate(U delegate (), ref T) dg;
+    /// The delegate that performs the operation.
+    U delegate(U delegate (), ref T) dg;
 
-	/// A pointer to the value to pass to the delegate.
-	T* value;
+    /// A pointer to the value to pass to the delegate.
+    T* value;
 
-	/**
-	 * Overloads the "in" operator. It will simply call the delegate stored in the struct
-	 * passing in the given delegate and the value stored in the struct.
-	 *
-	 * Params:
-	 *     deleg = the delegate to pass the delegate stored in the struct
-	 *
-	 * Returns: whatever the delegate stored in the struct returns
-	 *
-	 * See_Also: restore
-	 */
-	U opIn (U delegate () deleg)
-	{
-		return dg(deleg, *value);
-	}
+    /**
+     * Overloads the "in" operator. It will simply call the delegate stored in the struct
+     * passing in the given delegate and the value stored in the struct.
+     *
+     * Params:
+     *     deleg = the delegate to pass the delegate stored in the struct
+     *
+     * Returns: whatever the delegate stored in the struct returns
+     *
+     * See_Also: restore
+     */
+    U opIn (U delegate () deleg)
+    {
+        return dg(deleg, *value);
+    }
 }
 
 /**
@@ -122,7 +122,7 @@ struct RestoreStruct (U, T)
  * int a = 3;
  *
  * restore(a) in {
- * 	a = 4;
+ *     a = 4;
  * }
  *
  * assert(a == 3);
@@ -137,27 +137,27 @@ struct RestoreStruct (U, T)
  */
 RestoreStruct!(U, T) restore (U = void, T) (ref T val)
 {
-	RestoreStruct!(U, T) restoreStruct;
+    RestoreStruct!(U, T) restoreStruct;
 
-	restoreStruct.dg = (U delegate () dg, ref T value){
-		T t = value;
+    restoreStruct.dg = (U delegate () dg, ref T value){
+        T t = value;
 
-		static if (is(U == void))
-		{
-			dg();
-			value = t;
-		}
+        static if (is(U == void))
+        {
+            dg();
+            value = t;
+        }
 
-		else
-		{
-			auto result = dg();
-			value = t;
+        else
+        {
+            auto result = dg();
+            value = t;
 
-			return result;
-		}
-	};
+            return result;
+        }
+    };
 
-	restoreStruct.value = &val;
+    restoreStruct.value = &val;
 
-	return restoreStruct;
+    return restoreStruct;
 }

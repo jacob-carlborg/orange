@@ -11,50 +11,50 @@ import orange.util.Traits;
 /// Compile time string converter. Converts the given arguments to a string.
 template format (ARGS...)
 {
-	static if (ARGS.length == 0)
-		enum format = "";
+    static if (ARGS.length == 0)
+        enum format = "";
 
-	else
-	{
-		static if (is(typeof(ARGS[0]) : string))
-			enum format = ARGS[0] ~ format!(ARGS[1 .. $]);
+    else
+    {
+        static if (is(typeof(ARGS[0]) : string))
+            enum format = ARGS[0] ~ format!(ARGS[1 .. $]);
 
-		else
-			enum format = toString_!(ARGS[0]) ~ format!(ARGS[1 .. $]);
-	}
+        else
+            enum format = toString_!(ARGS[0]) ~ format!(ARGS[1 .. $]);
+    }
 }
 
 private
 {
-	template toString_ (T)
-	{
-		enum toString_ = T.stringof;
-	}
+    template toString_ (T)
+    {
+        enum toString_ = T.stringof;
+    }
 
-	template toString_ (int i)
-	{
-		enum toString_ = itoa!(i);
-	}
+    template toString_ (int i)
+    {
+        enum toString_ = itoa!(i);
+    }
 
-	template toString_ (long l)
-	{
-		enum toString_ = itoa!(l);
-	}
+    template toString_ (long l)
+    {
+        enum toString_ = itoa!(l);
+    }
 
-	template toString_ (bool b)
-	{
-		enum toString_ = b ? "true" : "false";
-	}
+    template toString_ (bool b)
+    {
+        enum toString_ = b ? "true" : "false";
+    }
 
-	template toString_ (float f)
-	{
-		enum toString_ = "";
-	}
+    template toString_ (float f)
+    {
+        enum toString_ = "";
+    }
 
-	template toString_ (alias a)
-	{
-		enum toString_ = a.stringof;
-	}
+    template toString_ (alias a)
+    {
+        enum toString_ = a.stringof;
+    }
 }
 
 /**
@@ -72,21 +72,21 @@ private
  */
 size_t indexOf (T) (T[] arr, T element)
 {
-	static if (is(T == char) || is(T == wchar) || is(T == dchar))
-	{
-		foreach (i, e ; arr)
-			if (e == element)
-				return i;
-	}
+    static if (is(T == char) || is(T == wchar) || is(T == dchar))
+    {
+        foreach (i, e ; arr)
+            if (e == element)
+                return i;
+    }
 
-	else
-	{
-		foreach (i, e ; arr)
-			if (e == element)
-				return i;
-	}
+    else
+    {
+        foreach (i, e ; arr)
+            if (e == element)
+                return i;
+    }
 
-	return size_t.max;
+    return size_t.max;
 }
 
 /**
@@ -101,24 +101,24 @@ size_t indexOf (T) (T[] arr, T element)
  */
 bool contains (T) (T[] arr, T element)
 {
-	return indexOf(arr, element) != size_t.max;
+    return indexOf(arr, element) != size_t.max;
 }
 
 private:
 
-template decimalDigit (int n)	// [3]
+template decimalDigit (int n)    // [3]
 {
-	enum decimalDigit = "0123456789"[n .. n + 1];
+    enum decimalDigit = "0123456789"[n .. n + 1];
 }
 
 template itoa (long n)
 {
-	static if (n < 0)
-		enum itoa = "-" ~ itoa!(-n);
+    static if (n < 0)
+        enum itoa = "-" ~ itoa!(-n);
 
-	else static if (n < 10)
-		enum itoa = decimalDigit!(n);
+    else static if (n < 10)
+        enum itoa = decimalDigit!(n);
 
-	else
-		enum itoa = itoa!(n / 10L) ~ decimalDigit!(n % 10L);
+    else
+        enum itoa = itoa!(n / 10L) ~ decimalDigit!(n % 10L);
 }

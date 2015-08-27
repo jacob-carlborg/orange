@@ -7,5 +7,5 @@
 module orange.util.collection._;
 
 public:
-	
+
 import orange.util.collection.Array;

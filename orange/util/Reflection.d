@@ -12,24 +12,24 @@ import orange.util.CTFE;
  * Evaluates to true if T has a field with the given name
  *
  * Params:
- * 		T = the type of the class/struct
- * 		field = the name of the field
+ *         T = the type of the class/struct
+ *         field = the name of the field
  */
 template hasField (T, string field)
 {
-	enum hasField = hasFieldImpl!(T, field, 0);
+    enum hasField = hasFieldImpl!(T, field, 0);
 }
 
 private template hasFieldImpl (T, string field, size_t i)
 {
-	static if (T.tupleof.length == i)
-		enum hasFieldImpl = false;
+    static if (T.tupleof.length == i)
+        enum hasFieldImpl = false;
 
-	else static if (nameOfFieldAt!(T, i) == field)
-		enum hasFieldImpl = true;
+    else static if (nameOfFieldAt!(T, i) == field)
+        enum hasFieldImpl = true;
 
-	else
-		enum hasFieldImpl = hasFieldImpl!(T, field, i + 1);
+    else
+        enum hasFieldImpl = hasFieldImpl!(T, field, i + 1);
 }
 
 /**
@@ -37,7 +37,7 @@ private template hasFieldImpl (T, string field, size_t i)
  */
 template fieldsOf (T)
 {
-	enum fieldsOf = fieldsOfImpl!(T, 0);
+    enum fieldsOf = fieldsOfImpl!(T, 0);
 }
 
 /**
@@ -47,51 +47,51 @@ template fieldsOf (T)
  */
 template fieldsOfImpl (T, size_t i)
 {
-	static if (T.tupleof.length == 0)
-		enum fieldsOfImpl = [""];
+    static if (T.tupleof.length == 0)
+        enum fieldsOfImpl = [""];
 
-	else static if (T.tupleof.length - 1 == i)
-		enum fieldsOfImpl = [nameOfFieldAt!(T, i)];
+    else static if (T.tupleof.length - 1 == i)
+        enum fieldsOfImpl = [nameOfFieldAt!(T, i)];
 
-	else
-		enum fieldsOfImpl = nameOfFieldAt!(T, i) ~ fieldsOfImpl!(T, i + 1);
+    else
+        enum fieldsOfImpl = nameOfFieldAt!(T, i) ~ fieldsOfImpl!(T, i + 1);
 }
 
 /**
  * Evaluates to the type of the field with the given name
  *
  * Params:
- * 		T = the type of the class/struct
- * 		field = the name of the field
+ *         T = the type of the class/struct
+ *         field = the name of the field
  */
 template TypeOfField (T, string field)
 {
-	static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
+    static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
 
-	alias TypeOfFieldImpl!(T, field, 0) TypeOfField;
+    alias TypeOfFieldImpl!(T, field, 0) TypeOfField;
 }
 
 private template TypeOfFieldImpl (T, string field, size_t i)
 {
-	static if (nameOfFieldAt!(T, i) == field)
-		alias typeof(T.tupleof[i]) TypeOfFieldImpl;
+    static if (nameOfFieldAt!(T, i) == field)
+        alias typeof(T.tupleof[i]) TypeOfFieldImpl;
 
-	else
-		alias TypeOfFieldImpl!(T, field, i + 1) TypeOfFieldImpl;
+    else
+        alias TypeOfFieldImpl!(T, field, i + 1) TypeOfFieldImpl;
 }
 
 /**
  * Evaluates to a string containing the name of the field at given position in the given type.
  *
  * Params:
- * 		T = the type of the class/struct
- * 		position = the position of the field in the tupleof array
+ *         T = the type of the class/struct
+ *         position = the position of the field in the tupleof array
  */
 template nameOfFieldAt (T, size_t position)
 {
     static assert (position < T.tupleof.length, format!(`The given position "`, position, `" is greater than the number of fields (`, T.tupleof.length, `) in the type "`, T, `"`));
 
-	enum nameOfFieldAt = __traits(identifier, T.tupleof[position]);
+    enum nameOfFieldAt = __traits(identifier, T.tupleof[position]);
 }
 
 /**
@@ -104,20 +104,20 @@ template nameOfFieldAt (T, size_t position)
 void setValueOfField (T, U, string field) (ref T t, U value)
 in
 {
-	static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
+    static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
 }
 body
 {
-	enum len = T.stringof.length;
+    enum len = T.stringof.length;
 
-	foreach (i, dummy ; typeof(T.tupleof))
-	{
-		static if (nameOfFieldAt!(T, i) == field)
-		{
-			t.tupleof[i] = value;
-			break;
-		}
-	}
+    foreach (i, dummy ; typeof(T.tupleof))
+    {
+        static if (nameOfFieldAt!(T, i) == field)
+        {
+            t.tupleof[i] = value;
+            break;
+        }
+    }
 }
 
 /**
@@ -131,28 +131,28 @@ body
 U getValueOfField (T, U, string field) (T t)
 in
 {
-	static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
+    static assert(hasField!(T, field), "The given field \"" ~ field ~ "\" doesn't exist in the type \"" ~ T.stringof ~ "\"");
 }
 body
 {
-	enum len = T.stringof.length;
+    enum len = T.stringof.length;
 
-	foreach (i, dummy ; typeof(T.tupleof))
-	{
-		static if (nameOfFieldAt!(T, i) == field)
-			return t.tupleof[i];
-	}
+    foreach (i, dummy ; typeof(T.tupleof))
+    {
+        static if (nameOfFieldAt!(T, i) == field)
+            return t.tupleof[i];
+    }
 
-	assert(0);
+    assert(0);
 }
 
 private
 {
-	version (LDC)
-		extern (C) Object _d_allocclass(in ClassInfo);
+    version (LDC)
+        extern (C) Object _d_allocclass(in ClassInfo);
 
-	else
-		extern (C) Object _d_newclass(in ClassInfo);
+    else
+        extern (C) Object _d_newclass(in ClassInfo);
 }
 
 /**
@@ -165,16 +165,16 @@ private
  */
 Object newInstance (in ClassInfo classInfo)
 {
-	version (LDC)
-	{
-		Object object = _d_allocclass(classInfo);
+    version (LDC)
+    {
+        Object object = _d_allocclass(classInfo);
         (cast(byte*) object)[0 .. classInfo.init.length] = classInfo.init[];
 
         return object;
-	}
+    }
 
-	else
-		return _d_newclass(classInfo);
+    else
+        return _d_newclass(classInfo);
 }
 
 /**
@@ -187,10 +187,10 @@ Object newInstance (in ClassInfo classInfo)
  */
 Object newInstance (string name)
 {
-	auto classInfo = ClassInfo.find(name);
+    auto classInfo = ClassInfo.find(name);
 
-	if (!classInfo)
-		return null;
+    if (!classInfo)
+        return null;
 
-	return newInstance(classInfo);
+    return newInstance(classInfo);
 }

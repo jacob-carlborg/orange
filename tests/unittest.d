@@ -16,5 +16,5 @@ import orange.test.UnitTester;
 
 void main ()
 {
-	run;
+    run;
 }

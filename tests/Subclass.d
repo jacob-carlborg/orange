@@ -16,44 +16,44 @@ XmlArchive!(char) archive;
 
 class Base
 {
-	int a;
+    int a;
 }
 
 class Sub : Base
 {
-	int b;
+    int b;
 }
 
 Sub sub;
 
 unittest
 {
-	archive = new XmlArchive!(char);
-	serializer = new Serializer(archive);
+    archive = new XmlArchive!(char);
+    serializer = new Serializer(archive);
 
-	sub = new Sub;
-	sub.a = 3;
-	sub.b = 4;
+    sub = new Sub;
+    sub.a = 3;
+    sub.b = 4;
 
-	describe("serialize a subclass") in {
-		it("should return serialized subclass") in {
-			serializer.reset;
-			serializer.serialize(sub);
+    describe("serialize a subclass") in {
+        it("should return serialized subclass") in {
+            serializer.reset;
+            serializer.serialize(sub);
 
-			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().containsXmlTag("object", `runtimeType="tests.Subclass.Sub" type="tests.Subclass.Sub" key="0" id="0"`));
-			assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
-			assert(archive.data().containsXmlTag("base", `type="tests.Subclass.Base" key="1" id="2"`));
-			assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
-		};
-	};
+            assert(archive.data().containsDefaultXmlContent());
+            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Subclass.Sub" type="tests.Subclass.Sub" key="0" id="0"`));
+            assert(archive.data().containsXmlTag("int", `key="b" id="1"`, "4"));
+            assert(archive.data().containsXmlTag("base", `type="tests.Subclass.Base" key="1" id="2"`));
+            assert(archive.data().containsXmlTag("int", `key="a" id="3"`, "3"));
+        };
+    };
 
-	describe("deserialize class with a base class") in {
-		it("should return a deserialized string equal to the original string") in {
-			auto subDeserialized = serializer.deserialize!(Sub)(archive.untypedData);
+    describe("deserialize class with a base class") in {
+        it("should return a deserialized string equal to the original string") in {
+            auto subDeserialized = serializer.deserialize!(Sub)(archive.untypedData);
 
-			assert(sub.a == subDeserialized.a);
-			assert(sub.b == subDeserialized.b);
-		};
-	};
+            assert(sub.a == subDeserialized.a);
+            assert(sub.b == subDeserialized.b);
+        };
+    };
 }

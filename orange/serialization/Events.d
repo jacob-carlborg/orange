@@ -18,7 +18,7 @@ import orange.util._;
  */
 template OnDeserialized (alias method)
 {
-	static orange.serialization.Events.Event!(method) __onDeserialized;
+    static orange.serialization.Events.Event!(method) __onDeserialized;
 }
 
 /**
@@ -36,7 +36,7 @@ template OnDeserialized (alias method)
  */
 template OnDeserializing (alias method)
 {
-	static orange.serialization.Events.Event!(method) __onDeserializing;
+    static orange.serialization.Events.Event!(method) __onDeserializing;
 }
 
 /**
@@ -54,7 +54,7 @@ template OnDeserializing (alias method)
  */
 template OnSerialized (alias method)
 {
-	static orange.serialization.Events.Event!(method) __onSerialized;
+    static orange.serialization.Events.Event!(method) __onSerialized;
 }
 
 /**
@@ -72,7 +72,7 @@ template OnSerialized (alias method)
  */
 template OnSerializing (alias method)
 {
-	static orange.serialization.Events.Event!(method) __onSerializing;
+    static orange.serialization.Events.Event!(method) __onSerializing;
 }
 
 /**
@@ -89,21 +89,21 @@ template OnSerializing (alias method)
  */
 struct Event (alias m)
 {
-	private enum method = &m;
+    private enum method = &m;
 
-	/**
-	 * Triggers the event on the given value.
-	 *
-	 * Params:
-	 *     value = the object to trigger the event on
-	 */
-	void opCall (T) (T value)
-	{
-		void delegate () dg;
-		dg.ptr = cast(void*) value;
-		dg.funcptr = method;
-		dg();
-	}
+    /**
+     * Triggers the event on the given value.
+     *
+     * Params:
+     *     value = the object to trigger the event on
+     */
+    void opCall (T) (T value)
+    {
+        void delegate () dg;
+        dg.ptr = cast(void*) value;
+        dg.funcptr = method;
+        dg();
+    }
 }
 
 package:

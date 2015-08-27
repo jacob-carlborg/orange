@@ -16,14 +16,14 @@ XmlArchive!(char) archive;
 
 class A
 {
-	B b;
-	int x;
+    B b;
+    int x;
 }
 
 class B
 {
-	A a;
-	int y;
+    A a;
+    int y;
 }
 
 A a;
@@ -31,40 +31,40 @@ B b;
 
 unittest
 {
-	archive = new XmlArchive!(char);
-	serializer = new Serializer(archive);
+    archive = new XmlArchive!(char);
+    serializer = new Serializer(archive);
 
-	a = new A;
-	a.x = 3;
+    a = new A;
+    a.x = 3;
 
-	b = new B;
-	b.y = 4;
+    b = new B;
+    b.y = 4;
 
-	b.a = a;
-	a.b = b;
+    b.a = a;
+    a.b = b;
 
-	describe("serialize objects with circular reference") in {
-		it("should return a serialized object") in {
-			serializer.reset;
-			serializer.serialize(a);
+    describe("serialize objects with circular reference") in {
+        it("should return a serialized object") in {
+            serializer.reset;
+            serializer.serialize(a);
 
-			assert(archive.data().containsDefaultXmlContent());
-			assert(archive.data().contains(`<object runtimeType="tests.CircularReference.A" type="tests.CircularReference.A" key="0" id="0">`));
+            assert(archive.data().containsDefaultXmlContent());
+            assert(archive.data().contains(`<object runtimeType="tests.CircularReference.A" type="tests.CircularReference.A" key="0" id="0">`));
 
-			assert(archive.data().contains(`<object runtimeType="tests.CircularReference.B" type="tests.CircularReference.B" key="b" id="1">`));
-			assert(archive.data().containsXmlTag("int", `key="y" id="3"`, "4"));
+            assert(archive.data().contains(`<object runtimeType="tests.CircularReference.B" type="tests.CircularReference.B" key="b" id="1">`));
+            assert(archive.data().containsXmlTag("int", `key="y" id="3"`, "4"));
 
-			assert(archive.data().containsXmlTag("int", `key="x" id="4"`, "3"));
-		};
-	};
+            assert(archive.data().containsXmlTag("int", `key="x" id="4"`, "3"));
+        };
+    };
 
-	describe("deserialize objects with circular reference") in {
-		it("should return a deserialized object equal to the original object") in {
-			auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
+    describe("deserialize objects with circular reference") in {
+        it("should return a deserialized object equal to the original object") in {
+            auto aDeserialized = serializer.deserialize!(A)(archive.untypedData);
 
-			assert(a is a.b.a);
-			assert(a.x == aDeserialized.x);
-			assert(a.b.y == aDeserialized.b.y);
-		};
-	};
+            assert(a is a.b.a);
+            assert(a.x == aDeserialized.x);
+            assert(a.b.y == aDeserialized.b.y);
+        };
+    };
 }

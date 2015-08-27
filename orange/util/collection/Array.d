@@ -9,8 +9,8 @@ module orange.util.collection.Array;
 
 inout(T)[] assumeUnique (T) (ref T[] source, ref inout(T)[] destination)
 {
-	destination = cast(inout(T)[]) source;
-	source = null;
+    destination = cast(inout(T)[]) source;
+    source = null;
 
-	return destination;
+    return destination;
 }
