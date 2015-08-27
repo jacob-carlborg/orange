@@ -50,48 +50,52 @@ unittest
     j.firstStaticSlice = j.firstStaticSource[1 .. 3];
 
     describe("serialize slices") in {
-        serializer.reset();
-        serializer.serialize(j);
-
         it("should return serialized slices") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Slice.J" type="tests.Slice.J" key="0" id="0">
+            <array type="int" length="0" key="firstEmpty" id="36"/>
+            <array type="int" length="0" key="secondEmpty" id="37"/>
+            <array type="int[]" length="0" key="thirdEmpty" id="38"/>
+            <slice length="3" key="secondSlice" offset="1">21</slice>
+            <array type="int" length="4" key="firstStaticSource" id="28">
+                <int key="0" id="29">16</int>
+                <int key="1" id="30">17</int>
+                <int key="2" id="31">18</int>
+                <int key="3" id="32">19</int>
+            </array>
+            <array type="int" length="10" key="firstSource" id="1">
+                <int key="0" id="2">0</int>
+                <int key="1" id="3">1</int>
+                <int key="2" id="4">2</int>
+                <int key="3" id="5">3</int>
+                <int key="4" id="6">4</int>
+                <int key="5" id="7">5</int>
+                <int key="6" id="8">6</int>
+                <int key="7" id="9">7</int>
+                <int key="8" id="10">8</int>
+                <int key="9" id="11">9</int>
+            </array>
+            <array type="int" length="6" key="secondSource" id="21">
+                <int key="0" id="22">10</int>
+                <int key="1" id="23">11</int>
+                <int key="2" id="24">12</int>
+                <int key="3" id="25">13</int>
+                <int key="4" id="26">14</int>
+                <int key="5" id="27">15</int>
+            </array>
+            <slice length="2" key="firstStaticSlice" offset="1">28</slice>
+            <slice length="4" key="firstSlice" offset="3">1</slice>
+        </object>
+    </data>
+</archive>
+xml";
+            serializer.reset();
+            serializer.serialize(j);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Slice.J" type="tests.Slice.J" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("array", `type="int" length="10" key="firstSource" id="1"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "0"));
-            assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "1"));
-            assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "2"));
-            assert(archive.data().containsXmlTag("int", `key="3" id="5"`, "3"));
-            assert(archive.data().containsXmlTag("int", `key="4" id="6"`, "4"));
-            assert(archive.data().containsXmlTag("int", `key="5" id="7"`, "5"));
-            assert(archive.data().containsXmlTag("int", `key="6" id="8"`, "6"));
-            assert(archive.data().containsXmlTag("int", `key="7" id="9"`, "7"));
-            assert(archive.data().containsXmlTag("int", `key="8" id="10"`, "8"));
-            assert(archive.data().containsXmlTag("int", `key="9" id="11"`, "9"));
-
-            assert(archive.data().containsXmlTag("array", `type="int" length="6" key="secondSource" id="21"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="22"`, "10"));
-            assert(archive.data().containsXmlTag("int", `key="1" id="23"`, "11"));
-            assert(archive.data().containsXmlTag("int", `key="2" id="24"`, "12"));
-            assert(archive.data().containsXmlTag("int", `key="3" id="25"`, "13"));
-            assert(archive.data().containsXmlTag("int", `key="4" id="26"`, "14"));
-            assert(archive.data().containsXmlTag("int", `key="5" id="27"`, "15"));
-
-            assert(archive.data().containsXmlTag("array", `type="int" length="4" key="firstStaticSource" id="28"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="29"`, "16"));
-            assert(archive.data().containsXmlTag("int", `key="1" id="30"`, "17"));
-            assert(archive.data().containsXmlTag("int", `key="2" id="31"`, "18"));
-            assert(archive.data().containsXmlTag("int", `key="3" id="32"`, "19"));
-
-            assert(archive.data().containsXmlTag("array", `type="int" length="0" key="firstEmpty" id="36"`, true));
-            assert(archive.data().containsXmlTag("array", `type="int" length="0" key="secondEmpty" id="37"`, true));
-            assert(archive.data().containsXmlTag("array", `type="int[]" length="0" key="thirdEmpty" id="38"`, true));
-        };
-
-        it("should not contain slices to empty arrays") in {
-            assert(!archive.data().containsXmlTag("slice", `key="firstEmpty" offset="0" length="0"`, "30"));
-            assert(!archive.data().containsXmlTag("slice", `key="secondEmpty" offset="0" length="0"`, "30"));
-            assert(!archive.data().containsXmlTag("slice", `key="thirdEmpty" offset="0" length="0"`, "28"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
