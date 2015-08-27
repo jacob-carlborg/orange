@@ -33,22 +33,32 @@ unittest
 
     describe("serialize array") in {
         it("should return a serialized array") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Array.D" type="tests.Array.D" key="0" id="0">
+            <array type="int" length="2" key="arr2" id="8">
+                <int key="0" id="9">76</int>
+                <int key="1" id="10">34</int>
+            </array>
+            <array type="int" length="6" key="arr" id="1">
+                <int key="0" id="2">27</int>
+                <int key="1" id="3">382</int>
+                <int key="2" id="4">283</int>
+                <int key="3" id="5">3820</int>
+                <int key="4" id="6">32</int>
+                <int key="5" id="7">832</int>
+            </array>
+        </object>
+    </data>
+</archive>
+xml";
+
             serializer.reset;
             serializer.serialize(d);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Array.D" type="tests.Array.D" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("array", `type="int" length="6" key="arr" id="1"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "27"));
-            assert(archive.data().containsXmlTag("int", `key="1" id="3"`, "382"));
-            assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "283"));
-            assert(archive.data().containsXmlTag("int", `key="3" id="5"`, "3820"));
-            assert(archive.data().containsXmlTag("int", `key="4" id="6"`, "32"));
-            assert(archive.data().containsXmlTag("int", `key="5" id="7"`, "832"));
-
-            assert(archive.data().containsXmlTag("array", `type="int" length="2" key="arr2" id="8"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="9"`, "76"));
-            assert(archive.data().containsXmlTag("int", `key="1" id="10"`, "34"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
