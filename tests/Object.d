@@ -36,11 +36,18 @@ unittest
 
     describe("serialize object") in {
         it("should return a serialized object") in {
+auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Object.A" type="tests.Object.A" key="0" id="0"/>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(a);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().contains(`<object runtimeType="tests.Object.A" type="tests.Object.A" key="0" id="0"/>`));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
