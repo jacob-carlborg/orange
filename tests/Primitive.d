@@ -107,26 +107,34 @@ unittest
 
     describe("serialize primitives") in {
         it("should return serialized primitives") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Primitive.H" type="tests.Primitive.H" key="0" id="0">
+            <bool key="bool_" id="1">true</bool>
+            <byte key="byte_" id="2">1</byte>
+            <char key="char_" id="3">a</char>
+            <dchar key="dchar_" id="4">b</dchar>
+            <double key="double_" id="5">0x0p+0</double>
+            <float key="float_" id="6">0x0p+0</float>
+            <int key="int_" id="7">1</int>
+            <long key="long_" id="8">1</long>
+            <real key="real_" id="9">0x0p+0</real>
+            <short key="short_" id="10">1</short>
+            <ubyte key="ubyte_" id="11">1</ubyte>
+            <uint key="uint_" id="12">1</uint>
+            <ulong key="ulong_" id="13">1</ulong>
+            <ushort key="ushort_" id="14">1</ushort>
+            <wchar key="wchar_" id="15">c</wchar>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset;
             serializer.serialize(h);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Primitive.H" type="tests.Primitive.H" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("bool", `key="bool_" id="1"`, "true"));
-            assert(archive.data().containsXmlTag("byte", `key="byte_" id="2"`, "1"));
-            assert(archive.data().containsXmlTag("char", `key="char_" id="3"`, "a"));
-            assert(archive.data().containsXmlTag("dchar", `key="dchar_" id="4"`, "b"));
-            assert(archive.data().containsXmlTag("double", `key="double_" id="5"`, zero));
-            assert(archive.data().containsXmlTag("float", `key="float_" id="6"`, zero));
-            assert(archive.data().containsXmlTag("int", `key="int_" id="7"`, "1"));
-            assert(archive.data().containsXmlTag("long", `key="long_" id="8"`, "1"));
-            assert(archive.data().containsXmlTag("real", `key="real_" id="9"`, zero));
-            assert(archive.data().containsXmlTag("short", `key="short_" id="10"`, "1"));
-            assert(archive.data().containsXmlTag("ubyte", `key="ubyte_" id="11"`, "1"));
-            assert(archive.data().containsXmlTag("uint", `key="uint_" id="12"`, "1"));
-            assert(archive.data().containsXmlTag("ulong", `key="ulong_" id="13"`, "1"));
-            assert(archive.data().containsXmlTag("ushort", `key="ushort_" id="14"`, "1"));
-            assert(archive.data().containsXmlTag("wchar", `key="wchar_" id="15"`, "c"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
