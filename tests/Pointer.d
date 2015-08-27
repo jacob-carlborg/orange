@@ -55,16 +55,26 @@ unittest
 
     describe("serialize pointer") in {
         it("should return a serialized pointer") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Pointer.F" type="tests.Pointer.F" key="0" id="0">
+            <int key="value" id="1">9</int>
+            <pointer key="ptr" id="2">
+                <reference key="1">1</reference>
+            </pointer>
+            <pointer key="ptr2" id="3">
+                <int key="2" id="4">3</int>
+            </pointer>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset();
             serializer.serialize(f);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.F" type="tests.Pointer.F" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("int", `key="value" id="1"`, "9"));
-            assert(archive.data().containsXmlTag("pointer", `key="ptr" id="2"`));
-            assert(archive.data().containsXmlTag("reference", `key="1"`, "1"));
-            assert(archive.data().containsXmlTag("pointer", `key="ptr2" id="3"`));
-            assert(archive.data().containsXmlTag("int", `key="2" id="4"`, "3"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
@@ -82,16 +92,26 @@ unittest
 
     describe("serialize pointer out of order") in {
         it("should return a serialized pointer") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Pointer.OutOfOrder" type="tests.Pointer.OutOfOrder" key="0" id="0">
+            <pointer key="ptr" id="1">
+                <int key="1" id="2">9</int>
+            </pointer>
+            <reference key="value">1</reference>
+            <pointer key="ptr2" id="4">
+                <int key="2" id="5">3</int>
+            </pointer>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset();
             serializer.serialize(outOfOrder);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.Pointer.OutOfOrder" type="tests.Pointer.OutOfOrder" key="0" id="0"`));
-            assert(archive.data().containsXmlTag("pointer", `key="ptr" id="1"`));
-            assert(archive.data().containsXmlTag("int", `key="1" id="2"`, "9"));
-            assert(archive.data().containsXmlTag("reference", `key="value"`, "1"));
-            assert(archive.data().containsXmlTag("pointer", `key="ptr2" id="4"`));
-            assert(archive.data().containsXmlTag("int", `key="2" id="5"`, "3"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
