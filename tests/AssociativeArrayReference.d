@@ -33,33 +33,46 @@ unittest
 
     describe("serialize associative array references") in {
         it("should return a serialized associative array and a serialized reference") in {
+            auto expected = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.AssociativeArrayReference.K" type="tests.AssociativeArrayReference.K" key="0" id="0">
+            <associativeArray keyType="int" length="4" valueType="int" key="a" id="1">
+                <key key="0">
+                    <int key="0" id="2">1</int>
+                </key>
+                <value key="0">
+                    <int key="0" id="3">2</int>
+                </value>
+                <key key="1">
+                    <int key="1" id="4">3</int>
+                </key>
+                <value key="1">
+                    <int key="1" id="5">4</int>
+                </value>
+                <key key="2">
+                    <int key="2" id="6">6</int>
+                </key>
+                <value key="2">
+                    <int key="2" id="7">7</int>
+                </value>
+                <key key="3">
+                    <int key="3" id="8">39</int>
+                </key>
+                <value key="3">
+                    <int key="3" id="9">472</int>
+                </value>
+            </associativeArray>
+            <reference key="b">1</reference>
+        </object>
+    </data>
+</archive>
+xml";
             serializer.reset();
             serializer.serialize(k);
 
-            assert(archive.data().containsDefaultXmlContent());
-            assert(archive.data().containsXmlTag("object", `runtimeType="tests.AssociativeArrayReference.K" type="tests.AssociativeArrayReference.K" key="0" id="0"`));
-
-            assert(archive.data().containsXmlTag("key", `key="0"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="2"`, "1"));
-            assert(archive.data().containsXmlTag("value", `key="0"`));
-            assert(archive.data().containsXmlTag("int", `key="0" id="3"`, "2"));
-
-            assert(archive.data().containsXmlTag("key", `key="1"`));
-            assert(archive.data().containsXmlTag("int", `key="1" id="4"`, "3"));
-            assert(archive.data().containsXmlTag("value", `key="1"`));
-            assert(archive.data().containsXmlTag("int", `key="1" id="5"`, "4"));
-
-            assert(archive.data().containsXmlTag("key", `key="2"`));
-            assert(archive.data().containsXmlTag("int", `key="2" id="6"`, "6"));
-            assert(archive.data().containsXmlTag("value", `key="2"`));
-            assert(archive.data().containsXmlTag("int", `key="2" id="7"`, "7"));
-
-            assert(archive.data().containsXmlTag("key", `key="3"`));
-            assert(archive.data().containsXmlTag("int", `key="3" id="8"`, "39"));
-            assert(archive.data().containsXmlTag("value", `key="3"`));
-            assert(archive.data().containsXmlTag("int", `key="3" id="9"`, "472"));
-
-            assert(archive.data().containsXmlTag("reference", `key="b"`, "1"));
+            assert(expected.equalToXml(archive.data));
         };
     };
 
