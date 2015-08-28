@@ -751,7 +751,7 @@ class Serializer
         }
     }
 
-    private void serializeObject (T) (T value, string key, Id id)
+    private void serializeObject (T) (T value, string key, Id id) if (isObject!(T))
     {
         auto typeName = typeid(T).toString;
 
@@ -765,7 +765,8 @@ class Serializer
             if (reference != Id.max)
                 return archive.archiveReference(key, reference);
 
-            auto runtimeType = value.classinfo.name;
+            auto untypedValue = cast(Object) value;
+            auto runtimeType = untypedValue.classinfo.name;
 
             addSerializedReference(value, id);
 
@@ -782,10 +783,10 @@ class Serializer
 
                     else
                     {
-                        if (isBaseClass(value))
+                        if (isInterface!(T) || isBaseClass(value))
                         {
-                            if (auto serializer = value.classinfo in registeredTypes)
-                                (*serializer)(this, value, serializing);
+                            if (auto serializer = untypedValue.classinfo in registeredTypes)
+                                (*serializer)(this, untypedValue, serializing);
 
                             else
                                 error(`The object of the static type "` ~ typeName ~
@@ -1177,9 +1178,10 @@ class Serializer
             archive.unarchiveObject(keyOrId, id, untypedValue, {
                 value = cast(T) untypedValue;
                 addDeserializedReference(value, id);
+                assert(untypedValue !is null, format!("Failed to unarchive object of type '", T, "' with key '") ~ to!(string)(keyOrId) ~ "'");
 
                 triggerEvents(value, {
-                    auto runtimeType = value.classinfo.name;
+                    auto runtimeType = untypedValue.classinfo.name;
                     auto runHelper = false;
 
                     static if (isString!(Key))
@@ -1202,10 +1204,10 @@ class Serializer
 
                     if (runHelper)
                     {
-                        if (isBaseClass(value))
+                        if (isInterface!(T) || isBaseClass(value))
                         {
-                            if (auto deserializer = value.classinfo in registeredTypes)
-                                (*deserializer)(this, value, deserializing);
+                            if (auto deserializer = untypedValue.classinfo in registeredTypes)
+                                (*deserializer)(this, untypedValue, deserializing);
 
                             else
                                 error(`The object of the static type "` ~ typeid(T).toString ~
@@ -1624,24 +1626,22 @@ class Serializer
             deserializeBaseTypes(value);
     }
 
-    private void serializeBaseTypes (T : Object) (inout T value)
+    private void serializeBaseTypes (T) (inout T value) if (isObject!(T))
     {
-        alias BaseTypeTupleOf!(T)[0] Base;
-
-        static if (!is(Unqual!(Base) == Object))
+        static if (hasNonObjectBaseType!(T))
         {
+            alias Base = BaseTypeTupleOf!(T)[0];
             archive.archiveBaseClass(typeid(Base).toString, nextKey, nextId);
             inout Base base = value;
             objectStructSerializeHelper(base);
         }
     }
 
-    private void deserializeBaseTypes (T : Object) (T value)
+    private void deserializeBaseTypes (T) (T value) if (isObject!(T))
     {
-        alias BaseTypeTupleOf!(T)[0] Base;
-
-        static if (!is(Unqual!(Base) == Object))
+        static if (hasNonObjectBaseType!(T))
         {
+            alias Base = BaseTypeTupleOf!(T)[0];
             archive.unarchiveBaseClass(nextKey);
             Base base = value;
             objectStructDeserializeHelper(base);
@@ -1951,6 +1951,13 @@ class Serializer
         {
             return pointee != Id.max;
         }
+    }
+
+    private template hasNonObjectBaseType (T)
+    {
+        alias BaseTypes = BaseTypeTupleOf!(T);
+        enum hasNonObjectBaseType = BaseTypes.length > 0 &&
+            !is(Unqual!(BaseTypes[0]) == Object);
     }
 }
 
