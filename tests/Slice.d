@@ -51,7 +51,7 @@ unittest
 
     describe("serialize slices") in {
         it("should return serialized slices") in {
-            auto expected = q"xml
+            auto expected2066 = q"xml
 <?xml version="1.0" encoding="UTF-8"?>
 <archive version="1.0.0" type="org.dsource.orange.xml">
     <data>
@@ -92,6 +92,51 @@ unittest
     </data>
 </archive>
 xml";
+            auto expected2067 = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.Slice.J" type="tests.Slice.J" id="0" key="0">
+            <array id="36" type="int" length="0" key="firstEmpty"/>
+            <array id="37" type="int" length="0" key="secondEmpty"/>
+            <array id="38" type="int[]" length="0" key="thirdEmpty"/>
+            <array id="21" type="int" length="6" key="secondSource">
+                <int id="22" key="0">10</int>
+                <int id="23" key="1">11</int>
+                <int id="24" key="2">12</int>
+                <int id="25" key="3">13</int>
+                <int id="26" key="4">14</int>
+                <int id="27" key="5">15</int>
+            </array>
+            <slice offset="3" length="4" key="firstSlice">1</slice>
+            <slice offset="1" length="3" key="secondSlice">21</slice>
+            <array id="28" type="int" length="4" key="firstStaticSource">
+                <int id="29" key="0">16</int>
+                <int id="30" key="1">17</int>
+                <int id="31" key="2">18</int>
+                <int id="32" key="3">19</int>
+            </array>
+            <slice offset="1" length="2" key="firstStaticSlice">28</slice>
+            <array id="1" type="int" length="10" key="firstSource">
+                <int id="2" key="0">0</int>
+                <int id="3" key="1">1</int>
+                <int id="4" key="2">2</int>
+                <int id="5" key="3">3</int>
+                <int id="6" key="4">4</int>
+                <int id="7" key="5">5</int>
+                <int id="8" key="6">6</int>
+                <int id="9" key="7">7</int>
+                <int id="10" key="8">8</int>
+                <int id="11" key="9">9</int>
+            </array>
+        </object>
+    </data>
+</archive>
+xml";
+
+            static if (__VERSION__ >= 2067) auto expected = expected2067;
+            else auto expected = expected2066;
+
             serializer.reset();
             serializer.serialize(j);
 

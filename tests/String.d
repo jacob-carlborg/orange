@@ -36,7 +36,7 @@ unittest
 
     describe("serialize strings") in {
         it("should return serialized strings") in {
-            auto expected = q"xml
+            auto expected2066 = q"xml
 <?xml version="1.0" encoding="UTF-8"?>
 <archive version="1.0.0" type="org.dsource.orange.xml">
     <data>
@@ -48,6 +48,22 @@ unittest
     </data>
 </archive>
 xml";
+
+            auto expected2067 = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.String.C" type="tests.String.C" id="0" key="0">
+            <string id="2" type="immutable(wchar)" length="3" key="wstr">bar</string>
+            <string id="3" type="immutable(dchar)" length="6" key="dstr">foobar</string>
+            <string id="1" type="immutable(char)" length="3" key="str">foo</string>
+        </object>
+    </data>
+</archive>
+xml";
+            static if (__VERSION__ >= 2067) auto expected = expected2067;
+            else auto expected = expected2066;
+
             serializer.reset;
             serializer.serialize(c);
 
@@ -72,7 +88,7 @@ xml";
 
     describe("serialize Unicode strings") in {
         it("should return a serialized string containing proper Unicode") in {
-auto expected = q"xml
+            auto expected2066 = q"xml
 <?xml version="1.0" encoding="UTF-8"?>
 <archive version="1.0.0" type="org.dsource.orange.xml">
     <data>
@@ -84,6 +100,22 @@ auto expected = q"xml
     </data>
 </archive>
 xml";
+
+            auto expected2067 = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.String.C" type="tests.String.C" id="0" key="0">
+            <string id="2" type="immutable(wchar)" length="7" key="wstr">foo ÅÄÖ</string>
+            <string id="3" type="immutable(dchar)" length="11" key="dstr">foo åäö ÅÄÖ</string>
+            <string id="1" type="immutable(char)" length="10" key="str">foo åäö</string>
+        </object>
+    </data>
+</archive>
+xml";
+            static if (__VERSION__ >= 2067) auto expected = expected2067;
+            else auto expected = expected2066;
+
             serializer.reset;
             serializer.serialize(u);
 

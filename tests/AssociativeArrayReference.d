@@ -33,7 +33,7 @@ unittest
 
     describe("serialize associative array references") in {
         it("should return a serialized associative array and a serialized reference") in {
-            auto expected = q"xml
+            auto expected2066 = q"xml
 <?xml version="1.0" encoding="UTF-8"?>
 <archive version="1.0.0" type="org.dsource.orange.xml">
     <data>
@@ -69,6 +69,46 @@ unittest
     </data>
 </archive>
 xml";
+
+            auto expected2067 = q"xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archive version="1.0.0" type="org.dsource.orange.xml">
+    <data>
+        <object runtimeType="tests.AssociativeArrayReference.K" type="tests.AssociativeArrayReference.K" id="0" key="0">
+            <associativeArray valueType="int" length="4" id="1" keyType="int" key="a">
+                <key key="0">
+                    <int id="2" key="0">6</int>
+                </key>
+                <value key="0">
+                    <int id="3" key="0">7</int>
+                </value>
+                <key key="1">
+                    <int id="4" key="1">3</int>
+                </key>
+                <value key="1">
+                    <int id="5" key="1">4</int>
+                </value>
+                <key key="2">
+                    <int id="6" key="2">1</int>
+                </key>
+                <value key="2">
+                    <int id="7" key="2">2</int>
+                </value>
+                <key key="3">
+                    <int id="8" key="3">39</int>
+                </key>
+                <value key="3">
+                    <int id="9" key="3">472</int>
+                </value>
+            </associativeArray>
+            <reference key="b">1</reference>
+        </object>
+    </data>
+</archive>
+xml";
+            static if (__VERSION__ >= 2067) auto expected = expected2067;
+            else auto expected = expected2066;
+
             serializer.reset();
             serializer.serialize(k);
 
