@@ -1,4 +1,4 @@
-# Orange [![Build Status](https://travis-ci.org/jacob-carlborg/orange.svg?branch=master)](https://travis-ci.org/jacob-carlborg/orange)
+# Orange [![Build Status](https://travis-ci.org/jacob-carlborg/orange.svg?branch=master)](https://travis-ci.org/jacob-carlborg/orange) [![Go to orange](https://img.shields.io/dub/v/orange.svg)](https://code.dlang.org/packages/orange)
 
 Orange is a serialization library for the D programming language. It supports D1/Tango and D2/Phobos.
 It can serialize most of the available types in D, including third party types and can serialize
