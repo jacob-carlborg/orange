@@ -1,0 +1,19 @@
+name "orange"
+description "Orange is a serialization library for the D programming language"
+authors "Jacob Carlborg"
+copyright "Copyright © 2016, Jacob Carlborg"
+license "BSL-1.0"
+homepage "https://github.com/jacob-carlborg/orange"
+
+targetType "library"
+sourcePaths "orange"
+importPaths "."
+excludedSourceFiles "orange/test/**/*"
+buildRequirements "silenceWarnings"
+
+configuration "unittest" {
+  sourcePaths "tests"
+  sourceFiles "orange/test/UnitTester.d"
+  targetType "executable"
+  targetName "unittest"
+}

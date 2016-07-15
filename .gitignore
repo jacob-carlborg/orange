@@ -19,3 +19,6 @@ unittest
 *.exe
 *.orb
 docs
+.dub
+docs.json
+__dummy.html
