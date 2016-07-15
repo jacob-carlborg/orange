@@ -153,10 +153,14 @@ void delegate () after (void delegate () after)
     return UnitTester.instance.after = after;
 }
 
-/// Runs all tests.
-void run ()
+/**
+ * Runs all tests.
+ *
+ * Returns: `false` if any tests failed
+ */
+bool run ()
 {
-    UnitTester.instance.run;
+    return UnitTester.instance.run;
 }
 
 private:
@@ -324,12 +328,19 @@ class UnitTester
         return use;
     }
 
-    void run ()
+    /**
+     * Runs all tests.
+     *
+     * Returns: `false` if any tests failed
+     */
+    bool run ()
     {
         foreach (description ; descriptions)
             runDescription(description);
 
         printResult;
+
+        return !hasFailures;
     }
 
     void runDescription (Description description)

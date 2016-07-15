@@ -6,6 +6,8 @@
  */
 module tests.all;
 
+import core.stdc.stdlib;
+
 import orange.test.UnitTester;
 
 /*
@@ -14,7 +16,7 @@ import orange.test.UnitTester;
  * attributes in an associative array.
  */
 
-void main ()
+int main ()
 {
-    run;
+    return run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
