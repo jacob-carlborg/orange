@@ -162,7 +162,7 @@ final class Attribute : Element
  * Params:
  *    c = the character to be tested
  */
-bool isChar(dchar c) // rule 2
+bool isChar(dchar c)  @safe pure // rule 2
 {
     if (c <= 0xD7FF)
     {
@@ -229,7 +229,7 @@ unittest
  * Params:
  *    c = the character to be tested
  */
-bool isSpace(dchar c)
+bool isSpace(dchar c) @safe pure
 {
     return c == '\u0020' || c == '\u0009' || c == '\u000A' || c == '\u000D';
 }
@@ -242,7 +242,7 @@ bool isSpace(dchar c)
  * Params:
  *    c = the character to be tested
  */
-bool isDigit(dchar c)
+bool isDigit(dchar c) @safe pure
 {
     if (c <= 0x0039 && c >= 0x0030)
         return true;
@@ -267,7 +267,7 @@ unittest
  * Params:
  *    c = the character to be tested
  */
-bool isLetter(dchar c) // rule 84
+bool isLetter(dchar c)  @safe pure // rule 84
 {
     return isIdeographic(c) || isBaseChar(c);
 }
@@ -281,7 +281,7 @@ bool isLetter(dchar c) // rule 84
  * Params:
  *    c = the character to be tested
  */
-bool isIdeographic(dchar c)
+bool isIdeographic(dchar c) @safe pure
 {
     if (c == 0x3007)
         return true;
@@ -316,7 +316,7 @@ unittest
  * Params:
  *    c = the character to be tested
  */
-bool isBaseChar(dchar c)
+bool isBaseChar(dchar c) @safe pure
 {
     return lookup(BaseCharTable,c);
 }
@@ -330,7 +330,7 @@ bool isBaseChar(dchar c)
  * Params:
  *    c = the character to be tested
  */
-bool isCombiningChar(dchar c)
+bool isCombiningChar(dchar c) @safe pure
 {
     return lookup(CombiningCharTable,c);
 }
@@ -343,7 +343,7 @@ bool isCombiningChar(dchar c)
  * Params:
  *    c = the character to be tested
  */
-bool isExtender(dchar c)
+bool isExtender(dchar c) @safe pure
 {
     return lookup(ExtenderTable,c);
 }
@@ -372,7 +372,7 @@ bool isExtender(dchar c)
  * writefln(encode("a > b")); // writes "a &gt; b"
  * --------------
  */
-S encode(S)(S s, S buffer = null)
+S encode(S)(S s, S buffer = null) @safe pure
 {
     string r;
     size_t lastI;
@@ -482,7 +482,8 @@ string decode(string s, DecodeMode mode=DecodeMode.LOOSE)
                     string t = s[i..$];
                     checkCharRef(t, d);
                     char[4] temp;
-                    buffer ~= temp[0 .. std.utf.encode(temp, d)];
+                    import std.utf : encode;
+                    buffer ~= temp[0 .. encode(temp, d)];
                     i = s.length - t.length - 1;
                 }
                 catch(Err e)
@@ -2146,25 +2147,25 @@ private
     {
         string old = s;
 
-        void fail()
+        void fail() @safe pure
         {
             s = old;
             throw new Err(s,msg);
         }
 
-        void fail(Err e)
+        void fail(Err e) @safe pure
         {
             s = old;
             throw new Err(s,msg,e);
         }
 
-        void fail(string msg2)
+        void fail(string msg2) @safe pure
         {
             fail(new Err(s,msg2));
         }
     }
 
-    void checkMisc(ref string s) // rule 27
+    void checkMisc(ref string s)  @safe pure // rule 27
     {
         mixin Check!("Misc");
 
@@ -2177,7 +2178,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkDocument(ref string s) // rule 1
+    void checkDocument(ref string s)  @safe pure // rule 1
     {
         mixin Check!("Document");
         try
@@ -2189,7 +2190,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkChars(ref string s) // rule 2
+    void checkChars(ref string s) @safe pure // rule 2
     {
         // TO DO - Fix std.utf stride and decode functions, then use those
         // instead
@@ -2214,14 +2215,14 @@ private
         }
     }
 
-    void checkSpace(ref string s) // rule 3
+    void checkSpace(ref string s) @safe pure // rule 3
     {
         mixin Check!("Whitespace");
         munch(s,"\u0020\u0009\u000A\u000D");
         if (s is old) fail();
     }
 
-    void checkName(ref string s, out string name) // rule 5
+    void checkName(ref string s, out string name) @safe pure // rule 5
     {
         mixin Check!("Name");
 
@@ -2240,7 +2241,7 @@ private
         s = s[n..$];
     }
 
-    void checkAttValue(ref string s) // rule 10
+    void checkAttValue(ref string s) @safe pure // rule 10
     {
         mixin Check!("AttValue");
 
@@ -2260,7 +2261,7 @@ private
         s = s[1..$];
     }
 
-    void checkCharData(ref string s) // rule 14
+    void checkCharData(ref string s) @safe pure // rule 14
     {
         mixin Check!("CharData");
 
@@ -2273,7 +2274,7 @@ private
         }
     }
 
-    void checkComment(ref string s) // rule 15
+    void checkComment(ref string s) @safe pure // rule 15
     {
         mixin Check!("Comment");
 
@@ -2284,7 +2285,7 @@ private
         try { checkLiteral("-->",s); } catch(Err e) { fail(e); }
     }
 
-    void checkPI(ref string s) // rule 16
+    void checkPI(ref string s) @safe pure // rule 16
     {
         mixin Check!("PI");
 
@@ -2296,7 +2297,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkCDSect(ref string s) // rule 18
+    void checkCDSect(ref string s) @safe pure // rule 18
     {
         mixin Check!("CDSect");
 
@@ -2308,7 +2309,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkProlog(ref string s) // rule 22
+    void checkProlog(ref string s)  @safe pure // rule 22
     {
         mixin Check!("Prolog");
 
@@ -2321,7 +2322,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkXMLDecl(ref string s) // rule 23
+    void checkXMLDecl(ref string s) @safe pure // rule 23
     {
         mixin Check!("XMLDecl");
 
@@ -2337,7 +2338,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkVersionInfo(ref string s) // rule 24
+    void checkVersionInfo(ref string s) @safe pure // rule 24
     {
         mixin Check!("VersionInfo");
 
@@ -2351,7 +2352,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkEq(ref string s) // rule 25
+    void checkEq(ref string s) @safe pure // rule 25
     {
         mixin Check!("Eq");
 
@@ -2364,7 +2365,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkVersionNum(ref string s) // rule 26
+    void checkVersionNum(ref string s) @safe pure // rule 26
     {
         mixin Check!("VersionNum");
 
@@ -2372,7 +2373,7 @@ private
         if (s is old) fail();
     }
 
-    void checkDocTypeDecl(ref string s) // rule 28
+    void checkDocTypeDecl(ref string s) @safe pure // rule 28
     {
         mixin Check!("DocTypeDecl");
 
@@ -2388,7 +2389,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkSDDecl(ref string s) // rule 32
+    void checkSDDecl(ref string s) @safe pure // rule 32
     {
         mixin Check!("SDDecl");
 
@@ -2403,12 +2404,12 @@ private
         int n = 0;
              if (s.startsWith("'yes'") || s.startsWith("\"yes\"")) n = 5;
         else if (s.startsWith("'no'" ) || s.startsWith("\"no\"" )) n = 4;
-        else fail("standalone attribute value must be 'yes', \"yes\","
+        else fail("standalone attribute value must be 'yes', \"yes\","~
             " 'no' or \"no\"");
         s = s[n..$];
     }
 
-    void checkElement(ref string s) // rule 39
+    void checkElement(ref string s) @safe pure // rule 39
     {
         mixin Check!("Element");
 
@@ -2435,7 +2436,7 @@ private
     }
 
     // rules 40 and 44
-    void checkTag(ref string s, out string type, out string name)
+    void checkTag(ref string s, out string type, out string name) @safe pure
     {
         mixin Check!("Tag");
 
@@ -2456,7 +2457,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkAttribute(ref string s) // rule 41
+    void checkAttribute(ref string s) @safe pure // rule 41
     {
         mixin Check!("Attribute");
 
@@ -2470,7 +2471,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkETag(ref string s, out string name) // rule 42
+    void checkETag(ref string s, out string name) @safe pure // rule 42
     {
         mixin Check!("ETag");
 
@@ -2484,7 +2485,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkContent(ref string s) // rule 43
+    void checkContent(ref string s) @safe pure // rule 43
     {
         mixin Check!("Content");
 
@@ -2505,7 +2506,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkCharRef(ref string s, out dchar c) // rule 66
+    void checkCharRef(ref string s, out dchar c) @safe pure // rule 66
     {
         mixin Check!("CharRef");
 
@@ -2526,21 +2527,21 @@ private
             int n = 0;
             switch(d)
             {
-                case 'F','f': ++n;
-                case 'E','e': ++n;
-                case 'D','d': ++n;
-                case 'C','c': ++n;
-                case 'B','b': ++n;
-                case 'A','a': ++n;
-                case '9': ++n;
-                case '8': ++n;
-                case '7': ++n;
-                case '6': ++n;
-                case '5': ++n;
-                case '4': ++n;
-                case '3': ++n;
-                case '2': ++n;
-                case '1': ++n;
+                case 'F','f': ++n; goto case;
+                case 'E','e': ++n; goto case;
+                case 'D','d': ++n; goto case;
+                case 'C','c': ++n; goto case;
+                case 'B','b': ++n; goto case;
+                case 'A','a': ++n; goto case;
+                case '9': ++n; goto case;
+                case '8': ++n; goto case;
+                case '7': ++n; goto case;
+                case '6': ++n; goto case;
+                case '5': ++n; goto case;
+                case '4': ++n; goto case;
+                case '3': ++n; goto case;
+                case '2': ++n; goto case;
+                case '1': ++n; goto case;
                 case '0': break;
                 default: n = 100; break;
             }
@@ -2554,7 +2555,7 @@ private
         else s = s[1..$];
     }
 
-    void checkReference(ref string s) // rule 67
+    void checkReference(ref string s) @safe pure // rule 67
     {
         mixin Check!("Reference");
 
@@ -2567,7 +2568,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkEntityRef(ref string s) // rule 68
+    void checkEntityRef(ref string s) @safe pure // rule 68
     {
         mixin Check!("EntityRef");
 
@@ -2581,7 +2582,7 @@ private
         catch(Err e) { fail(e); }
     }
 
-    void checkEncName(ref string s) // rule 81
+    void checkEncName(ref string s) @safe pure // rule 81
     {
         mixin Check!("EncName");
 
@@ -2590,7 +2591,7 @@ private
         munch(s,"a-zA-Z0-9_.-");
     }
 
-    void checkEncodingDecl(ref string s) // rule 80
+    void checkEncodingDecl(ref string s) @safe pure // rule 80
     {
         mixin Check!("EncodingDecl");
 
@@ -2606,7 +2607,7 @@ private
 
     // Helper functions
 
-    void checkLiteral(string literal,ref string s)
+    void checkLiteral(string literal,ref string s) @safe pure
     {
         mixin Check!("Literal");
 
@@ -2614,7 +2615,7 @@ private
         s = s[literal.length..$];
     }
 
-    void checkEnd(string end,ref string s)
+    void checkEnd(string end,ref string s) @safe pure
     {
         // Deliberately no mixin Check here.
 
@@ -2626,18 +2627,18 @@ private
 
     // Metafunctions -- none of these use mixin Check
 
-    void opt(alias f)(ref string s)
+    void opt(alias f)(ref string s) @safe pure
     {
         try { f(s); } catch(Err e) {}
     }
 
-    void plus(alias f)(ref string s)
+    void plus(alias f)(ref string s) @safe pure
     {
         f(s);
         star!(f)(s);
     }
 
-    void star(alias f)(ref string s)
+    void star(alias f)(ref string s) @safe pure
     {
         while (s.length != 0)
         {
@@ -2646,7 +2647,7 @@ private
         }
     }
 
-    void quoted(alias f)(ref string s)
+    void quoted(alias f)(ref string s) @safe pure
     {
         if (s.startsWith("'"))
         {
@@ -2662,7 +2663,7 @@ private
         }
     }
 
-    void seq(alias f,alias g)(ref string s)
+    void seq(alias f,alias g)(ref string s) @safe pure
     {
         f(s);
         g(s);
@@ -2681,7 +2682,7 @@ private
  * parse failure (the XML equivalent of a stack trace), giving the line and
  * column number of every failure at every level.
  */
-void check(string s)
+void check(string s) pure
 {
     try
     {
@@ -2689,17 +2690,17 @@ void check(string s)
         checkDocument(s);
         if (s.length != 0) throw new Err(s,"Junk found after document");
     }
-    catch(Err e)
+    catch (Err e)
     {
         e.complete(s);
         throw e;
     }
 }
 
-unittest
+@system pure unittest
 {
-  version (none) // WHY ARE WE NOT RUNNING THIS UNIT TEST?
-  {
+    import std.string : indexOf;
+
     try
     {
         check(q"[<?xml version="1.0"?>
@@ -2735,15 +2736,14 @@ unittest
            </book>
         </catalog>
         ]");
-    assert(false);
+        assert(false);
     }
-    catch(CheckException e)
+    catch (CheckException e)
     {
-        int n = e.toString().indexOf("end tag name \"genres\" differs"
-            " from start tag name \"genre\"");
+        auto n = e.toString().indexOf("end tag name \"genres\" differs"~
+                                      " from start tag name \"genre\"");
         assert(n != -1);
     }
-  }
 }
 
 unittest
@@ -2786,41 +2786,41 @@ EOS";
 }
 
 /** The base class for exceptions thrown by this module */
-class XMLException : Exception { this(string msg) { super(msg); } }
+class XMLException : Exception { this(string msg) @safe pure { super(msg); } }
 
 // Other exceptions
 
 /// Thrown during Comment constructor
 class CommentException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown during CData constructor
 class CDataException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown during XMLInstruction constructor
 class XIException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown during ProcessingInstruction constructor
 class PIException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown during Text constructor
 class TextException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown during decode()
 class DecodeException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown if comparing with wrong type
 class InvalidTypeException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /// Thrown when parsing for Tags
 class TagException : XMLException
-{ private this(string msg) { super(msg); } }
+{ private this(string msg) @safe pure { super(msg); } }
 
 /**
  * Thrown during check()
@@ -2837,7 +2837,7 @@ class CheckException : XMLException
     uint line = 0; /// Line number at which parse failure occurred
     uint column = 0; /// Column number at which parse failure occurred
 
-    private this(string tail,string msg,Err err=null)
+    private this(string tail,string msg,Err err=null) @safe pure
     {
         super(null);
         this.tail = tail;
@@ -2845,7 +2845,7 @@ class CheckException : XMLException
         this.err = err;
     }
 
-    private void complete(string entire)
+    private void complete(string entire) pure
     {
         string head = entire[0..$-tail.length];
         sizediff_t n = head.lastIndexOf('\n') + 1;
@@ -2856,7 +2856,7 @@ class CheckException : XMLException
         if (err !is null) err.complete(entire);
     }
 
-    override const string toString()
+    override string toString() const @safe pure
     {
         string s;
         if (line != 0) s = format("Line %d, column %d: ",line,column);
@@ -2983,7 +2983,7 @@ private
         0x0387,0x0640,0x0640,0x0E46,0x0E46,0x0EC6,0x0EC6,0x3005,0x3005,0x3031,
         0x3035,0x309D,0x309E,0x30FC,0x30FE];
 
-    bool lookup(const(int)[] table, int c)
+    bool lookup(const(int)[] table, int c) @safe pure
     {
         while (table.length != 0)
         {
@@ -3001,7 +3001,7 @@ private
         return false;
     }
 
-    string startOf(string s)
+    string startOf(string s) @safe pure
     {
         string r;
         foreach(char c;s)
@@ -3012,7 +3012,7 @@ private
         return r;
     }
 
-    void exit(string s=null)
+    void exit(string s=null) @safe pure
     {
         throw new XMLException(s);
     }
