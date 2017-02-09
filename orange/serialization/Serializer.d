@@ -1023,7 +1023,7 @@ class Serializer
     T deserialize (T) (string key)
     {
         if (!hasBegunDeserializing)
-            error("Cannot deserialize without any data, this method should"
+            error("Cannot deserialize without any data, this method should" ~
                 "only be called after deserialization has begun.");
 
         return deserialize!(T)(archive.untypedData, key);
@@ -1419,9 +1419,10 @@ class Serializer
             {
                 static if (isVoid!(BaseTypeOfPointer!(T)))
                     error(`The value with the key "` ~ to!(string)(key) ~ `"` ~
-                        format!(` of the type "`, T, `" cannot be deserialized on `
-                        `its own, either implement orange.serialization.Serializable`
-                        `.isSerializable or register a deserializer.`));
+                        format!(` of the type "`, T, `" cannot be ` ~
+                        "deserialized on its own, either implement " ~
+                        "orange.serialization.Serializable.isSerializable or " ~
+                        "register a deserializer."));
 
                 else
                 {
@@ -1484,10 +1485,10 @@ class Serializer
 
         enum nonSerializedFields = collectAnnotations!(T);
 
-        foreach (i, dummy ; typeof(T.tupleof))
+        foreach (i, _ ; typeof(T.tupleof))
         {
             enum field = nameOfFieldAt!(T, i);
-            mixin(`alias getAttributes!(value.` ~ field ~ `) attributes;`);
+            alias attributes = getAttributes!(T.tupleof[i]);
 
             static if (attributes.contains!(nonSerialized) ||
                 ctfeContains!(string)(internalFields, field) ||
@@ -1542,10 +1543,10 @@ class Serializer
         else
             auto rawObject = cast(void*) &value;
 
-        foreach (i, dummy ; typeof(T.tupleof))
+        foreach (i, _ ; typeof(T.tupleof))
         {
             enum field = nameOfFieldAt!(T, i);
-            mixin(`alias getAttributes!(value.` ~ field ~ `) attributes;`);
+            alias attributes = getAttributes!(T.tupleof[i]);
 
             static if (attributes.contains!(nonSerialized) ||
                 ctfeContains!(string)(internalFields, field) ||
