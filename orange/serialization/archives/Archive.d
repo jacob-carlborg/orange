@@ -538,29 +538,6 @@ interface Archive
     void archiveStruct (string type, string key, Id id, void delegate () dg);
 
     /**
-     * Archives a typedef.
-     *
-     * Examples:
-     * ---
-     * typedef int Foo;
-     * Foo a = 3;
-     *
-     * auto archive = new XmlArchive!();
-     * archive.archiveTypedef(Foo.stringof, "a", 0, {
-     *     // archive "a" as the base type of Foo, i.e. int
-     * });
-     * ---
-     *
-     * Params:
-     *     type = the type of the typedef
-     *     key = the key associated with the typedef
-     *     id = the id associated with the typedef
-     *     dg = a callback that performs the archiving of the value as the base
-     *             type of the typedef
-     */
-    void archiveTypedef (string type, string key, Id id, void delegate () dg);
-
-    /**
      * Archives the given value.
      *
      * Params:
@@ -1034,28 +1011,6 @@ interface Archive
      *                The callback will receive the key the struct was archived with.
      */
     void unarchiveStruct (Id id, void delegate () dg);
-
-    /**
-     * Unarchives the typedef associated with the given key.
-     *
-     * Examples:
-     * ---
-     * typedef int Foo;
-     * Foo foo = 3;
-     *
-     * auto archive = new XmlArchive!();
-     * archive.beginUnarchiving(data);
-     * archive.unarchiveTypedef("foo", {
-     *     // unarchive "foo" as the base type of Foo, i.e. int
-     * });
-     * ---
-     *
-     * Params:
-     *     key = the key associated with the typedef
-     *     dg = a callback that performs the unarchiving of the value as
-     *              the base type of the typedef
-     */
-    Id unarchiveTypedef (string key, void delegate () dg);
 
     /**
      * Unarchives the string associated with the given id.

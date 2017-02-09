@@ -129,12 +129,6 @@ template isReference (T)
     enum bool isReference = isObject!(T) || isPointer!(T);
 }
 
-/// Evaluates to true if $(D_PARAM T) is a typedef.
-template isTypedef (T)
-{
-    enum bool isTypedef = is(T == typedef);
-}
-
 /// Evaluates to true if $(D_PARAM T) is void.
 template isVoid (T)
 {
@@ -155,16 +149,6 @@ template BaseTypeOfPointer (T)
 
     else
         alias T BaseTypeOfPointer;
-}
-
-/// Evaluates to the base type of the typedef.
-template BaseTypeOfTypedef (T)
-{
-    static if (is(T U == typedef))
-        alias BaseTypeOfTypedef!(U) BaseTypeOfTypedef;
-
-    else
-        alias T BaseTypeOfTypedef;
 }
 
 /// Evaluates to the base type of the enum.

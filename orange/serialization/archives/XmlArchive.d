@@ -39,7 +39,6 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
         static enum Data referenceTag = "reference";
         static enum Data pointerTag = "pointer";
         static enum Data associativeArrayTag = "associativeArray";
-        static enum Data typedefTag = "typedef";
         static enum Data nullTag = "null";
         static enum Data enumTag = "enum";
         static enum Data sliceTag = "slice";
@@ -700,39 +699,6 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
     {
         restore(lastElement) in {
             lastElement = lastElement.element(Tags.structTag)
-            .attribute(Attributes.typeAttribute, toData(type))
-            .attribute(Attributes.keyAttribute, toData(key))
-            .attribute(Attributes.idAttribute, toData(id));
-
-            dg();
-        };
-    }
-
-    /**
-     * Archives a typedef.
-     *
-     * Examples:
-     * ---
-     * typedef int Foo;
-     * Foo a = 3;
-     *
-     * auto archive = new XmlArchive!();
-     * archive.archiveTypedef(Foo.stringof, "a", 0, {
-     *     // archive "a" as the base type of Foo, i.e. int
-     * });
-     * ---
-     *
-     * Params:
-     *     type = the type of the typedef
-     *     key = the key associated with the typedef
-     *     id = the id associated with the typedef
-     *     dg = a callback that performs the archiving of the value as the base
-     *             type of the typedef
-     */
-    void archiveTypedef (string type, string key, Id id, void delegate () dg)
-    {
-        restore(lastElement) in {
-            lastElement = lastElement.element(Tags.typedefTag)
             .attribute(Attributes.typeAttribute, toData(type))
             .attribute(Attributes.keyAttribute, toData(key))
             .attribute(Attributes.idAttribute, toData(id));
@@ -1610,56 +1576,6 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
             lastElement = element;
             dg();
         };
-    }
-
-    private T unarchiveTypeDef (T) (DataType key)
-    {
-        auto element = getElement(Tags.typedefTag, key);
-
-        if (element.isValid)
-            lastElement = element;
-
-        return T.init;
-    }
-
-    /**
-     * Unarchives the typedef associated with the given key.
-     *
-     * Examples:
-     * ---
-     * typedef int Foo;
-     * Foo foo = 3;
-     *
-     * auto archive = new XmlArchive!();
-     * archive.beginUnarchiving(data);
-     * archive.unarchiveTypedef("foo", {
-     *     // unarchive "foo" as the base type of Foo, i.e. int
-     * });
-     * ---
-     *
-     * Params:
-     *     key = the key associated with the typedef
-     *     dg = a callback that performs the unarchiving of the value as
-     *              the base type of the typedef
-     */
-    Id unarchiveTypedef (string key, void delegate () dg)
-    {
-        Id id = Id.max;
-
-        restore(lastElement) in {
-            auto element = getElement(Tags.typedefTag, key);
-
-            if (!element.isValid)
-                return;
-
-            lastElement = element;
-            auto stringId = getValueOfAttribute(Attributes.idAttribute, element);
-            id = stringId ? toId(stringId) : Id.max;
-
-            dg();
-        };
-
-        return id;
     }
 
     /**

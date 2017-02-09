@@ -711,10 +711,7 @@ class Serializer
 
         archive.beginArchiving();
 
-        static if ( is(T == typedef) )
-            serializeTypedef(value, key, id);
-
-        else static if (isObject!(T))
+        static if (isObject!(T))
             serializeObject(value, key, id);
 
         else static if (isStruct!(T))
@@ -944,13 +941,6 @@ class Serializer
         archive.archive(value, key, id);
     }
 
-    private void serializeTypedef (T) (T value, string key, Id id)
-    {
-        archive.archiveTypedef(typeid(T).toString, key, nextId, {
-            serializeInternal!(BaseTypeOfTypedef!(T))(value, nextKey);
-        });
-    }
-
     /**
      * Deserializes the given data to value of the given type.
      *
@@ -1118,10 +1108,7 @@ class Serializer
     {
         alias Unqual!(U) T;
 
-        static if (isTypedef!(T))
-            return deserializeTypedef!(T)(keyOrId, id);
-
-        else static if (isObject!(T))
+        static if (isObject!(T))
             return deserializeObject!(T)(keyOrId, id);
 
         else static if (isStruct!(T))
@@ -1479,17 +1466,6 @@ class Serializer
             enum params = "(keyOrId, id);";
 
         mixin("return archive.unarchive" ~ functionName ~ params);
-    }
-
-    private T deserializeTypedef (T, U) (U keyOrId, out Id id)
-    {
-        T value;
-
-        id = archive.unarchiveTypedef!(T)(key, {
-            value = cast(T) deserializeInternal!(BaseTypeOfTypedef!(T))(nextKey);
-        });
-
-        return value;
     }
 
     private Id deserializeReference (string key)
