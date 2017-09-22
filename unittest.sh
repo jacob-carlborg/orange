@@ -1,6 +1,6 @@
 #!/bin/sh
 
-dmd -unittest -ofunittest \
+dmd -g -unittest -ofunittest \
 orange/core/*.d \
 orange/serialization/*.d \
 orange/serialization/archives/*.d \
