@@ -1,8 +1,6 @@
 language: d
 d:
   - dmd
-  - dmd-2.071.1
-
 
 os:
   - linux
