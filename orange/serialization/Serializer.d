@@ -1211,8 +1211,10 @@ class Serializer
 
             return value;
         }
-
-        return T.init;
+        else
+        {
+            return T.init;
+        }
     }
 
     private T deserializeStruct (T, U) (U key, out Id id)
