@@ -9,7 +9,6 @@ targetType "library"
 sourcePaths "orange"
 importPaths "."
 excludedSourceFiles "orange/test/**/*"
-buildRequirements "silenceWarnings"
 
 configuration "unittest" {
   sourcePaths "tests"
