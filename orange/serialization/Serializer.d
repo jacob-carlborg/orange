@@ -309,7 +309,7 @@ class Serializer
      * types or when otherwise chaining an already existing type is not desired.
      *
      * Params:
-     *     dg = the callback that will be called when value of the given type is about to be serialized
+     *     func = the callback that will be called when value of the given type is about to be serialized
      *
      * Examples:
      * ---
@@ -383,7 +383,7 @@ class Serializer
      * types or when otherwise chaining an already existing type is not desired.
      *
      * Params:
-     *     dg = the callback that will be called when value of the given type is about to be deserialized
+     *     func = the callback that will be called when value of the given type is about to be deserialized
      *
      * Examples:
      * ---
@@ -453,7 +453,7 @@ class Serializer
      * serializer will be used (if available).
      *
      * Params:
-     *     dg = the callback that will be called when value of the given type is about to be serialized
+     *     func = the callback that will be called when value of the given type is about to be serialized
      *
      * Examples:
      * ---
@@ -525,7 +525,7 @@ class Serializer
      * deserializer will be used (if available).
      *
      * Params:
-     *     dg = the callback that will be called when value of the given type is about to be deserialized
+     *     func = the callback that will be called when value of the given type is about to be deserialized
      *
      * Examples:
      * ---
@@ -1049,9 +1049,6 @@ class Serializer
      *     }
      * }
      * ---
-     *
-     * Params:
-     *     key = the key associate with the value that was used during serialization.
      *
      * Returns: the deserialized value. A different runtime type can be returned
      *             if the given type is a base class.

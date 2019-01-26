@@ -46,7 +46,7 @@ class SerializeRegisterWrapper (T) : RegisterBase
      *
      *
      * Params:
-     *     dg = the delegate to call when performing custom serialization
+     *     func = the delegate to call when performing custom serialization
      */
     this (void function (T, Serializer, Serializer.Data) func)
     {
@@ -102,7 +102,7 @@ class DeserializeRegisterWrapper (T) : RegisterBase
      *
      *
      * Params:
-     *     dg = the delegate to call when performing custom serialization
+     *     func = the delegate to call when performing custom serialization
      */
     this (void function (ref T, Serializer, Serializer.Data) func)
     {
