@@ -52,8 +52,8 @@
  *   - should return the sum of the given arguments
  *
  * Failures:
- *     1) sum should return the sum of the given arguments
- *        # main.d:44
+ *     1$(RPAREN) sum should return the sum of the given arguments
+ *        &#35; main.d:44
  *        Stack trace:
  *        tango.core.Exception.AssertException@main(44): Assertion failure
  *

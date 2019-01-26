@@ -360,7 +360,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
      *
      * Params:
      *     value = the value to archive
-     *     baseType = the base type of the enum
+     *     type = the base type of the enum
      *     key = the key associated with the value
      *     id = the id associated with the value
      */
@@ -1044,7 +1044,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
      * {
      *     unarchiveAssociativeArrayKey(to!(string(i), {
      *         // unarchive the key
-     *     });
+     *     }));
      * }
      * ---
      *
@@ -1079,7 +1079,7 @@ final class XmlArchive (U = char) : ArchiveBase!(U)
      * {
      *     unarchiveAssociativeArrayValue(to!(string(i), {
      *         // unarchive the value
-     *     });
+     *     }));
      * }
      * ---
      *

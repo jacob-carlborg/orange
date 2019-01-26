@@ -94,11 +94,10 @@ interface Archive
     /**
      * This is the type of an error callback which is called when an unexpected event occurs.
      *
-     * Params:
+     * _Param:
      *     exception = the exception indicating what error occurred
-     *     data = arbitrary data pass along, deprecated
      */
-    alias void delegate (SerializationException exception) ErrorCallback;
+    alias ErrorCallback = void delegate (SerializationException exception) ;
 
     /**
      * This callback will be called when an unexpected event occurs, i.e. an expected element
@@ -705,7 +704,7 @@ interface Archive
      * {
      *     unarchiveAssociativeArrayKey(to!(string(i), {
      *         // unarchive the key
-     *     });
+     *     }));
      * }
      * ---
      *
@@ -737,7 +736,7 @@ interface Archive
      * {
      *     unarchiveAssociativeArrayValue(to!(string(i), {
      *         // unarchive the value
-     *     });
+     *     }));
      * }
      * ---
      *
@@ -1405,6 +1404,7 @@ abstract class ArchiveBase (U) : Archive
      *
      * Params:
      *     message = the message for the exception
+     *     data = the data for the exception
      *     file = the file where the error occurred
      *     line = the line where the error occurred
      */
