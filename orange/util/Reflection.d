@@ -168,8 +168,13 @@ Object newInstance (in ClassInfo classInfo)
     version (LDC)
     {
         Object object = _d_allocclass(classInfo);
-        (cast(byte*) object)[0 .. classInfo.init.length] = classInfo.init[];
-
+        const(void)[]defInitializer = classInfo.initializer();
+        if ((defInitializer !is null) && (defInitializer.length > 0)) {
+            if (defInitializer.ptr !is null)
+                (cast(byte*) object)[0..defInitializer.length] = (cast(byte*)defInitializer.ptr)[0..defInitializer.length];
+            else
+                (cast(byte*) object)[0..defInitializer.length] = 0;
+        }
         return object;
     }
 
