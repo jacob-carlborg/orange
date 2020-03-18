@@ -704,7 +704,7 @@ class Element : Item
     this(string name, string interior=null) @safe pure
     {
         this(new Tag(name));
-        if (interior.length != 0) opCatAssign(new Text(interior));
+        if (interior.length != 0) this ~= new Text(interior);
     }
 
     /**
@@ -733,7 +733,7 @@ class Element : Item
      * element ~= new Text("hello");
      * --------------
      */
-    void opCatAssign(Text item) @safe pure
+    void opOpAssign(string op : "~")(Text item) @safe pure
     {
         texts ~= item;
         appendItem(item);
@@ -751,7 +751,7 @@ class Element : Item
      * element ~= new CData("hello");
      * --------------
      */
-    void opCatAssign(CData item) @safe pure
+    void opOpAssign(string op : "~")(CData item) @safe pure
     {
         cdatas ~= item;
         appendItem(item);
@@ -769,7 +769,7 @@ class Element : Item
      * element ~= new Comment("hello");
      * --------------
      */
-    void opCatAssign(Comment item) @safe pure
+    void opOpAssign(string op : "~")(Comment item) @safe pure
     {
         comments ~= item;
         appendItem(item);
@@ -787,7 +787,7 @@ class Element : Item
      * element ~= new ProcessingInstruction("hello");
      * --------------
      */
-    void opCatAssign(ProcessingInstruction item) @safe pure
+    void opOpAssign(string op : "~")(ProcessingInstruction item) @safe pure
     {
         pis ~= item;
         appendItem(item);
@@ -807,7 +807,7 @@ class Element : Item
      *    // appends element representing <br />
      * --------------
      */
-    void opCatAssign(Element item) @safe pure
+    void opOpAssign(string op : "~")(Element item) @safe pure
     {
         elements ~= item;
         appendItem(item);
@@ -822,16 +822,16 @@ class Element : Item
 
     private void parse(ElementParser xml)
     {
-        xml.onText = (string s) { opCatAssign(new Text(s)); };
-        xml.onCData = (string s) { opCatAssign(new CData(s)); };
-        xml.onComment = (string s) { opCatAssign(new Comment(s)); };
-        xml.onPI = (string s) { opCatAssign(new ProcessingInstruction(s)); };
+        xml.onText = (string s) { this ~= new Text(s); };
+        xml.onCData = (string s) { this ~= new CData(s); };
+        xml.onComment = (string s) { this ~= new Comment(s); };
+        xml.onPI = (string s) { this ~= new ProcessingInstruction(s); };
 
         xml.onStartTag[null] = (ElementParser xml)
         {
             auto e = new Element(xml.tag);
             e.parse(xml);
-            opCatAssign(e);
+            this ~= e;
         };
 
         xml.parse();
@@ -2213,12 +2213,12 @@ private
 
         dchar c;
         int n = -1;
-        foreach (int i,dchar d; s)
+        foreach (i, dchar d; s)
         {
             if (!isChar(d))
             {
                 c = d;
-                n = i;
+                n = cast(int) i;
                 break;
             }
         }
@@ -2250,13 +2250,13 @@ private
 
         if (s.length == 0) fail();
         int n;
-        foreach (int i,dchar c;s)
+        foreach (i, dchar c;s)
         {
             if (c == '_' || c == ':' || isLetter(c)) continue;
             if (i == 0) fail();
             if (c == '-' || c == '.' || isDigit(c)
                 || isCombiningChar(c) || isExtender(c)) continue;
-            n = i;
+            n = cast(int) i;
             break;
         }
         name = s[0 .. n];

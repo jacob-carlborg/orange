@@ -174,13 +174,13 @@ class UnitTester
         Description[] descriptions;
         size_t lastIndex = size_t.max;
 
-        void opCatAssign (Description description)
+        void opOpAssign(string op : "~")(Description description)
         {
             descriptions ~= description;
             lastIndex++;
         }
 
-        void opCatAssign (Test test)
+        void opOpAssign(string op : "~")(Test test)
         {
             last.tests ~= test;
         }

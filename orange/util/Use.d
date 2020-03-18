@@ -71,7 +71,7 @@ struct Use (ARGS...)
      *
      * Returns: what ever the delegate stored in "args[0]" returns
      */
-    ReturnType opIn (ARGS[0] dg)
+    ReturnType opBinary(string op: "in")(ARGS[0] dg)
     {
         assert(args[0]);
 
@@ -107,7 +107,7 @@ struct RestoreStruct (U, T)
      *
      * See_Also: restore
      */
-    U opIn (U delegate () deleg)
+    U opBinary(string op: "in")(U delegate () deleg)
     {
         return dg(deleg, *value);
     }

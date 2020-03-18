@@ -1843,10 +1843,7 @@ class Serializer
         static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 
         static if (hasAnnotation!(T, name))
-        {
-            mixin("auto event = T." ~ name ~ ";");
-            event(value);
-        }
+            __traits(getMember, T, name)(value);
     }
 
     private void triggertUdaEvent (alias event, T) (T value)
@@ -1857,7 +1854,7 @@ class Serializer
         {
             static if (m != nonSerializedField)
             {
-                mixin(`alias attrs = Attributes!(m, __traits(getAttributes, T.` ~ m ~ `));`);
+                alias attrs = Attributes!(m, __traits(getAttributes, __traits(getMember, T, m)));
 
                 static if (attrs.contains!(event))
                     __traits(getMember, value, m)();
