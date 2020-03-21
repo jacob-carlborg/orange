@@ -800,7 +800,7 @@ class Serializer
         }
     }
 
-    private void serializeStruct (T) (T value, string key, Id id)
+    private void serializeStruct (T) (ref T value, string key, Id id)
     {
         static if (!isNonSerialized!(T)())
         {
@@ -1725,9 +1725,15 @@ class Serializer
 
     void callSerializer (T) (RegisterBase* baseWrapper, ref T value, string key)
     {
+        static if (is(T == struct))
+            alias SerializeWrapper = SerializeRegisterWrapperRef!T;
+
+        else
+            alias SerializeWrapper = SerializeRegisterWrapper!T;
+
         if (mode == serializing)
         {
-            auto wrapper = cast(SerializeRegisterWrapper!(T)) *baseWrapper;
+            auto wrapper = cast(SerializeWrapper) *baseWrapper;
             wrapper(value, this, key);
         }
 
@@ -1838,7 +1844,7 @@ class Serializer
         return to!(string)(value);
     }
 
-    private void triggerEvent (string name, T) (T value)
+    private void triggerEvent (string name, T) (ref T value)
     {
         static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 
@@ -1846,7 +1852,7 @@ class Serializer
             __traits(getMember, T, name)(value);
     }
 
-    private void triggertUdaEvent (alias event, T) (T value)
+    private void triggertUdaEvent (alias event, T) (ref T value)
     {
         static assert (isObject!(T) || isStruct!(T), format!(`The given value of the type "`, T, `" is not a valid type, the only valid types for this method are objects and structs.`));
 
@@ -1862,7 +1868,7 @@ class Serializer
         }
     }
 
-    private void triggerEvents (T) (T value, void delegate () dg)
+    private void triggerEvents (T) (ref T value, void delegate () dg)
     {
         if (mode == serializing)
         {

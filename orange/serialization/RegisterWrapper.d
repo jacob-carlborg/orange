@@ -71,6 +71,57 @@ class SerializeRegisterWrapper (T) : RegisterBase
     }
 }
 
+/// Ditto
+class SerializeRegisterWrapperRef (T) : RegisterBase
+{
+    private void delegate (ref T, Serializer, Serializer.Data) dg;
+    private bool isDelegate;
+
+    /**
+     * Creates a new instance of this class with the given delegate that performs the
+     * custom serialization.
+     *
+     *
+     * Params:
+     *     dg = the delegate to call when performing custom serialization
+     */
+    this (void delegate (ref T, Serializer, Serializer.Data) dg)
+    {
+        isDelegate = true;
+        this.dg = dg;
+    }
+
+    /**
+     * Creates a new instance of this class with the given function that performs the
+     * custom serialization.
+     *
+     *
+     * Params:
+     *     func = the delegate to call when performing custom serialization
+     */
+    this (void function (ref T, Serializer, Serializer.Data) func)
+    {
+        dg.funcptr = func;
+    }
+
+    /**
+     * Calls the function to perform the custom serialization.
+     *
+     * Params:
+     *     value = the instance that is to be serialized
+     *     serializer = the serializer that performs the serialization
+     *     key = the key of the given value
+     */
+    void opCall (ref T value, Serializer serializer, Serializer.Data key)
+    {
+        if (dg && isDelegate)
+            dg(value, serializer, key);
+
+        else if (dg)
+            dg.funcptr(value, serializer, key);
+    }
+}
+
 /**
  * This class wraps registered functions for deserialization.
  *
