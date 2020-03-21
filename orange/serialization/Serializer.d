@@ -293,13 +293,19 @@ class Serializer
      * See_Also: registerDeserializer
      * See_Also: Serializable.toData
      */
-    static void registerSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
+    static void registerSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg) if (is(T == class) || is(T == interface))
     {
         Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
     }
 
     /// ditto
     static void registerSerializer (T) (void delegate (ref T, Serializer, Data) dg) if (is(T == struct))
+    {
+        Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(dg);
+    }
+
+    /// ditto
+    static void registerSerializer (T) (void delegate (T, Serializer, Data) dg)
     {
         Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(dg);
     }
@@ -336,13 +342,19 @@ class Serializer
      * See_Also: registerDeserializer
      * See_Also: Serializable.toData
      */
-    static void registerSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
+    static void registerSerializer (Derived, Base) (void function (Base, Serializer, Data) func) if (is(T == class) || is(T == interface))
     {
         Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
     }
 
     /// ditto
     static void registerSerializer (T) (void function (ref T, Serializer, Data) func) if (is(T == struct))
+    {
+        Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(func);
+    }
+
+    /// ditto
+    static void registerSerializer (T) (void function (T, Serializer, Data) func)
     {
         Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(func);
     }
@@ -464,9 +476,21 @@ class Serializer
      * serializer.overrideSerializer!(Foo)(overrideDg);
      * ---
      */
-    void overrideSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg)
+    void overrideSerializer (Derived, Base) (void delegate (Base, Serializer, Data) dg) if (is(T == class) || is(T == interface))
     {
         overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
+    }
+
+    /// ditto
+    void overrideSerializer (T) (void delegate (ref T, Serializer, Data) dg) if (is(T == struct))
+    {
+        overriddenSerializers[typeid(T).toString] = toSerializeRegisterWrapper(dg);
+    }
+
+    /// ditto
+    void overrideSerializer (T) (void delegate (T, Serializer, Data) dg)
+    {
+        overriddenSerializers[typeid(T).toString] = toSerializeRegisterWrapper(dg);
     }
 
     /**
@@ -500,9 +524,21 @@ class Serializer
      * serializer.overrideSerializer!(Foo)(&overrideFunc);
      * ---
      */
-    void overrideSerializer (Derived, Base) (void function (Base, Serializer, Data) func)
+    void overrideSerializer (Derived, Base) (void function (Base, Serializer, Data) func) if (is(T == class) || is(T == interface))
     {
         overriddenSerializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
+    }
+
+    /// ditto
+    void overrideSerializer (T) (void function (ref T, Serializer, Data) func) if (is(T == struct))
+    {
+        overriddenSerializers[typeid(T).toString] = toSerializeRegisterWrapper(func);
+    }
+
+    /// ditto
+    void overrideSerializer (T) (void function (T, Serializer, Data) func)
+    {
+        overriddenSerializers[typeid(T).toString] = toSerializeRegisterWrapper(func);
     }
 
     /**
@@ -536,9 +572,15 @@ class Serializer
      * serializer.overrideSerializer!(Foo)(overrideDg);
      * ---
      */
-    void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+    void overrideDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg) if (is(T == class) || is(T == interface))
     {
         overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
+    }
+
+    /// ditto
+    void overrideDeserializer (T) (void delegate (ref T, Serializer, Data) dg)
+    {
+        overriddenDeserializers[typeid(T).toString] = toDeserializeRegisterWrapper(dg);
     }
 
     /**
@@ -572,9 +614,15 @@ class Serializer
      * serializer.overrideSerializer!(Foo)(&overrideFunc);
      * ---
      */
-    void overrideDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
+    void overrideDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func) if (is(T == class) || is(T == interface))
     {
         overriddenDeserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
+    }
+
+    /// ditto
+    void overrideDeserializer (T) (void function (ref T, Serializer, Data) func)
+    {
+        overriddenDeserializers[typeid(T).toString] = toDeserializeRegisterWrapper(func);
     }
 
     /// Returns the receivers archive

@@ -76,8 +76,8 @@ unittest
     </data>
 </archive>
 xml";
-            Serializer.registerSerializer!(Foo)(&toData);
-            Serializer.registerDeserializer!(Foo)(&fromData);
+            Serializer.registerSerializer(&toData);
+            Serializer.registerDeserializer(&fromData);
 
             serializer.serialize(foo);
 

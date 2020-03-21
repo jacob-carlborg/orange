@@ -86,11 +86,11 @@ unittest
     </data>
 </archive>
 xml";
-            Serializer.registerSerializer!(Foo)(&toData);
-            Serializer.registerDeserializer!(Foo)(&fromData);
+            Serializer.registerSerializer(&toData);
+            Serializer.registerDeserializer(&fromData);
 
-            serializer.overrideSerializer!(Foo)(&overrideToData);
-            serializer.overrideDeserializer!(Foo)(&overrideFromData);
+            serializer.overrideSerializer(&overrideToData);
+            serializer.overrideDeserializer(&overrideFromData);
 
             serializer.serialize(foo);
 
