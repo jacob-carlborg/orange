@@ -298,6 +298,12 @@ class Serializer
         Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(dg);
     }
 
+    /// ditto
+    static void registerSerializer (T) (void delegate (ref T, Serializer, Data) dg) if (is(T == struct))
+    {
+        Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(dg);
+    }
+
     /**
      * Registers a serializer for the given type.
      *
@@ -335,6 +341,12 @@ class Serializer
         Serializer.serializers[typeid(Derived).toString] = toSerializeRegisterWrapper(func);
     }
 
+    /// ditto
+    static void registerSerializer (T) (void function (ref T, Serializer, Data) func) if (is(T == struct))
+    {
+        Serializer.serializers[typeid(T).toString] = toSerializeRegisterWrapper(func);
+    }
+
     /**
      * Registers a deserializer for the given type.
      *
@@ -367,9 +379,15 @@ class Serializer
      * See_Also: registerSerializer
      * See_Also: Serializable.fromData
      */
-    static void registerDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg)
+    static void registerDeserializer (Derived, Base) (void delegate (ref Base, Serializer, Data) dg) if (is(T == class) || is(T == interface))
     {
         Serializer.deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(dg);
+    }
+
+    /// ditto
+    static void registerDeserializer (T) (void delegate (ref T, Serializer, Data) dg)
+    {
+        Serializer.deserializers[typeid(T).toString] = toDeserializeRegisterWrapper(dg);
     }
 
     /**
@@ -404,9 +422,15 @@ class Serializer
      * See_Also: registerSerializer
      * See_Also: Serializable.fromData
      */
-    static void registerDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func)
+    static void registerDeserializer (Derived, Base) (void function (ref Base, Serializer, Data) func) if (is(T == class) || is(T == interface))
     {
         Serializer.deserializers[typeid(Derived).toString] = toDeserializeRegisterWrapper(func);
+    }
+
+    /// ditto
+    static void registerDeserializer (T) (void function (ref T, Serializer, Data) func)
+    {
+        Serializer.deserializers[typeid(T).toString] = toDeserializeRegisterWrapper(func);
     }
 
     /**
@@ -655,7 +679,7 @@ class Serializer
      *
      * Throws: SerializationException if an error occurs
      */
-    Data serialize (T) (T value, string key = null)
+    Data serialize (T) (auto ref T value, string key = null)
     {
         mode = serializing;
 
@@ -1749,9 +1773,19 @@ class Serializer
         return new SerializeRegisterWrapper!(T)(dg);
     }
 
+    static private SerializeRegisterWrapperRef!(T) toSerializeRegisterWrapper (T) (void delegate (T, Serializer, Data) dg) if (is(T == struct))
+    {
+        return new SerializeRegisterWrapperRef!(T)(dg);
+    }
+
     static private SerializeRegisterWrapper!(T) toSerializeRegisterWrapper (T) (void function (T, Serializer, Data) func)
     {
         return new SerializeRegisterWrapper!(T)(func);
+    }
+
+    static private SerializeRegisterWrapperRef!(T) toSerializeRegisterWrapper (T) (void function (ref T, Serializer, Data) func) if (is(T == struct))
+    {
+        return new SerializeRegisterWrapperRef!(T)(func);
     }
 
     static private DeserializeRegisterWrapper!(T) toDeserializeRegisterWrapper (T) (void delegate (ref T, Serializer, Data) dg)
